@@ -964,6 +964,16 @@ updateGarageSelection();
 
 // Weather & Environment state
 let isSunsetActive = true;
+let landscapeMode = 'sunset';
+const LANDSCAPES = [
+  { id: 'sunset', label: '🌅 Sunset', mobile: '🌅 SUNSET' },
+  { id: 'day', label: '☀️ Day', mobile: '☀️ DAY' },
+  { id: 'snow', label: '❄️ Snow', mobile: '❄️ SNOW' },
+  { id: 'fog', label: '🌫️ Fog', mobile: '🌫️ FOG' },
+  { id: 'night', label: '🌙 Night', mobile: '🌙 NIGHT' },
+  { id: 'desert', label: '🏜️ Desert', mobile: '🏜️ DESERT' }
+];
+let snowParticles = [];
 let isRainActive = true;
 let rainDensity = 85;
 
@@ -1440,39 +1450,82 @@ function updateHUDLabels() {
   const weatherEl = document.getElementById('amb-weather');
   const badgeEl = document.getElementById('hud-weather-badge');
   const ambDot = document.getElementById('amb-indicator');
-
-  let titleText = "";
-  let badgeClass = "hud-badge";
-
-  if (isSunsetActive && isRainActive) {
-    titleText = "GOLDEN SUNSET • RAIN DRIFT";
-    badgeClass = "hud-badge";
-    if (weatherEl) weatherEl.textContent = "Golden Sunset Rain & Wet Asphalt";
-  } else if (isSunsetActive && !isRainActive) {
-    titleText = "GOLDEN SUNSET • DRY ASPHALT";
-    badgeClass = "hud-badge sunset-dry";
-    if (weatherEl) weatherEl.textContent = "Golden Sunset (Dry Asphalt)";
-  } else if (!isSunsetActive && isRainActive) {
-    titleText = "NIGHT RAIN • WET ASPHALT";
-    badgeClass = "hud-badge night-rain";
-    if (weatherEl) weatherEl.textContent = "Night Rain & Wet Asphalt";
-  } else {
-    titleText = "CLEAR NIGHT • DRY ASPHALT";
-    badgeClass = "hud-badge night-dry";
-    if (weatherEl) weatherEl.textContent = "Clear Starry Night (Dry Asphalt)";
+  const names = {
+    sunset: 'GOLDEN SUNSET',
+    day: 'DAYTIME DRIVE',
+    snow: 'SNOWY MOUNTAINS',
+    fog: 'MISTY FOREST',
+    night: 'CLEAR STARry NIGHT',
+    desert: 'DESERT DRIVE'
+  };
+  const weatherNames = {
+    sunset: 'Golden Sunset',
+    day: 'Bright Daylight',
+    snow: 'Snowy Mountain Forest',
+    fog: 'Foggy Forest',
+    night: 'Clear Starry Night',
+    desert: 'Desert Dunes'
+  };
+  const titleText = (names[landscapeMode] || names.sunset) +
+    (isRainActive ? ' • RAIN' : ' • DRY ASPHALT');
+  if (weatherEl) {
+    weatherEl.textContent = (weatherNames[landscapeMode] || weatherNames.sunset) +
+      (isRainActive ? ' & Wet Asphalt' : ' (Dry Asphalt)');
   }
-
   if (badgeEl) {
     badgeEl.textContent = titleText;
-    badgeEl.className = badgeClass;
+    badgeEl.className = landscapeMode === 'sunset'
+      ? (isRainActive ? 'hud-badge' : 'hud-badge sunset-dry')
+      : (landscapeMode === 'night' ? 'hud-badge night-dry' : 'hud-badge');
   }
-
   if (ambDot && !isCarInMud) {
-    ambDot.className = isSunsetActive ? 'amb-dot' : 'amb-dot night-dot';
+    ambDot.className = landscapeMode === 'sunset' || landscapeMode === 'day'
+      ? 'amb-dot' : 'amb-dot night-dot';
   }
 }
 
+function setLandscape(mode, notifyServer = true) {
+  const selected = LANDSCAPES.find(item => item.id === mode);
+  if (!selected) return;
+
+  landscapeMode = mode;
+  isSunsetActive = mode === 'sunset';
+
+  const mobileTimeBtn = document.getElementById('touch-time');
+  if (mobileTimeBtn) mobileTimeBtn.textContent = selected.mobile + ': ON';
+
+  const sunsetBtn = document.getElementById('sunset-toggle-btn');
+  if (sunsetBtn) {
+    sunsetBtn.textContent = selected.label + ' [P]';
+    sunsetBtn.className = mode === 'sunset'
+      ? 'hud-pill-btn sunset-mode'
+      : (mode === 'night' ? 'hud-pill-btn night-mode' : 'hud-pill-btn');
+  }
+
+  updateHUDLabels();
+
+  if (notifyServer) {
+    fetch('/api/toggle-sunset', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sunsetEnabled: isSunsetActive })
+    }).catch(() => {});
+  }
+
+  showToast(selected.label.split(' ')[0], selected.label + ' landscape');
+}
+
 function applySunsetState(enabled, notifyServer = false) {
+  setLandscape(enabled ? 'sunset' : 'night', notifyServer);
+}
+
+function toggleSunset(notifyServer = true) {
+  const current = LANDSCAPES.findIndex(item => item.id === landscapeMode);
+  const next = LANDSCAPES[(current + 1) % LANDSCAPES.length];
+  setLandscape(next.id, notifyServer);
+}
+
+function applyRainState(enabled, notifyServer = false) {
   isSunsetActive = enabled;
   const mobileTimeBtn = document.getElementById('touch-time');
   if (mobileTimeBtn) {
@@ -1496,13 +1549,9 @@ function applySunsetState(enabled, notifyServer = false) {
 }
 
 function toggleSunset(notifyServer = true) {
-  applySunsetState(!isSunsetActive, notifyServer);
-  showToast(
-    isSunsetActive ? '🌅' : '🌙',
-    isSunsetActive
-      ? (isRainActive ? 'Golden Sunset Rain • Warm dusk wet drifting [P]' : 'Golden Sunset Clear • Golden hour dry asphalt [P]')
-      : (isRainActive ? 'Night Rain • Slick midnight asphalt [P]' : 'Clear Starry Night • Cool night traction [P]')
-  );
+  const current = LANDSCAPES.findIndex(item => item.id === landscapeMode);
+  const next = LANDSCAPES[(current + 1) % LANDSCAPES.length];
+  setLandscape(next.id, notifyServer);
 }
 
 function applyRainState(enabled, notifyServer = false) {
@@ -1733,7 +1782,9 @@ setInterval(() => {
         lastAppliedResetId = data.resetId;
         restartCar(false);
       }
-      if (typeof data.sunsetEnabled === 'boolean' && data.sunsetEnabled !== isSunsetActive) {
+      if ((landscapeMode === 'sunset' || landscapeMode === 'night') &&
+          typeof data.sunsetEnabled === 'boolean' &&
+          data.sunsetEnabled !== isSunsetActive) {
         applySunsetState(data.sunsetEnabled, false);
       }
       if (typeof data.rainEnabled === 'boolean' && data.rainEnabled !== isRainActive) {
@@ -1762,6 +1813,34 @@ function drawLushTree(c, tree, inHeadlights, distToCar, beamDiff) {
   const swayX = Math.sin(Date.now() * 0.0016 + tree.sway) * swayIntensity;
   const swayY = Math.cos(Date.now() * 0.0012 + tree.sway) * (swayIntensity * 0.6);
 
+  if (landscapeMode === 'desert') {
+    if (tree.tier > 1) return;
+    const height = tree.r * (1.8 + (tree.species % 3) * 0.25);
+    const x = tree.x + swayX * 0.25;
+    const y = tree.y;
+    c.save();
+    c.fillStyle = '#477044';
+    c.strokeStyle = '#263f2b';
+    c.lineWidth = Math.max(2, tree.r * 0.12);
+    c.beginPath();
+    c.moveTo(x - tree.r * 0.25, y);
+    c.lineTo(x - tree.r * 0.25, y - height);
+    c.lineTo(x + tree.r * 0.25, y - height);
+    c.lineTo(x + tree.r * 0.25, y);
+    c.closePath();
+    c.fill();
+    c.stroke();
+    c.beginPath();
+    c.moveTo(x - tree.r * 0.15, y - height * 0.55);
+    c.lineTo(x - tree.r * 0.8, y - height * 0.55);
+    c.lineTo(x - tree.r * 0.8, y - height * 0.9);
+    c.moveTo(x + tree.r * 0.15, y - height * 0.38);
+    c.lineTo(x + tree.r * 0.75, y - height * 0.38);
+    c.lineTo(x + tree.r * 0.75, y - height * 0.72);
+    c.stroke();
+    c.restore();
+    return;
+  }
   if (tree.tier === 3) {
     c.fillStyle = isSunsetActive
       ? (isRainActive ? 'rgba(28, 14, 20, 0.45)' : 'rgba(32, 16, 22, 0.4)')
@@ -1790,17 +1869,39 @@ function drawLushTree(c, tree, inHeadlights, distToCar, beamDiff) {
     c.fill();
   }
 
-  const palettes = isSunsetActive
-    ? [
-        ['#140d12', '#1c1618', '#262420', '#3b3226', '#524332'],
-        ['#120c10', '#1a1416', '#221f1c', '#332c22', '#4a3d2c'],
-        ['#160e14', '#1e181b', '#2a2722', '#3e3528', '#5a4836']
-      ]
-    : [
-        ['#07140e', '#0b2418', '#103322', '#184730', '#256344'],
-        ['#06110c', '#091d15', '#0e2b20', '#143c2c', '#1f543e'],
-        ['#081610', '#0e261c', '#13392a', '#1c4e3a', '#2c6d52']
-      ];
+  const palettesByLandscape = {
+    sunset: [
+      ['#140d12','#1c1618','#262420','#3b3226','#524332'],
+      ['#120c10','#1a1416','#221f1c','#332c22','#4a3d2c'],
+      ['#160e14','#1e181b','#2a2722','#3e3528','#5a4836']
+    ],
+    day: [
+      ['#17452c','#21613a','#2e7844','#438e50','#63a85d'],
+      ['#123d29','#1c5736','#286d42','#39834e','#55a05b'],
+      ['#1c4a30','#28653d','#357b48','#4a9253','#69ad65']
+    ],
+    snow: [
+      ['#263b4c','#40596b','#60798a','#8ba0ad','#dce8ed'],
+      ['#203747','#3a5365','#587184','#8099aa','#e6eef2'],
+      ['#30495a','#4b6577','#6c8494','#9aafbb','#edf4f6']
+    ],
+    fog: [
+      ['#303b3d','#465354','#5b6969','#778483','#a0aaa5'],
+      ['#293638','#3e4d4e','#536263','#71807e','#9ba7a1'],
+      ['#364344','#4b5a5a','#647271','#84918d','#b1bbb2']
+    ],
+    night: [
+      ['#07140e','#0b2418','#103322','#184730','#256344'],
+      ['#06110c','#091d15','#0e2b20','#143c2c','#1f543e'],
+      ['#081610','#0e261c','#13392a','#1c4e3a','#2c6d52']
+    ],
+    desert: [
+      ['#66502b','#806238','#9b7743','#b18a4e','#d0a65f'],
+      ['#594526','#745832','#927044','#ad8751','#d5ad70'],
+      ['#72552d','#8c6838','#a98248','#c59a58','#e0ba79']
+    ]
+  };
+  const palettes = palettesByLandscape[landscapeMode] || palettesByLandscape.sunset;
   const p = palettes[tree.species % 3];
 
   const layerConfigs = [
@@ -2143,75 +2244,97 @@ function loop() {
   camX += (car.x - camX) * 0.08;
   camY += (car.y + cameraLookAhead - camY) * 0.08;
 
-  // Render Sky & Background
-  if (isSunsetActive) {
-    const skyGrad = ctx.createLinearGradient(0, 0, 0, h);
-    if (isRainActive) {
-      skyGrad.addColorStop(0, '#1c1020');
-      skyGrad.addColorStop(0.35, '#3b1828');
-      skyGrad.addColorStop(0.65, '#6e272b');
-      skyGrad.addColorStop(0.86, '#af4e20');
-      skyGrad.addColorStop(1, '#db722d');
-    } else {
-      skyGrad.addColorStop(0, '#141026');
-      skyGrad.addColorStop(0.3, '#341535');
-      skyGrad.addColorStop(0.58, '#6b1f37');
-      skyGrad.addColorStop(0.8, '#be461a');
-      skyGrad.addColorStop(0.93, '#e87323');
-      skyGrad.addColorStop(1, '#f7ab3e');
-    }
-    ctx.fillStyle = skyGrad;
-    ctx.fillRect(0, 0, w, h);
+  // Render Sky & Background for the selected landscape
+  const skyGrad = ctx.createLinearGradient(0, 0, 0, h);
+  const skyPalettes = {
+    sunset: ['#141026','#341535','#6b1f37','#be461a','#f7ab3e'],
+    day: ['#2878b9','#58a6dc','#9bd5ed','#d6edf2','#eaf5ee'],
+    snow: ['#243b59','#55799c','#9abbd0','#dce9ef','#f5f8fa'],
+    fog: ['#39494e','#647579','#9aa9a8','#c4ceca','#dce1dc'],
+    night: ['#030611','#080e1d','#101b2d','#142238','#1a2638'],
+    desert: ['#643b25','#a75c32','#d58b4a','#efb96b','#f8d28b']
+  };
+  const colors = skyPalettes[landscapeMode] || skyPalettes.sunset;
+  colors.forEach((color, i) => skyGrad.addColorStop(i / (colors.length - 1), color));
+  ctx.fillStyle = skyGrad;
+  ctx.fillRect(0, 0, w, h);
 
-    // Glowing Sun Disc on Horizon
-    const sunX = w * 0.5 - (camX * 0.02) % (w * 0.3);
-    const sunY = h * 0.65 - (camY * 0.015) % (h * 0.08);
-    const sunR = isRainActive ? 80 : 66;
-
-    const sunBloom = ctx.createRadialGradient(sunX, sunY, 12, sunX, sunY, sunR * 3);
-    sunBloom.addColorStop(0, isRainActive ? 'rgba(255, 210, 150, 0.55)' : 'rgba(255, 240, 195, 0.85)');
-    sunBloom.addColorStop(0.3, isRainActive ? 'rgba(235, 125, 45, 0.35)' : 'rgba(255, 155, 55, 0.55)');
-    sunBloom.addColorStop(0.65, isRainActive ? 'rgba(185, 65, 30, 0.15)' : 'rgba(215, 85, 30, 0.22)');
-    sunBloom.addColorStop(1, 'rgba(160, 45, 20, 0)');
-    ctx.fillStyle = sunBloom;
+  if (landscapeMode === 'sunset' || landscapeMode === 'day') {
+    const sunX = w * 0.72;
+    const sunY = h * (landscapeMode === 'day' ? 0.22 : 0.65);
+    const sunR = landscapeMode === 'day' ? 42 : 66;
+    const glow = ctx.createRadialGradient(sunX, sunY, 5, sunX, sunY, sunR * 3);
+    glow.addColorStop(0, 'rgba(255,245,205,0.85)');
+    glow.addColorStop(0.35, 'rgba(255,190,95,0.28)');
+    glow.addColorStop(1, 'rgba(255,180,90,0)');
+    ctx.fillStyle = glow;
     ctx.beginPath();
     ctx.arc(sunX, sunY, sunR * 3, 0, Math.PI * 2);
     ctx.fill();
-
-    ctx.fillStyle = isRainActive ? 'rgba(255, 230, 180, 0.72)' : 'rgba(255, 250, 220, 0.95)';
+    ctx.fillStyle = landscapeMode === 'day' ? '#fff4c9' : '#fff0c2';
     ctx.beginPath();
-    ctx.arc(sunX, sunY, sunR * 0.45, 0, Math.PI * 2);
+    ctx.arc(sunX, sunY, sunR * 0.48, 0, Math.PI * 2);
     ctx.fill();
+  }
 
-    // Distant mountain ridge silhouette
-    ctx.fillStyle = isRainActive ? '#150a18' : '#180c1d';
+  if (landscapeMode === 'night' && !isRainActive) {
+    ctx.fillStyle = '#ffffff';
+    stars.forEach(st => {
+      const a = st.alpha + Math.sin(Date.now() * st.twinkleSpeed + st.twinkleOffset) * 0.22;
+      ctx.globalAlpha = Math.max(0.12, Math.min(0.9, a));
+      ctx.beginPath();
+      ctx.arc(st.x, st.y, st.r, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+  }
+
+  // Distant landscape silhouette
+  const ridgeColors = {
+    sunset: '#180c1d', day: '#587b78', snow: '#d8e5eb',
+    fog: '#8b9996', night: '#080e18', desert: '#c99b4b'
+  };
+  const ridgeY = landscapeMode === 'desert' ? 0.72 : 0.75;
+  ctx.fillStyle = ridgeColors[landscapeMode] || ridgeColors.sunset;
+  ctx.beginPath();
+  ctx.moveTo(0, h * ridgeY);
+  for (let m = 0; m <= 20; m++) {
+    const mx = m * (w / 20);
+    let peak = Math.sin(m * 1.3) * 28 + Math.cos(m * 0.7) * 20;
+    if (landscapeMode === 'snow') peak += (m % 2 ? 45 : 12);
+    if (landscapeMode === 'desert') peak = Math.sin(m * 0.65) * 22 + Math.cos(m * 0.31) * 16;
+    ctx.lineTo(mx, h * ridgeY - peak);
+  }
+  ctx.lineTo(w, h);
+  ctx.lineTo(0, h);
+  ctx.closePath();
+  ctx.fill();
+
+  if (landscapeMode === 'snow') {
+    ctx.fillStyle = 'rgba(255,255,255,0.82)';
+    for (let m = 0; m < 20; m++) {
+      const mx = m * (w / 20);
+      const my = h * ridgeY - (Math.sin(m * 1.3) * 28 + Math.cos(m * 0.7) * 20 + (m % 2 ? 45 : 12));
+      ctx.beginPath();
+      ctx.moveTo(mx - 13, my + 10);
+      ctx.lineTo(mx, my - 13);
+      ctx.lineTo(mx + 13, my + 10);
+      ctx.closePath();
+      ctx.fill();
+    }
+  }
+
+  if (landscapeMode === 'desert') {
+    ctx.fillStyle = '#e4bd65';
     ctx.beginPath();
-    ctx.moveTo(0, h * 0.75);
-    const step = w / 16;
-    for (let m = 0; m <= 16; m++) {
-      const mx = m * step;
-      const my = h * 0.72 - (Math.sin(m * 1.3) * 32 + Math.cos(m * 0.7) * 20);
-      ctx.lineTo(mx, my);
+    ctx.moveTo(0, h * 0.84);
+    for (let x = 0; x <= w; x += 24) {
+      ctx.lineTo(x, h * 0.82 + Math.sin(x * 0.012) * 18 + Math.cos(x * 0.021) * 10);
     }
     ctx.lineTo(w, h);
     ctx.lineTo(0, h);
     ctx.closePath();
     ctx.fill();
-  } else {
-    ctx.fillStyle = isRainActive ? '#060a10' : '#05070d';
-    ctx.fillRect(0, 0, w, h);
-
-    if (!isRainActive) {
-      ctx.fillStyle = '#ffffff';
-      stars.forEach(st => {
-        const a = st.alpha + Math.sin(Date.now() * st.twinkleSpeed + st.twinkleOffset) * 0.22;
-        ctx.globalAlpha = Math.max(0.12, Math.min(0.9, a));
-        ctx.beginPath();
-        ctx.arc(st.x, st.y, st.r, 0, Math.PI * 2);
-        ctx.fill();
-      });
-      ctx.globalAlpha = 1.0;
-    }
   }
 
   ctx.save();
@@ -2227,9 +2350,10 @@ function loop() {
   ctx.lineWidth = 1200;
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
-  ctx.strokeStyle = isSunsetActive
-    ? (isRainActive ? '#120b12' : '#140c14')
-    : (isRainActive ? '#050c09' : '#040907');
+  ctx.strokeStyle = landscapeMode === 'desert' ? '#e8c875' : landscapeMode === 'snow' ? '#eaf2f6' :
+    (isSunsetActive
+      ? (isRainActive ? '#120b12' : '#140c14')
+      : (isRainActive ? '#050c09' : '#040907'));
   ctx.beginPath();
   roadNodes.forEach((node, i) => {
     if (i === 0) ctx.moveTo(node.x, node.y);
@@ -2238,47 +2362,52 @@ function loop() {
   ctx.stroke();
 
   ctx.lineWidth = 620;
-  ctx.strokeStyle = isSunsetActive
-    ? (isRainActive ? '#190e16' : '#1b1018')
-    : (isRainActive ? '#08140f' : '#07110d');
+  ctx.strokeStyle = landscapeMode === 'desert' ? '#d9b45e' : landscapeMode === 'snow' ? '#d5e2e9' :
+    (isSunsetActive
+      ? (isRainActive ? '#190e16' : '#1b1018')
+      : (isRainActive ? '#08140f' : '#07110d'));
   ctx.stroke();
 
   ctx.lineWidth = 370;
-  ctx.strokeStyle = '#221410';
+  ctx.strokeStyle = landscapeMode === 'desert' ? '#c99e4e' : landscapeMode === 'snow' ? '#b7c9d4' : '#221410';
   ctx.stroke();
 
   ctx.lineWidth = 310;
-  ctx.strokeStyle = '#2d1a12';
+  ctx.strokeStyle = landscapeMode === 'desert' ? '#b98b3e' : landscapeMode === 'snow' ? '#91a8b6' : '#2d1a12';
   ctx.stroke();
 
   ctx.lineWidth = 264;
-  ctx.strokeStyle = '#1e120c';
+  ctx.strokeStyle = landscapeMode === 'desert' ? '#e9ca7a' : landscapeMode === 'snow' ? '#dce8ee' : '#1e120c';
   ctx.stroke();
 
   // Asphalt Main Track
   ctx.lineWidth = 236;
-  ctx.strokeStyle = isSunsetActive
-    ? (isRainActive ? '#1b1319' : '#22181d')
-    : (isRainActive ? '#111720' : '#181e28');
+  ctx.strokeStyle = landscapeMode === 'desert' ? '#8e713e' : landscapeMode === 'snow' ? '#b9c8d1' :
+    (isSunsetActive
+      ? (isRainActive ? '#1b1319' : '#22181d')
+      : (isRainActive ? '#111720' : '#181e28'));
   ctx.stroke();
 
   if (isRainActive) {
     ctx.lineWidth = 224;
-    ctx.strokeStyle = isSunsetActive ? '#261821' : '#141d29';
+    ctx.strokeStyle = landscapeMode === 'desert' ? '#806438' : landscapeMode === 'snow' ? '#a8bbc7' :
+      (isSunsetActive ? '#261821' : '#141d29');
     ctx.stroke();
   }
 
   // Edge road marking lines
   ctx.lineWidth = 216;
-  ctx.strokeStyle = isSunsetActive
-    ? (isRainActive ? 'rgba(255, 215, 175, 0.28)' : 'rgba(255, 230, 200, 0.38)')
-    : (isRainActive ? 'rgba(255, 255, 255, 0.22)' : 'rgba(255, 255, 255, 0.32)');
+  ctx.strokeStyle = landscapeMode === 'desert' ? 'rgba(255,239,190,0.8)' : landscapeMode === 'snow' ? 'rgba(255,255,255,0.82)' :
+    (isSunsetActive
+      ? (isRainActive ? 'rgba(255, 215, 175, 0.28)' : 'rgba(255, 230, 200, 0.38)')
+      : (isRainActive ? 'rgba(255, 255, 255, 0.22)' : 'rgba(255, 255, 255, 0.32)'));
   ctx.stroke();
 
   ctx.lineWidth = 208;
-  ctx.strokeStyle = isSunsetActive
-    ? (isRainActive ? '#181116' : '#1d1519')
-    : (isRainActive ? '#121822' : '#171c26');
+  ctx.strokeStyle = landscapeMode === 'desert' ? '#98763d' : landscapeMode === 'snow' ? '#aebfca' :
+    (isSunsetActive
+      ? (isRainActive ? '#181116' : '#1d1519')
+      : (isRainActive ? '#121822' : '#171c26'));
   ctx.stroke();
 
   // Centerline Dashed Strip
@@ -2296,7 +2425,8 @@ function loop() {
   ctx.setLineDash([]);
 
   // Mud Tracks & Skids
-  ctx.fillStyle = 'rgba(42, 28, 16, 0.6)';
+  ctx.fillStyle = landscapeMode === 'snow'
+    ? 'rgba(95,115,128,0.55)' : 'rgba(42, 28, 16, 0.6)';
   mudTracks.forEach((track) => {
     ctx.beginPath();
     ctx.arc(track.x1, track.y1, 3.5, 0, Math.PI * 2);
@@ -2304,9 +2434,11 @@ function loop() {
     ctx.fill();
   });
 
-  ctx.fillStyle = isSunsetActive
-    ? (isRainActive ? 'rgba(16, 10, 14, 0.65)' : 'rgba(20, 12, 16, 0.75)')
-    : (isRainActive ? 'rgba(8, 12, 18, 0.55)' : 'rgba(10, 14, 20, 0.7)');
+  ctx.fillStyle = landscapeMode === 'snow'
+    ? 'rgba(75,91,105,0.55)'
+    : (isSunsetActive
+      ? (isRainActive ? 'rgba(16, 10, 14, 0.65)' : 'rgba(20, 12, 16, 0.75)')
+      : (isRainActive ? 'rgba(8, 12, 18, 0.55)' : 'rgba(10, 14, 20, 0.7)'));
   skids.forEach((skid) => {
     ctx.beginPath();
     ctx.arc(skid.x1, skid.y1, 2.5, 0, Math.PI * 2);
@@ -2535,6 +2667,51 @@ function loop() {
       ctx.lineTo(p.x + 3, p.y + p.len);
     });
     ctx.stroke();
+  }
+  // Snowfall and fog atmospheric overlays
+  if (landscapeMode === 'snow') {
+    const count = Math.min(150, Math.max(65, Math.floor(w * h / 8500)));
+    while (snowParticles.length < count) {
+      snowParticles.push({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        r: Math.random() * 2.5 + 1,
+        speed: Math.random() * 1.8 + 0.7,
+        drift: Math.random() * 0.8 - 0.4
+      });
+    }
+    ctx.fillStyle = 'rgba(255,255,255,0.88)';
+    snowParticles.forEach(p => {
+      p.y += p.speed;
+      p.x += p.drift + Math.sin(Date.now() * 0.001 + p.y * 0.01) * 0.35;
+      if (p.y > h + 5) { p.y = -5; p.x = Math.random() * w; }
+      if (p.x < -5) p.x = w + 5;
+      if (p.x > w + 5) p.x = -5;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fill();
+    });
+  } else if (snowParticles.length) {
+    snowParticles = [];
+  }
+
+  if (landscapeMode === 'fog') {
+    const fog = ctx.createLinearGradient(0, 0, 0, h);
+    fog.addColorStop(0, 'rgba(210,220,218,0.32)');
+    fog.addColorStop(0.45, 'rgba(210,220,218,0.16)');
+    fog.addColorStop(0.75, 'rgba(220,226,220,0.28)');
+    fog.addColorStop(1, 'rgba(220,226,220,0.42)');
+    ctx.fillStyle = fog;
+    ctx.fillRect(0, 0, w, h);
+    for (let i = 0; i < 3; i++) {
+      const y = h * (0.35 + i * 0.2) + Math.sin(Date.now() * 0.00025 + i) * 12;
+      const mist = ctx.createLinearGradient(0, y - 35, 0, y + 45);
+      mist.addColorStop(0, 'rgba(235,240,236,0)');
+      mist.addColorStop(0.5, 'rgba(235,240,236,0.18)');
+      mist.addColorStop(1, 'rgba(235,240,236,0)');
+      ctx.fillStyle = mist;
+      ctx.fillRect(0, y - 35, w, 80);
+    }
   }
 }
 
