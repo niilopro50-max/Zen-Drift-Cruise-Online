@@ -52,6 +52,8 @@
   .ov-sub { font-size: 13.5px; color: #cbd5e1; line-height: 1.55; margin-bottom: 24px; }
   .ov-btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 28px; border-radius: 999px; background: #ea580c; color: #f8fafc; font-size: 14px; font-weight: 600; border: none; cursor: pointer; box-shadow: 0 4px 18px rgba(234,88,12,0.4); }
 
+#touch-utility-buttons { display: none; }
+
 /* Mobile touch driving controls */
 #touch-controls {
   display: none;
@@ -89,7 +91,7 @@
   #touch-controls {
     position: fixed;
     inset: 0;
-    z-index: 70;
+    z-index: 110;
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
@@ -215,7 +217,7 @@
     width: max-content;
     max-width: calc(100vw - 20px);
     pointer-events: auto;
-    z-index: 85;
+    z-index: 90;
   }
 
   .touch-utility-btn {
@@ -312,11 +314,7 @@
 
 
 <div id="touch-controls">
-  <div id="touch-utility-buttons">
-    <button id="touch-restart" class="touch-utility-btn" type="button">↻ RESTART</button>
-    <button id="touch-rain" class="touch-utility-btn" type="button">🌧 RAIN: ON</button>
-    <button id="touch-time" class="touch-utility-btn" type="button">🌅 SUNSET: ON</button>
-  </div>
+
   <div id="touch-steering-buttons">
     <button id="touch-left" class="touch-drive-btn touch-steer-btn" type="button">◀<br>LEFT</button>
     <button id="touch-right" class="touch-drive-btn touch-steer-btn" type="button">▶<br>RIGHT</button>
@@ -327,6 +325,11 @@
   </div>
 </div>
 
+  <div id="touch-utility-buttons">
+    <button id="touch-restart" class="touch-utility-btn" type="button">↻ RESTART</button>
+    <button id="touch-rain" class="touch-utility-btn" type="button">🌧 RAIN: ON</button>
+    <button id="touch-time" class="touch-utility-btn" type="button">🌅 SUNSET: ON</button>
+  </div>
 <script>
 const canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d');
