@@ -300,6 +300,32 @@
   background: rgba(234,88,12,0.9);
   border-color: #fb923c;
 }
+
+#auto-drive-btn {
+  position: absolute;
+  top: 108px;
+  right: 26px;
+  left: auto;
+  z-index: 120;
+  pointer-events: auto;
+  padding: 10px 15px;
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 10px;
+  background: rgba(15,23,42,0.9);
+  color: white;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+}
+
+#auto-drive-btn.active,
+.touch-auto-drive.active {
+  background: rgba(22,101,52,0.95);
+  border-color: #4ade80;
+  color: #dcfce7;
+}
 #touch-utility-buttons { display: none; }
 
 /* Mobile touch driving controls */
@@ -511,6 +537,10 @@
   #touch-restart { border-color: rgba(244,63,94,0.65); }
 }
 
+@media (pointer: coarse), (max-width: 700px) {
+  #auto-drive-btn { display: none; }
+}
+
 </style>
 <link rel="manifest" href="/manifest.json">
 </head>
@@ -546,6 +576,7 @@
     </div>
   </div>
   <button id="pause-btn" type="button" aria-label="Pause game">Ⅱ PAUSE</button>
+  <button id="auto-drive-btn" type="button" aria-pressed="false">🤖 AUTO DRIVE: OFF</button>
   <div id="hud-toast" class="hud-toast hide">
     <span class="hud-toast-icon">🌅</span>
     <span id="hud-toast-text">Golden Sunset Active • Rain on wet asphalt</span>
@@ -711,6 +742,7 @@
     <button id="touch-rain" class="touch-utility-btn" type="button">🌧 RAIN: ON</button>
     <button id="touch-music" class="touch-utility-btn" type="button">🎵 MUSIC: LO-FI</button>
     <button id="touch-time" class="touch-utility-btn" type="button">🌅 SUNSET: ON</button>
+    <button id="touch-auto-drive" class="touch-utility-btn touch-auto-drive" type="button" aria-pressed="false">🤖 AUTO DRIVE: OFF</button>
   </div>
 <script>
 const canvas = document.getElementById('c');
@@ -728,6 +760,7 @@ window.addEventListener('resize', () => {
 let gameStarted = false;
 let gamePaused = false;
 const keys = { up: false, down: false, left: false, right: false, handbrake: false };
+let autoDriveEnabled = false;
 window.addEventListener('keydown', (e) => {
   if (e.code === 'Escape' && !e.repeat && gameStarted) {
     e.preventDefault();
@@ -735,6 +768,14 @@ window.addEventListener('keydown', (e) => {
     return;
   }
   if (!gameStarted || gamePaused) return;
+
+  if (autoDriveEnabled && [
+    'ArrowUp', 'KeyW', 'ArrowDown', 'KeyS',
+    'ArrowLeft', 'KeyA', 'ArrowRight', 'KeyD', 'Space'
+  ].includes(e.code)) {
+    setAutoDrive(false);
+  }
+
   if (['ArrowUp', 'KeyW'].includes(e.code)) keys.up = true;
   if (['ArrowDown', 'KeyS'].includes(e.code)) keys.down = true;
   if (['ArrowLeft', 'KeyA'].includes(e.code)) keys.left = true;
@@ -1517,6 +1558,43 @@ document.getElementById('touch-restart')?.addEventListener('click', () => restar
 document.getElementById('touch-rain')?.addEventListener('click', () => toggleRain(true));
 document.getElementById('touch-time')?.addEventListener('click', () => toggleSunset(true));
 
+function updateAutoDriveButtons() {
+  const label = autoDriveEnabled ? '🤖 AUTO DRIVE: ON' : '🤖 AUTO DRIVE: OFF';
+
+  ['auto-drive-btn', 'touch-auto-drive'].forEach((id) => {
+    const button = document.getElementById(id);
+    if (!button) return;
+    button.textContent = label;
+    button.classList.toggle('active', autoDriveEnabled);
+    button.setAttribute('aria-pressed', String(autoDriveEnabled));
+  });
+}
+
+function setAutoDrive(enabled) {
+  if (enabled && (!gameStarted || gamePaused)) return;
+
+  autoDriveEnabled = enabled;
+  clearDrivingKeys();
+  updateAutoDriveButtons();
+
+  showToast(
+    '🤖',
+    autoDriveEnabled
+      ? 'Auto Drive ON • Following the road'
+      : 'Auto Drive OFF • Manual control'
+  );
+}
+
+function toggleAutoDrive() {
+  setAutoDrive(!autoDriveEnabled);
+}
+
+document.getElementById('auto-drive-btn')
+  ?.addEventListener('click', toggleAutoDrive);
+
+document.getElementById('touch-auto-drive')
+  ?.addEventListener('click', toggleAutoDrive);
+
 const touchToolsToggle = document.getElementById('touch-tools-toggle');
 const touchUtilityButtons = document.getElementById('touch-utility-buttons');
 
@@ -1540,6 +1618,10 @@ document.getElementById("music-toggle-btn")?.addEventListener("click", cycleMusi
 document.getElementById("touch-music")?.addEventListener("click", cycleMusic);
 
 function restartCar(notifyServer = true) {
+  autoDriveEnabled = false;
+  clearDrivingKeys();
+  updateAutoDriveButtons();
+
   car.x = 0;
   car.y = 0;
   car.vx = 0;
@@ -1828,11 +1910,72 @@ function loop() {
 
   const steerLimit = mobileDrivingMode ? 0.045 : 0.065;
   const steerSmooth = mobileDrivingMode ? 0.10 : 0.22;
-  const targetSteer = keys.left ? -steerLimit : (keys.right ? steerLimit : 0);
+
+  let targetSteer = keys.left ? -steerLimit : (keys.right ? steerLimit : 0);
+  let autoThrottle = false;
+  let autoBrake = false;
+
+  if (autoDriveEnabled && roadNodes.length > closestIdx + 12) {
+    // Dynamic look-ahead: longer at higher speeds.
+    const lookAheadDistance = Math.max(
+      82,
+      Math.min(170, 82 + car.speed * 7)
+    );
+    const targetIndex = Math.min(
+      roadNodes.length - 1,
+      closestIdx + Math.max(2, Math.ceil(lookAheadDistance / ROAD_NODE_DIST))
+    );
+
+    const targetPoint = roadNodes[targetIndex];
+    const desiredAngle = Math.atan2(
+      targetPoint.y - car.y,
+      targetPoint.x - car.x
+    );
+
+    let headingError = desiredAngle - car.angle;
+    while (headingError > Math.PI) headingError -= Math.PI * 2;
+    while (headingError < -Math.PI) headingError += Math.PI * 2;
+
+    const steeringGain = mobileDrivingMode ? 0.90 : 0.82;
+    targetSteer = Math.max(
+      -steerLimit,
+      Math.min(steerLimit, headingError * steeringGain)
+    );
+
+    // Estimate upcoming road curvature from two road segments.
+    const a = roadNodes[closestIdx + 2];
+    const b = roadNodes[closestIdx + 4];
+    const c = roadNodes[closestIdx + 8];
+    const d = roadNodes[closestIdx + 10];
+
+    const angleA = Math.atan2(b.y - a.y, b.x - a.x);
+    const angleB = Math.atan2(d.y - c.y, d.x - c.x);
+
+    let curveDelta = angleB - angleA;
+    while (curveDelta > Math.PI) curveDelta -= Math.PI * 2;
+    while (curveDelta < -Math.PI) curveDelta += Math.PI * 2;
+
+    const curvature = Math.abs(curveDelta) / (6 * ROAD_NODE_DIST);
+    const safeCurvature = Math.max(curvature, 0.0001);
+
+    let targetSpeed = Math.sqrt(0.62 / safeCurvature);
+    targetSpeed = Math.max(
+      car.maxSpeed * 0.34,
+      Math.min(car.maxSpeed * 0.84, targetSpeed)
+    );
+
+    if (isCarInMud) targetSpeed *= 0.72;
+
+    autoThrottle = car.speed < targetSpeed - 0.18;
+    autoBrake = car.speed > targetSpeed + 0.35;
+  }
+
   car.steer += (targetSteer - car.steer) * steerSmooth;
 
   const baseAccel = isCarInMud ? car.accel * 0.4 : car.accel;
-  const accel = keys.up ? baseAccel : (keys.down ? -baseAccel * 0.55 : 0);
+  const accel = autoDriveEnabled
+    ? (autoThrottle ? baseAccel : (autoBrake ? -baseAccel * 0.55 : 0))
+    : (keys.up ? baseAccel : (keys.down ? -baseAccel * 0.55 : 0));
   const fwdX = Math.cos(car.angle);
   const fwdY = Math.sin(car.angle);
 
