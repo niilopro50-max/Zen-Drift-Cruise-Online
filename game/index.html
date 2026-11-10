@@ -162,6 +162,45 @@
   }
 }
 
+
+@media (pointer: coarse), (max-width: 700px) {
+  #joystick-base, #joystick-knob {
+    display: none !important;
+  }
+
+  #touch-controls {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  #touch-steering-buttons {
+    display: flex;
+    align-items: flex-end;
+    gap: 7px;
+    pointer-events: auto;
+  }
+
+  .touch-steer-btn {
+    width: clamp(52px, 17vw, 70px);
+    height: 76px;
+    background: rgba(71,85,105,0.88);
+  }
+
+  #touch-buttons {
+    gap: 7px;
+  }
+
+  #touch-accelerate {
+    width: clamp(55px, 18vw, 72px);
+    height: 105px;
+  }
+
+  #touch-brake {
+    width: clamp(52px, 17vw, 68px);
+    height: 78px;
+  }
+}
+
 </style>
 <link rel="manifest" href="/manifest.json">
 </head>
@@ -242,8 +281,9 @@
 
 
 <div id="touch-controls">
-  <div id="joystick-base" aria-label="Steering joystick">
-    <div id="joystick-knob"></div>
+  <div id="touch-steering-buttons">
+    <button id="touch-left" class="touch-drive-btn touch-steer-btn" type="button">◀<br>LEFT</button>
+    <button id="touch-right" class="touch-drive-btn touch-steer-btn" type="button">▶<br>RIGHT</button>
   </div>
   <div id="touch-buttons">
     <button id="touch-brake" class="touch-drive-btn" type="button">BRAKE</button>
@@ -291,75 +331,32 @@ window.addEventListener('keyup', (e) => {
 });
 
 
-// Mobile joystick and multitouch driving controls
-let touchSteer = 0;
-
-const joystickBase = document.getElementById('joystick-base');
-const joystickKnob = document.getElementById('joystick-knob');
-let joystickPointerId = null;
-
-function moveJoystick(event) {
-  const rect = joystickBase.getBoundingClientRect();
-  const maxRadius = (rect.width - joystickKnob.offsetWidth) / 2;
-  let dx = event.clientX - (rect.left + rect.width / 2);
-  let dy = event.clientY - (rect.top + rect.height / 2);
-  const distance = Math.hypot(dx, dy);
-
-  if (distance > maxRadius) {
-    dx = dx / distance * maxRadius;
-    dy = dy / distance * maxRadius;
-  }
-
-  touchSteer = dx / maxRadius;
-  joystickKnob.style.transform =
-    `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
-}
-
-function resetJoystick() {
-  joystickPointerId = null;
-  touchSteer = 0;
-  joystickKnob.style.transform = 'translate(-50%, -50%)';
-}
-
-joystickBase.addEventListener('pointerdown', (event) => {
-  event.preventDefault();
-  joystickPointerId = event.pointerId;
-  joystickBase.setPointerCapture(event.pointerId);
-  moveJoystick(event);
-});
-
-joystickBase.addEventListener('pointermove', (event) => {
-  if (event.pointerId === joystickPointerId) {
-    event.preventDefault();
-    moveJoystick(event);
-  }
-});
-
-joystickBase.addEventListener('pointerup', (event) => {
-  if (event.pointerId === joystickPointerId) resetJoystick();
-});
-
-joystickBase.addEventListener('pointercancel', resetJoystick);
-joystickBase.addEventListener('lostpointercapture', resetJoystick);
-
+// Mobile touch driving controls with independent buttons
 function setupTouchButton(id, key) {
   const button = document.getElementById(id);
+  const activePointers = new Set();
 
   button.addEventListener('pointerdown', (event) => {
     event.preventDefault();
+    activePointers.add(event.pointerId);
     keys[key] = true;
     button.setPointerCapture(event.pointerId);
   });
 
-  const release = () => {
-    keys[key] = false;
-  };
+  function release(event) {
+    if (activePointers.has(event.pointerId)) {
+      activePointers.delete(event.pointerId);
+      keys[key] = activePointers.size > 0;
+    }
+  }
 
   button.addEventListener('pointerup', release);
   button.addEventListener('pointercancel', release);
   button.addEventListener('lostpointercapture', release);
 }
 
+setupTouchButton('touch-left', 'left');
+setupTouchButton('touch-right', 'right');
 setupTouchButton('touch-accelerate', 'up');
 setupTouchButton('touch-brake', 'down');
 
@@ -395,6 +392,16 @@ const car = {
   friction: 0.972,
   lateralGrip: 0.82
 };
+
+// Slower and smoother driving on mobile devices
+const mobileDrivingMode =
+  window.matchMedia('(pointer: coarse)').matches || window.innerWidth <= 700;
+
+if (mobileDrivingMode) {
+  car.maxSpeed = 11.25;
+  car.accel = 0.24;
+}
+
 
 // Surface & mud state
 let isCarInMud = false;
