@@ -278,6 +278,27 @@
     .garage-color { width: 31px; height: 31px; }
   }
 
+#pause-btn {
+  position: absolute;
+  top: 58px;
+  right: 26px;
+  z-index: 120;
+  pointer-events: auto;
+  padding: 10px 16px;
+  border: 1px solid rgba(255,255,255,0.35);
+  border-radius: 10px;
+  background: rgba(15,23,42,0.78);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+}
+#pause-btn:hover {
+  background: rgba(234,88,12,0.9);
+  border-color: #fb923c;
+}
 #touch-utility-buttons { display: none; }
 
 /* Mobile touch driving controls */
@@ -288,6 +309,12 @@
 @media (pointer: coarse), (max-width: 700px) {
   #hud {
     padding: 12px;
+  }
+  #pause-btn {
+    top: 48px;
+    right: 12px;
+    padding: 9px 12px;
+    font-size: 10px;
   }
 
   .hud-title {
@@ -494,6 +521,7 @@
       </div>
     </div>
   </div>
+  <button id="pause-btn" type="button" aria-label="Pause game">Ⅱ PAUSE</button>
   <div id="hud-toast" class="hud-toast hide">
     <span class="hud-toast-icon">🌅</span>
     <span id="hud-toast-text">Golden Sunset Active • Rain on wet asphalt</span>
@@ -625,6 +653,14 @@
       <button class="menu-back" data-menu-back type="button">← BACK TO MENU</button>
     </section>
 
+    <section id="menu-pause-page" class="ov-page" hidden>
+      <div class="menu-eyebrow">TAKE A BREATHER</div>
+      <div class="ov-title">GAME <span>PAUSED</span></div>
+      <div class="ov-sub">Your cruise is paused. Take your time.</div>
+      <button class="ov-btn" id="resume-btn" type="button">▶ &nbsp; RESUME</button>
+      <button class="menu-back" id="pause-home-btn" type="button">⌂ &nbsp; BACK TO HOME</button>
+    </section>
+
   </div>
 </div>
 
@@ -660,9 +696,15 @@ window.addEventListener('resize', () => {
 
 // Controls
 let gameStarted = false;
+let gamePaused = false;
 const keys = { up: false, down: false, left: false, right: false, handbrake: false };
 window.addEventListener('keydown', (e) => {
-  if (!gameStarted) return;
+  if (e.code === 'Escape' && !e.repeat && gameStarted) {
+    e.preventDefault();
+    togglePause();
+    return;
+  }
+  if (!gameStarted || gamePaused) return;
   if (['ArrowUp', 'KeyW'].includes(e.code)) keys.up = true;
   if (['ArrowDown', 'KeyS'].includes(e.code)) keys.down = true;
   if (['ArrowLeft', 'KeyA'].includes(e.code)) keys.left = true;
@@ -720,17 +762,61 @@ setupTouchButton('touch-brake', 'down');
 const overlay = document.getElementById('overlay');
 
 function showMenuPage(page) {
-  ['home', 'garage-page', 'modes-page', 'settings-page'].forEach((name) => {
+  ['home', 'garage-page', 'modes-page', 'settings-page', 'pause-page'].forEach((name) => {
     document.getElementById('menu-' + name).hidden = name !== page;
   });
+}
+
+function clearDrivingKeys() {
+  Object.keys(keys).forEach((key) => {
+    keys[key] = false;
+  });
+}
+
+function togglePause() {
+  if (!gameStarted) return;
+
+  gamePaused = !gamePaused;
+
+  if (gamePaused) {
+    pausedAt = Date.now();
+  } else if (pausedAt !== null) {
+    totalPausedMs += Date.now() - pausedAt;
+    pausedAt = null;
+  }
+
+  clearDrivingKeys();
+
+  if (gamePaused) {
+    showMenuPage('pause-page');
+    overlay.classList.remove('hide');
+  } else {
+    overlay.classList.add('hide');
+    initAudio();
+  }
+}
+
+function returnToHome() {
+  gamePaused = false;
+  gameStarted = false;
+  clearDrivingKeys();
+  restartCar(false);
+  showMenuPage('home');
+  overlay.classList.remove('hide');
 }
 
 function startGame() {
   if (gameStarted) return;
   gameStarted = true;
+  gamePaused = false;
+  clearDrivingKeys();
   overlay.classList.add('hide');
   initAudio();
 }
+
+document.getElementById('pause-btn').addEventListener('click', togglePause);
+document.getElementById('resume-btn').addEventListener('click', togglePause);
+document.getElementById('pause-home-btn').addEventListener('click', returnToHome);
 
 document.getElementById('start-btn').addEventListener('click', startGame);
 document.getElementById('mode-endless').addEventListener('click', startGame);
@@ -1137,6 +1223,8 @@ function startLofiChords(ctx) {
 }
 
 let startTime = Date.now();
+let pausedAt = null;
+let totalPausedMs = 0;
 let toastTimeout = null;
 function showToast(icon, text) {
   const toast = document.getElementById('hud-toast');
@@ -1309,6 +1397,8 @@ function restartCar(notifyServer = true) {
   currentSurfaceName = isRainActive ? "Wet Asphalt (Smooth Sheen)" : "Dry Asphalt (High Grip)";
 
   startTime = Date.now();
+  pausedAt = null;
+  totalPausedMs = 0;
 
   if (mudGain && audioCtx) {
     mudGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.05);
@@ -1353,7 +1443,12 @@ function restartCar(notifyServer = true) {
 
 // Telemetry syncing
 setInterval(() => {
-  const elapsed = Math.floor((Date.now() - startTime) / 1000);
+  const currentPauseMs = gamePaused && pausedAt !== null
+    ? Date.now() - pausedAt
+    : 0;
+  const elapsed = Math.floor(
+    (Date.now() - startTime - totalPausedMs - currentPauseMs) / 1000
+  );
   const m = Math.floor(elapsed / 60);
   const s = elapsed % 60;
   const timeEl = document.getElementById('hud-time');
@@ -1509,6 +1604,7 @@ function drawLushTree(c, tree, inHeadlights, distToCar, beamDiff) {
 
 function loop() {
   requestAnimationFrame(loop);
+  if (gamePaused) return;
 
   let minDist = Infinity;
   let closestIdx = lastClosestNode;
