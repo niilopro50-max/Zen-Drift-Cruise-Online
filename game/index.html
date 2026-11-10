@@ -45,12 +45,152 @@
   .hud-toast { position: absolute; top: 76px; left: 50%; transform: translateX(-50%) translateY(0); background: rgba(18,14,24,0.94); border: 1px solid rgba(234,88,12,0.5); box-shadow: 0 8px 24px rgba(0,0,0,0.6), 0 0 16px rgba(234,88,12,0.25); backdrop-filter: blur(14px); color: #f8fafc; padding: 7px 18px; border-radius: 999px; font-size: 12.5px; font-weight: 600; display: flex; align-items: center; gap: 8px; opacity: 1; transition: opacity 0.25s ease, transform 0.25s ease; pointer-events: none; z-index: 50; }
   .hud-toast.hide { opacity: 0; transform: translateX(-50%) translateY(-8px); }
   .hud-toast-icon { font-size: 15px; color: #fb923c; }
-  #overlay { position: absolute; inset: 0; background: rgba(10,8,14,0.85); backdrop-filter: blur(8px); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; transition: opacity 0.4s ease; cursor: pointer; }
-  #overlay.hide { opacity: 0; pointer-events: none; }
-  .ov-box { text-align: center; max-width: 520px; padding: 36px 32px; border-radius: var(--k-radius, 14px); background: rgba(22,16,28,0.96); border: 1px solid rgba(255,255,255,0.14); box-shadow: 0 24px 64px rgba(0,0,0,0.7); }
-  .ov-title { font-size: 26px; font-weight: 700; color: #f8fafc; margin-bottom: 8px; }
-  .ov-sub { font-size: 13.5px; color: #cbd5e1; line-height: 1.55; margin-bottom: 24px; }
-  .ov-btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 28px; border-radius: 999px; background: #ea580c; color: #f8fafc; font-size: 14px; font-weight: 600; border: none; cursor: pointer; box-shadow: 0 4px 18px rgba(234,88,12,0.4); }
+
+  #overlay {
+    position: fixed;
+    inset: 0;
+    padding: 24px;
+    overflow-y: auto;
+    background: linear-gradient(135deg, rgba(5,8,15,0.94), rgba(20,12,24,0.88));
+    backdrop-filter: blur(14px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    transition: opacity 0.4s ease;
+    cursor: default;
+  }
+  #overlay.hide {
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
+  }
+  .ov-box {
+    width: min(100%, 560px);
+    text-align: center;
+    padding: 38px;
+    border-radius: 22px;
+    background: linear-gradient(145deg, rgba(25,29,42,0.97), rgba(13,16,26,0.98));
+    border: 1px solid rgba(255,255,255,0.13);
+    box-shadow: 0 28px 90px rgba(0,0,0,0.65);
+  }
+  .menu-eyebrow {
+    color: #fb923c;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 5px;
+    margin-bottom: 18px;
+  }
+  .ov-title {
+    font-size: clamp(38px, 8vw, 64px);
+    line-height: 0.98;
+    font-weight: 900;
+    letter-spacing: -2px;
+    color: #fff;
+    margin-bottom: 12px;
+  }
+  .ov-title span { color: #fb923c; }
+  .ov-sub {
+    color: #aab4c5;
+    font-size: 14px;
+    line-height: 1.6;
+    margin: 0 auto 25px;
+    max-width: 410px;
+  }
+  .menu-chip-row {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 25px;
+  }
+  .menu-chip {
+    padding: 7px 11px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.05);
+    color: #cbd5e1;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+  .ov-btn {
+    width: 100%;
+    min-height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 13px 24px;
+    border-radius: 12px;
+    background: linear-gradient(110deg, #ea580c, #f97316);
+    color: white;
+    font-size: 15px;
+    font-weight: 900;
+    letter-spacing: 2px;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 8px 28px rgba(234,88,12,0.28);
+    transition: transform 0.2s, filter 0.2s;
+  }
+  .ov-btn:hover { transform: translateY(-2px); filter: brightness(1.12); }
+  .menu-nav {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 9px;
+    margin-top: 12px;
+  }
+  .menu-nav button, .menu-back {
+    min-height: 45px;
+    border: 1px solid rgba(255,255,255,0.13);
+    border-radius: 10px;
+    background: rgba(255,255,255,0.055);
+    color: #e2e8f0;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+  }
+  .menu-nav button:hover, .menu-back:hover {
+    background: rgba(234,88,12,0.16);
+    border-color: rgba(251,146,60,0.6);
+  }
+  .ov-page[hidden] { display: none !important; }
+  .ov-page-title {
+    color: white;
+    font-size: 30px;
+    font-weight: 900;
+    margin: 8px 0 12px;
+  }
+  .ov-page-copy {
+    color: #aab4c5;
+    font-size: 14px;
+    line-height: 1.6;
+    margin: 0 auto 22px;
+  }
+  .menu-mode-card {
+    padding: 17px;
+    margin: 12px 0;
+    border-radius: 12px;
+    text-align: left;
+    border: 1px solid rgba(251,146,60,0.45);
+    background: rgba(234,88,12,0.09);
+    color: white;
+  }
+  .menu-mode-card small {
+    display: block;
+    color: #fb923c;
+    margin-top: 6px;
+    font-size: 10px;
+    letter-spacing: 1px;
+  }
+  .menu-back { width: 100%; margin-top: 12px; }
+  @media (max-width: 560px) {
+    #overlay { padding: 15px; }
+    .ov-box { padding: 27px 20px; }
+    .menu-nav { grid-template-columns: 1fr; }
+    .ov-title { letter-spacing: -1px; }
+  }
 
 #touch-utility-buttons { display: none; }
 
@@ -304,11 +444,76 @@
   </div>
 </div>
 
-<div id="overlay">
+<div id="overlay" role="dialog" aria-label="Zen Drift main menu">
   <div class="ov-box">
-    <div class="ov-title">Zen Sunset Drift Touge</div>
-    <div class="ov-sub">Endless touge road completely surrounded by lush mountain pine forests. Cruise and drift with a live odometer in kilometers (km), choice of a glowing Golden Sunset or Deep Night, in the rain or under clear dry skies.<br><br>Toggle Sunset on or off anytime with <span style="background:rgba(234,88,12,0.25);border:1px solid rgba(234,88,12,0.5);padding:2px 7px;border-radius:4px;color:#fb923c;font-weight:700">P</span>.<br>Toggle Rain on or off anytime with <span style="background:rgba(56,189,248,0.22);border:1px solid rgba(56,189,248,0.5);padding:2px 7px;border-radius:4px;color:#38bdf8;font-weight:700">T</span>.<br>Press <span style="background:rgba(244,63,94,0.2);border:1px solid rgba(244,63,94,0.5);padding:2px 7px;border-radius:4px;color:#f43f5e;font-weight:700">R</span> anytime to respawn on starting line and reset distance.</div>
-    <button class="ov-btn" id="start-btn">Click or press any key to Cruise</button>
+
+    <section id="menu-home" class="ov-page">
+      <div class="menu-eyebrow">ZEN DRIFT • CRUISE ONLINE</div>
+      <div class="ov-title">ZEN <span>DRIFT</span></div>
+      <div class="ov-sub">
+        Find your flow. Take the mountain road.
+        Relax, cruise and drift through the sunset.
+      </div>
+      <div class="menu-chip-row">
+        <span class="menu-chip">ENDLESS TOUGE</span>
+        <span class="menu-chip">GOLDEN SUNSET</span>
+        <span class="menu-chip">RAIN EXPERIENCE</span>
+      </div>
+      <button class="ov-btn" id="start-btn" type="button">▶ &nbsp; PLAY</button>
+      <div class="menu-nav">
+        <button id="menu-garage" type="button">GARAGE</button>
+        <button id="menu-modes" type="button">GAME MODES</button>
+        <button id="menu-settings" type="button">SETTINGS</button>
+      </div>
+    </section>
+
+    <section id="menu-garage-page" class="ov-page" hidden>
+      <div class="menu-eyebrow">YOUR COLLECTION</div>
+      <div class="ov-page-title">GARAGE</div>
+      <p class="ov-page-copy">
+        Your garage is being prepared. New cars, designs and customisation
+        options will appear here in future updates.
+      </p>
+      <div class="menu-mode-card">
+        CURRENT RIDE
+        <small>THE ORIGINAL ZEN DRIFT CAR</small>
+      </div>
+      <button class="menu-back" data-menu-back type="button">← BACK TO MENU</button>
+    </section>
+
+    <section id="menu-modes-page" class="ov-page" hidden>
+      <div class="menu-eyebrow">CHOOSE YOUR EXPERIENCE</div>
+      <div class="ov-page-title">GAME MODES</div>
+      <div class="menu-mode-card">
+        ENDLESS TOUGE
+        <small>AVAILABLE NOW • FREE DRIVE</small>
+      </div>
+      <div class="menu-mode-card" style="opacity:0.48;border-color:rgba(255,255,255,0.12)">
+        TIME ATTACK
+        <small>COMING SOON</small>
+      </div>
+      <div class="menu-mode-card" style="opacity:0.48;border-color:rgba(255,255,255,0.12)">
+        DRIFT CHALLENGE
+        <small>COMING SOON</small>
+      </div>
+      <button class="ov-btn" id="mode-endless" type="button">▶ &nbsp; PLAY ENDLESS TOUGE</button>
+      <button class="menu-back" data-menu-back type="button">← BACK TO MENU</button>
+    </section>
+
+    <section id="menu-settings-page" class="ov-page" hidden>
+      <div class="menu-eyebrow">PERSONALISE YOUR DRIVE</div>
+      <div class="ov-page-title">SETTINGS</div>
+      <p class="ov-page-copy">
+        Sound, graphics and control settings will be available here
+        in a future update.
+      </p>
+      <div class="menu-mode-card">
+        GAME SETTINGS
+        <small>MORE OPTIONS COMING SOON</small>
+      </div>
+      <button class="menu-back" data-menu-back type="button">← BACK TO MENU</button>
+    </section>
+
   </div>
 </div>
 
@@ -343,8 +548,10 @@ window.addEventListener('resize', () => {
 });
 
 // Controls
+let gameStarted = false;
 const keys = { up: false, down: false, left: false, right: false, handbrake: false };
 window.addEventListener('keydown', (e) => {
+  if (!gameStarted) return;
   if (['ArrowUp', 'KeyW'].includes(e.code)) keys.up = true;
   if (['ArrowDown', 'KeyS'].includes(e.code)) keys.down = true;
   if (['ArrowLeft', 'KeyA'].includes(e.code)) keys.left = true;
@@ -359,7 +566,7 @@ window.addEventListener('keydown', (e) => {
   if ((e.code === 'KeyR' || e.key === 'r' || e.key === 'R') && !e.repeat) {
     restartCar(true);
   }
-  dismissOverlay();
+
 });
 window.addEventListener('keyup', (e) => {
   if (['ArrowUp', 'KeyW'].includes(e.code)) keys.up = false;
@@ -400,13 +607,30 @@ setupTouchButton('touch-accelerate', 'up');
 setupTouchButton('touch-brake', 'down');
 
 const overlay = document.getElementById('overlay');
-overlay.addEventListener('click', dismissOverlay);
-function dismissOverlay() {
-  if (!overlay.classList.contains('hide')) {
-    overlay.classList.add('hide');
-    initAudio();
-  }
+
+function showMenuPage(page) {
+  ['home', 'garage-page', 'modes-page', 'settings-page'].forEach((name) => {
+    document.getElementById('menu-' + name).hidden = name !== page;
+  });
 }
+
+function startGame() {
+  if (gameStarted) return;
+  gameStarted = true;
+  overlay.classList.add('hide');
+  initAudio();
+}
+
+document.getElementById('start-btn').addEventListener('click', startGame);
+document.getElementById('mode-endless').addEventListener('click', startGame);
+
+document.getElementById('menu-garage').addEventListener('click', () => showMenuPage('garage-page'));
+document.getElementById('menu-modes').addEventListener('click', () => showMenuPage('modes-page'));
+document.getElementById('menu-settings').addEventListener('click', () => showMenuPage('settings-page'));
+
+document.querySelectorAll('[data-menu-back]').forEach((button) => {
+  button.addEventListener('click', () => showMenuPage('home'));
+});
 
 // Weather & Environment state
 let isSunsetActive = true;
