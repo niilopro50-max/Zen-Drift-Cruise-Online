@@ -41,6 +41,7 @@
   .hud-pill-btn.night-mode { background: rgba(56,189,248,0.2); border: 1px solid rgba(56,189,248,0.45); color: #bae6fd; }
   .hud-pill-btn.rain-mode { background: rgba(56,189,248,0.2); border: 1px solid rgba(56,189,248,0.45); color: #bae6fd; }
   .hud-pill-btn.dry-mode { background: rgba(245,158,11,0.2); border: 1px solid rgba(245,158,11,0.45); color: #fde68a; }
+  .hud-pill-btn.music-mode { background: rgba(168,85,247,0.2); border: 1px solid rgba(168,85,247,0.45); color: #e9d5ff; }
   .hud-pill-btn:hover { transform: scale(1.04); }
   .hud-toast { position: absolute; top: 76px; left: 50%; transform: translateX(-50%) translateY(0); background: rgba(18,14,24,0.94); border: 1px solid rgba(234,88,12,0.5); box-shadow: 0 8px 24px rgba(0,0,0,0.6), 0 0 16px rgba(234,88,12,0.25); backdrop-filter: blur(14px); color: #f8fafc; padding: 7px 18px; border-radius: 999px; font-size: 12.5px; font-weight: 600; display: flex; align-items: center; gap: 8px; opacity: 1; transition: opacity 0.25s ease, transform 0.25s ease; pointer-events: none; z-index: 50; }
   .hud-toast.hide { opacity: 0; transform: translateX(-50%) translateY(-8px); }
@@ -458,19 +459,42 @@
 
 
 @media (pointer: coarse), (max-width: 700px) {
-  #touch-utility-buttons {
+  .touch-utility-toggle {
+    display: inline-flex;
     position: fixed;
     top: 88px;
-    left: 50%;
-    transform: translateX(-50%);
+    right: 12px;
+    z-index: 125;
+    padding: 9px 13px;
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 10px;
+    background: rgba(15,23,42,0.9);
+    color: white;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+
+  #touch-utility-buttons {
+    position: fixed;
+    top: 132px;
+    right: 12px;
+    left: auto;
+    transform: none;
     display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
+    flex-direction: column;
+    align-items: stretch;
     gap: 6px;
     width: max-content;
-    max-width: calc(100vw - 20px);
+    max-width: calc(100vw - 24px);
     pointer-events: auto;
     z-index: 90;
+  }
+
+  #touch-utility-buttons.collapsed {
+    display: none;
   }
 
   .touch-utility-btn {
@@ -547,6 +571,9 @@
       </div>
       <div class="amb-item">
         <button id="rain-toggle-btn" class="hud-pill-btn rain-mode">🌧 Rain: ON [T]</button>
+      </div>
+      <div class="amb-item">
+        <button id="music-toggle-btn" class="hud-pill-btn music-mode" type="button">🎵 Music: Lo-fi [M]</button>
       </div>
       <div class="amb-item" style="opacity: 0.5;">•</div>
       <div class="amb-item"><span class="amb-dot" id="amb-indicator"></span><span id="amb-weather">Golden Sunset Rain & Wet Asphalt</span></div>
@@ -677,9 +704,12 @@
   </div>
 </div>
 
-  <div id="touch-utility-buttons">
+  <button id="touch-tools-toggle" class="touch-utility-toggle" type="button"
+    aria-expanded="false" aria-controls="touch-utility-buttons">☰ TOOLS</button>
+  <div id="touch-utility-buttons" class="collapsed">
     <button id="touch-restart" class="touch-utility-btn" type="button">↻ RESTART</button>
     <button id="touch-rain" class="touch-utility-btn" type="button">🌧 RAIN: ON</button>
+    <button id="touch-music" class="touch-utility-btn" type="button">🎵 MUSIC: LO-FI</button>
     <button id="touch-time" class="touch-utility-btn" type="button">🌅 SUNSET: ON</button>
   </div>
 <script>
@@ -715,6 +745,9 @@ window.addEventListener('keydown', (e) => {
   }
   if ((e.code === 'KeyT' || e.key === 't' || e.key === 'T') && !e.repeat) {
     toggleRain(true);
+  }
+  if ((e.code === 'KeyM' || e.key === 'm' || e.key === 'M') && !e.repeat) {
+    cycleMusic();
   }
   if ((e.code === 'KeyR' || e.key === 'r' || e.key === 'R') && !e.repeat) {
     restartCar(true);
@@ -1131,8 +1164,8 @@ function initAudio() {
     mudGain.connect(audioCtx.destination);
     mudOsc.start();
 
-    startLofiChords(audioCtx);
     isAudioActive = true;
+    startSelectedMusic();
   } catch(e) {
     console.error("Audio init error:", e);
   }
@@ -1160,17 +1193,81 @@ function playTreeRustle() {
   } catch(e) {}
 }
 
-function startLofiChords(ctx) {
-  const chords = [
-    [146.83, 174.61, 220.00, 261.63, 329.63],
-    [98.00, 174.61, 246.94, 329.63],
-    [130.81, 164.81, 196.00, 246.94, 293.66],
-    [110.00, 196.00, 261.63, 329.63]
-  ];
+const MUSIC_TRACKS = [
+  {
+    name: "Lo-fi Chill",
+    short: "LO-FI",
+    chords: [
+      [146.83, 174.61, 220.00, 261.63, 329.63],
+      [98.00, 174.61, 246.94, 329.63],
+      [130.81, 164.81, 196.00, 246.94, 293.66],
+      [110.00, 196.00, 261.63, 329.63]
+    ],
+    waveform: "sine", interval: 3333, duration: 3.8,
+    gain: 0.045, filter: 850, kick: true
+  },
+  {
+    name: "Ambient Drift",
+    short: "AMBIENT",
+    chords: [
+      [130.81, 196.00, 261.63, 392.00],
+      [110.00, 164.81, 220.00, 329.63],
+      [146.83, 220.00, 293.66, 440.00],
+      [98.00, 146.83, 196.00, 293.66]
+    ],
+    waveform: "sine", interval: 4800, duration: 5.4,
+    gain: 0.032, filter: 650, kick: false
+  },
+  {
+    name: "Night Drive",
+    short: "NIGHT",
+    chords: [
+      [110.00, 164.81, 220.00, 261.63],
+      [82.41, 123.47, 164.81, 246.94],
+      [98.00, 146.83, 196.00, 293.66],
+      [87.31, 130.81, 174.61, 261.63]
+    ],
+    waveform: "triangle", interval: 3600, duration: 4.2,
+    gain: 0.038, filter: 1050, kick: false, bass: 55
+  },
+  {
+    name: "Piano Dreams",
+    short: "PIANO",
+    chords: [
+      [261.63, 329.63, 392.00, 523.25],
+      [220.00, 261.63, 329.63, 440.00],
+      [196.00, 293.66, 392.00, 493.88],
+      [174.61, 261.63, 349.23, 440.00]
+    ],
+    waveform: "triangle", interval: 2800, duration: 2.2,
+    gain: 0.052, filter: 1500, kick: false
+  },
+  { name: "Music Off", short: "OFF", off: true }
+];
+
+let selectedMusicIndex = 0;
+let musicStopper = null;
+let musicBus = null;
+
+function updateMusicButtons() {
+  const track = MUSIC_TRACKS[selectedMusicIndex];
+  const desktop = document.getElementById("music-toggle-btn");
+  const mobile = document.getElementById("touch-music");
+  const label = document.getElementById("amb-music");
+
+  if (desktop) desktop.textContent = `🎵 Music: ${track.name} [M]`;
+  if (mobile) mobile.textContent = `🎵 MUSIC: ${track.short}`;
+  if (label) label.textContent = track.off ? "Music Off" : track.name;
+}
+
+function startLofiChords(ctx, config, output) {
+  const chords = config.chords;
   let chordIdx = 0;
+  let timer = null;
 
   function playChord() {
-    if (!ctx) return;
+    if (!ctx || ctx.state === "closed") return;
+
     const now = ctx.currentTime;
     const notes = chords[chordIdx % chords.length];
     chordIdx++;
@@ -1180,47 +1277,106 @@ function startLofiChords(ctx) {
       const oscGain = ctx.createGain();
       const lpf = ctx.createBiquadFilter();
 
-      osc.type = 'sine';
+      osc.type = config.waveform;
       osc.frequency.value = freq;
 
-      const vibrato = ctx.createOscillator();
-      const vibGain = ctx.createGain();
-      vibrato.frequency.value = 0.28;
-      vibGain.gain.value = 0.7;
-      vibrato.connect(osc.frequency);
-      vibrato.start(now);
+      lpf.type = "lowpass";
+      lpf.frequency.value = config.filter;
 
-      lpf.type = 'lowpass';
-      lpf.frequency.value = 850;
+      const attack = config.off ? 0.1 : 0.22;
+      const end = config.duration;
 
       oscGain.gain.setValueAtTime(0.0001, now);
-      oscGain.gain.linearRampToValueAtTime(0.045, now + 0.15);
-      oscGain.gain.exponentialRampToValueAtTime(0.0001, now + 3.8);
+      oscGain.gain.linearRampToValueAtTime(config.gain, now + attack);
+      oscGain.gain.exponentialRampToValueAtTime(0.0001, now + end);
 
       osc.connect(lpf);
       lpf.connect(oscGain);
-      oscGain.connect(ctx.destination);
+      oscGain.connect(output);
 
       osc.start(now);
-      osc.stop(now + 4.0);
+      osc.stop(now + end + 0.1);
     });
 
-    const kickOsc = ctx.createOscillator();
-    const kickGain = ctx.createGain();
-    kickOsc.frequency.setValueAtTime(65, now);
-    kickOsc.frequency.exponentialRampToValueAtTime(28, now + 0.2);
-    kickGain.gain.setValueAtTime(0.12, now);
-    kickGain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
-    kickOsc.connect(kickGain);
-    kickGain.connect(ctx.destination);
-    kickOsc.start(now);
-    kickOsc.stop(now + 0.25);
+    if (config.bass) {
+      const bass = ctx.createOscillator();
+      const bassGain = ctx.createGain();
+      bass.type = "sine";
+      bass.frequency.setValueAtTime(config.bass, now);
+      bassGain.gain.setValueAtTime(0.0001, now);
+      bassGain.gain.linearRampToValueAtTime(0.035, now + 0.3);
+      bassGain.gain.exponentialRampToValueAtTime(0.0001, now + 2.5);
+      bass.connect(bassGain);
+      bassGain.connect(output);
+      bass.start(now);
+      bass.stop(now + 2.6);
+    }
 
-    setTimeout(playChord, 3333);
+    if (config.kick) {
+      const kickOsc = ctx.createOscillator();
+      const kickGain = ctx.createGain();
+      kickOsc.frequency.setValueAtTime(65, now);
+      kickOsc.frequency.exponentialRampToValueAtTime(28, now + 0.2);
+      kickGain.gain.setValueAtTime(0.12, now);
+      kickGain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+      kickOsc.connect(kickGain);
+      kickGain.connect(output);
+      kickOsc.start(now);
+      kickOsc.stop(now + 0.25);
+    }
+
+    timer = setTimeout(playChord, config.interval);
   }
 
   playChord();
+  return () => {
+    if (timer !== null) clearTimeout(timer);
+  };
 }
+
+function startSelectedMusic() {
+  updateMusicButtons();
+
+  if (!audioCtx) return;
+
+  if (musicStopper) {
+    musicStopper();
+    musicStopper = null;
+  }
+
+  const oldBus = musicBus;
+  musicBus = null;
+
+  if (oldBus) {
+    const now = audioCtx.currentTime;
+    oldBus.gain.cancelScheduledValues(now);
+    oldBus.gain.setTargetAtTime(0, now, 0.22);
+    setTimeout(() => {
+      try { oldBus.disconnect(); } catch (e) {}
+    }, 1200);
+  }
+
+  const track = MUSIC_TRACKS[selectedMusicIndex];
+  if (track.off) return;
+
+  const bus = audioCtx.createGain();
+  bus.gain.setValueAtTime(0, audioCtx.currentTime);
+  bus.gain.linearRampToValueAtTime(0.62, audioCtx.currentTime + 1.1);
+  bus.connect(audioCtx.destination);
+
+  musicBus = bus;
+  musicStopper = startLofiChords(audioCtx, track, bus);
+}
+
+function cycleMusic() {
+  selectedMusicIndex = (selectedMusicIndex + 1) % MUSIC_TRACKS.length;
+  startSelectedMusic();
+
+  const track = MUSIC_TRACKS[selectedMusicIndex];
+  showToast("🎵", track.off ? "Music turned off" : `Now playing: ${track.name}`);
+}
+
+updateMusicButtons();
 
 let startTime = Date.now();
 let pausedAt = null;
@@ -1361,6 +1517,16 @@ document.getElementById('touch-restart')?.addEventListener('click', () => restar
 document.getElementById('touch-rain')?.addEventListener('click', () => toggleRain(true));
 document.getElementById('touch-time')?.addEventListener('click', () => toggleSunset(true));
 
+const touchToolsToggle = document.getElementById('touch-tools-toggle');
+const touchUtilityButtons = document.getElementById('touch-utility-buttons');
+
+touchToolsToggle?.addEventListener('click', () => {
+  const isExpanded = touchToolsToggle.getAttribute('aria-expanded') === 'true';
+  touchToolsToggle.setAttribute('aria-expanded', String(!isExpanded));
+  touchToolsToggle.textContent = isExpanded ? '☰ TOOLS' : '✕ CLOSE';
+  touchUtilityButtons?.classList.toggle('collapsed', isExpanded);
+});
+
 const sunsetBtn = document.getElementById('sunset-toggle-btn');
 if (sunsetBtn) {
   sunsetBtn.addEventListener('click', () => toggleSunset(true));
@@ -1369,6 +1535,9 @@ const rainBtn = document.getElementById('rain-toggle-btn');
 if (rainBtn) {
   rainBtn.addEventListener('click', () => toggleRain(true));
 }
+
+document.getElementById("music-toggle-btn")?.addEventListener("click", cycleMusic);
+document.getElementById("touch-music")?.addEventListener("click", cycleMusic);
 
 function restartCar(notifyServer = true) {
   car.x = 0;
