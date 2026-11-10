@@ -1,0 +1,1427 @@
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Zen Cruise • Golden Sunset & Rain Drift Touge</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0c0810; color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; overflow: hidden; user-select: none; width: 100%; height: 100%; position: relative; }
+  canvas { display: block; width: 100%; height: 100%; }
+  #hud { position: absolute; inset: 0; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; padding: 22px 26px; }
+  .hud-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .hud-brand { display: flex; flex-direction: column; gap: 4px; }
+  .hud-tag { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #ea580c; }
+  .hud-title { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; color: #f8fafc; display: flex; align-items: center; gap: 10px; }
+  .hud-badge { font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 999px; background: rgba(234,88,12,0.2); border: 1px solid rgba(234,88,12,0.45); color: #fb923c; transition: all 0.3s ease; }
+  .hud-badge.sunset-dry { background: rgba(245,158,11,0.2); border-color: rgba(245,158,11,0.45); color: #fcd34d; }
+  .hud-badge.night-rain { background: rgba(56,189,248,0.2); border-color: rgba(56,189,248,0.45); color: #38bdf8; }
+  .hud-badge.night-dry { background: rgba(52,211,153,0.18); border-color: rgba(52,211,153,0.4); color: #34d399; }
+  .hud-stats { display: flex; gap: 18px; text-align: right; }
+  .stat-box { display: flex; flex-direction: column; }
+  .stat-val { font-size: 21px; font-weight: 700; font-variant-numeric: tabular-nums; color: #f8fafc; }
+  .stat-val.stat-km { color: #fb923c; }
+  .stat-lbl { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: #94a3b8; }
+  .hud-surface-val { font-size: 15px; font-weight: 700; letter-spacing: 0.02em; transition: color 0.2s ease; }
+  .hud-surface-val.on-asphalt { color: #fb923c; }
+  .hud-surface-val.in-mud { color: #f97316; text-shadow: 0 0 10px rgba(249,115,22,0.6); }
+  .hud-bottom { display: flex; justify-content: space-between; align-items: flex-end; }
+  .hud-ctrls { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #cbd5e1; background: rgba(18,14,24,0.85); backdrop-filter: blur(14px); padding: 8px 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.12); }
+  .key { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 4px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.22); font-size: 11px; font-weight: 600; color: #f8fafc; }
+  .key.sunset-key { color: #fb923c; border-color: rgba(251,146,60,0.5); background: rgba(234,88,12,0.18); font-weight: 700; }
+  .key.rain-key { color: #38bdf8; border-color: rgba(56,189,248,0.5); background: rgba(56,189,248,0.15); font-weight: 700; }
+  .key.rst-key { color: #f43f5e; border-color: rgba(244,63,94,0.5); background: rgba(244,63,94,0.15); font-weight: 700; }
+  .hud-ambiance { display: flex; align-items: center; gap: 10px; background: rgba(18,14,24,0.85); backdrop-filter: blur(14px); padding: 8px 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.12); }
+  .amb-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #e2e8f0; }
+  .amb-dot { width: 6px; height: 6px; border-radius: 50%; background: #ea580c; box-shadow: 0 0 8px #ea580c; transition: all 0.3s ease; }
+  .amb-dot.night-dot { background: #38bdf8; box-shadow: 0 0 8px #38bdf8; }
+  .amb-dot.mud-alert { background: #f97316; box-shadow: 0 0 8px #f97316; }
+  .hud-pill-btn { pointer-events: auto; cursor: pointer; border: none; font: inherit; display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; transition: all 0.2s ease; }
+  .hud-pill-btn.sunset-mode { background: rgba(234,88,12,0.22); border: 1px solid rgba(234,88,12,0.5); color: #fed7aa; }
+  .hud-pill-btn.night-mode { background: rgba(56,189,248,0.2); border: 1px solid rgba(56,189,248,0.45); color: #bae6fd; }
+  .hud-pill-btn.rain-mode { background: rgba(56,189,248,0.2); border: 1px solid rgba(56,189,248,0.45); color: #bae6fd; }
+  .hud-pill-btn.dry-mode { background: rgba(245,158,11,0.2); border: 1px solid rgba(245,158,11,0.45); color: #fde68a; }
+  .hud-pill-btn:hover { transform: scale(1.04); }
+  .hud-toast { position: absolute; top: 76px; left: 50%; transform: translateX(-50%) translateY(0); background: rgba(18,14,24,0.94); border: 1px solid rgba(234,88,12,0.5); box-shadow: 0 8px 24px rgba(0,0,0,0.6), 0 0 16px rgba(234,88,12,0.25); backdrop-filter: blur(14px); color: #f8fafc; padding: 7px 18px; border-radius: 999px; font-size: 12.5px; font-weight: 600; display: flex; align-items: center; gap: 8px; opacity: 1; transition: opacity 0.25s ease, transform 0.25s ease; pointer-events: none; z-index: 50; }
+  .hud-toast.hide { opacity: 0; transform: translateX(-50%) translateY(-8px); }
+  .hud-toast-icon { font-size: 15px; color: #fb923c; }
+  #overlay { position: absolute; inset: 0; background: rgba(10,8,14,0.85); backdrop-filter: blur(8px); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; transition: opacity 0.4s ease; cursor: pointer; }
+  #overlay.hide { opacity: 0; pointer-events: none; }
+  .ov-box { text-align: center; max-width: 520px; padding: 36px 32px; border-radius: var(--k-radius, 14px); background: rgba(22,16,28,0.96); border: 1px solid rgba(255,255,255,0.14); box-shadow: 0 24px 64px rgba(0,0,0,0.7); }
+  .ov-title { font-size: 26px; font-weight: 700; color: #f8fafc; margin-bottom: 8px; }
+  .ov-sub { font-size: 13.5px; color: #cbd5e1; line-height: 1.55; margin-bottom: 24px; }
+  .ov-btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 28px; border-radius: 999px; background: #ea580c; color: #f8fafc; font-size: 14px; font-weight: 600; border: none; cursor: pointer; box-shadow: 0 4px 18px rgba(234,88,12,0.4); }
+</style>
+<link rel="manifest" href="/manifest.json">
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="hud">
+  <div class="hud-top">
+    <div class="hud-brand">
+      <span class="hud-tag">VoiceOS Experience</span>
+      <div class="hud-title">Zen Cruise <span class="hud-badge" id="hud-weather-badge">GOLDEN SUNSET • RAIN DRIFT</span></div>
+    </div>
+    <div class="hud-stats">
+      <div class="stat-box">
+        <span class="stat-val hud-surface-val on-asphalt" id="hud-surface">ASPHALT</span>
+        <span class="stat-lbl">Road Surface</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-val" id="hud-speed">0</span>
+        <span class="stat-lbl">Speed (mph)</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-val stat-km" id="hud-dist">0.00 km</span>
+        <span class="stat-lbl">Odometer (km)</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-val" id="hud-drift">0°</span>
+        <span class="stat-lbl">Drift Angle</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-val" id="hud-time">00:00</span>
+        <span class="stat-lbl">Cruise Time</span>
+      </div>
+    </div>
+  </div>
+  <div id="hud-toast" class="hud-toast hide">
+    <span class="hud-toast-icon">🌅</span>
+    <span id="hud-toast-text">Golden Sunset Active • Rain on wet asphalt</span>
+  </div>
+  <div class="hud-bottom">
+    <div class="hud-ctrls">
+      <span>Steer:</span>
+      <span class="key">W</span><span class="key">A</span><span class="key">S</span><span class="key">D</span>
+      <span style="opacity:0.4; margin:0 2px;">/</span>
+      <span class="key">←</span><span class="key">↑</span><span class="key">↓</span><span class="key">→</span>
+      <span style="margin-left: 6px;">Brake:</span>
+      <span class="key" style="min-width: 40px;">Space</span>
+      <span style="margin-left: 8px;">Sunset:</span>
+      <span class="key sunset-key">P</span>
+      <span style="margin-left: 6px;">Rain:</span>
+      <span class="key rain-key">T</span>
+      <span style="margin-left: 6px;">Restart:</span>
+      <span class="key rst-key">R</span>
+    </div>
+    <div class="hud-ambiance">
+      <div class="amb-item">
+        <button id="sunset-toggle-btn" class="hud-pill-btn sunset-mode">🌅 Sunset: ON [P]</button>
+      </div>
+      <div class="amb-item">
+        <button id="rain-toggle-btn" class="hud-pill-btn rain-mode">🌧 Rain: ON [T]</button>
+      </div>
+      <div class="amb-item" style="opacity: 0.5;">•</div>
+      <div class="amb-item"><span class="amb-dot" id="amb-indicator"></span><span id="amb-weather">Golden Sunset Rain & Wet Asphalt</span></div>
+      <div class="amb-item" style="opacity: 0.5;">•</div>
+      <div class="amb-item"><span id="amb-trees">Pine Forest All Around</span></div>
+      <div class="amb-item" style="opacity: 0.5;">•</div>
+      <div class="amb-item"><span id="amb-music">Chill Lo-fi Beat Loop</span></div>
+    </div>
+  </div>
+</div>
+
+<div id="overlay">
+  <div class="ov-box">
+    <div class="ov-title">Zen Sunset Drift Touge</div>
+    <div class="ov-sub">Endless touge road completely surrounded by lush mountain pine forests. Cruise and drift with a live odometer in kilometers (km), choice of a glowing Golden Sunset or Deep Night, in the rain or under clear dry skies.<br><br>Toggle Sunset on or off anytime with <span style="background:rgba(234,88,12,0.25);border:1px solid rgba(234,88,12,0.5);padding:2px 7px;border-radius:4px;color:#fb923c;font-weight:700">P</span>.<br>Toggle Rain on or off anytime with <span style="background:rgba(56,189,248,0.22);border:1px solid rgba(56,189,248,0.5);padding:2px 7px;border-radius:4px;color:#38bdf8;font-weight:700">T</span>.<br>Press <span style="background:rgba(244,63,94,0.2);border:1px solid rgba(244,63,94,0.5);padding:2px 7px;border-radius:4px;color:#f43f5e;font-weight:700">R</span> anytime to respawn on starting line and reset distance.</div>
+    <button class="ov-btn" id="start-btn">Click or press any key to Cruise</button>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+let w = canvas.width = window.innerWidth;
+let h = canvas.height = window.innerHeight;
+
+window.addEventListener('resize', () => {
+  w = canvas.width = window.innerWidth;
+  h = canvas.height = window.innerHeight;
+  initStars();
+});
+
+// Controls
+const keys = { up: false, down: false, left: false, right: false, handbrake: false };
+window.addEventListener('keydown', (e) => {
+  if (['ArrowUp', 'KeyW'].includes(e.code)) keys.up = true;
+  if (['ArrowDown', 'KeyS'].includes(e.code)) keys.down = true;
+  if (['ArrowLeft', 'KeyA'].includes(e.code)) keys.left = true;
+  if (['ArrowRight', 'KeyD'].includes(e.code)) keys.right = true;
+  if (e.code === 'Space') keys.handbrake = true;
+  if ((e.code === 'KeyP' || e.key === 'p' || e.key === 'P') && !e.repeat) {
+    toggleSunset(true);
+  }
+  if ((e.code === 'KeyT' || e.key === 't' || e.key === 'T') && !e.repeat) {
+    toggleRain(true);
+  }
+  if ((e.code === 'KeyR' || e.key === 'r' || e.key === 'R') && !e.repeat) {
+    restartCar(true);
+  }
+  dismissOverlay();
+});
+window.addEventListener('keyup', (e) => {
+  if (['ArrowUp', 'KeyW'].includes(e.code)) keys.up = false;
+  if (['ArrowDown', 'KeyS'].includes(e.code)) keys.down = false;
+  if (['ArrowLeft', 'KeyA'].includes(e.code)) keys.left = false;
+  if (['ArrowRight', 'KeyD'].includes(e.code)) keys.right = false;
+  if (e.code === 'Space') keys.handbrake = false;
+});
+
+const overlay = document.getElementById('overlay');
+overlay.addEventListener('click', dismissOverlay);
+function dismissOverlay() {
+  if (!overlay.classList.contains('hide')) {
+    overlay.classList.add('hide');
+    initAudio();
+  }
+}
+
+// Weather & Environment state
+let isSunsetActive = true;
+let isRainActive = true;
+let rainDensity = 85;
+
+// Distance tracking in kilometers (km)
+let totalDistanceKm = 0;
+
+// Car physics state
+const car = {
+  x: 0,
+  y: 0,
+  vx: 0,
+  vy: 0,
+  angle: -Math.PI / 2,
+  speed: 0,
+  driftAngle: 0,
+  steer: 0,
+  maxSpeed: 15.0,
+  accel: 0.33,
+  friction: 0.972,
+  lateralGrip: 0.82
+};
+
+// Surface & mud state
+let isCarInMud = false;
+let currentSurfaceName = "Wet Asphalt (Sunset Sheen)";
+let lastClosestNode = 0;
+
+// Camera
+let camX = 0;
+let camY = 0;
+
+// Skid marks, mud tracks, spray particles, smoke particles, mud clods, and leaf particles
+const skids = [];
+const mudTracks = [];
+const sprayParticles = [];
+const smokeParticles = [];
+const mudParticles = [];
+const leafParticles = [];
+
+// Trees planted all around road
+const trees = [];
+
+// Procedural Road spline
+const roadNodes = [];
+const ROAD_NODE_DIST = 44;
+let curveMultiplier = 1.7;
+
+// Clear sky stars
+const stars = [];
+function initStars() {
+  stars.length = 0;
+  for (let i = 0; i < 110; i++) {
+    stars.push({
+      x: Math.random() * w,
+      y: Math.random() * (h * 0.75),
+      r: Math.random() * 1.5 + 0.4,
+      alpha: Math.random() * 0.6 + 0.25,
+      twinkleSpeed: Math.random() * 0.03 + 0.012,
+      twinkleOffset: Math.random() * Math.PI * 2
+    });
+  }
+}
+initStars();
+
+function generateTreesForNode(index, x, y, angle) {
+  if (index < 4) return;
+  const nx = -Math.sin(angle);
+  const ny = Math.cos(angle);
+
+  function spawnBands(sideSign) {
+    if (Math.random() < 0.72) {
+      const dist = sideSign * (124 + Math.random() * 42);
+      trees.push({
+        x: x + nx * dist,
+        y: y + ny * dist,
+        r: 16 + Math.random() * 9,
+        species: Math.floor(Math.random() * 3),
+        shade: Math.floor(Math.random() * 3),
+        sway: Math.random() * Math.PI * 2,
+        tier: 0,
+        trunkR: 3.5 + Math.random() * 1.5,
+        hitCooldown: 0
+      });
+    }
+
+    if (Math.random() < 0.88) {
+      const dist = sideSign * (170 + Math.random() * 150);
+      trees.push({
+        x: x + nx * dist,
+        y: y + ny * dist,
+        r: 22 + Math.random() * 14,
+        species: Math.floor(Math.random() * 3),
+        shade: Math.floor(Math.random() * 3),
+        sway: Math.random() * Math.PI * 2,
+        tier: 1,
+        trunkR: 4.5 + Math.random() * 2,
+        hitCooldown: 0
+      });
+    }
+
+    if (Math.random() < 0.92) {
+      const dist = sideSign * (330 + Math.random() * 310);
+      trees.push({
+        x: x + nx * dist,
+        y: y + ny * dist,
+        r: 28 + Math.random() * 20,
+        species: Math.floor(Math.random() * 3),
+        shade: Math.floor(Math.random() * 3),
+        sway: Math.random() * Math.PI * 2,
+        tier: 2,
+        trunkR: 5 + Math.random() * 2.5,
+        hitCooldown: 0
+      });
+    }
+
+    if (Math.random() < 0.65) {
+      const dist = sideSign * (650 + Math.random() * 300);
+      trees.push({
+        x: x + nx * dist,
+        y: y + ny * dist,
+        r: 34 + Math.random() * 24,
+        species: Math.floor(Math.random() * 3),
+        shade: Math.floor(Math.random() * 3),
+        sway: Math.random() * Math.PI * 2,
+        tier: 3,
+        trunkR: 6 + Math.random() * 3,
+        hitCooldown: 0
+      });
+    }
+  }
+
+  spawnBands(-1);
+  spawnBands(1);
+}
+
+function extendRoad(targetCount) {
+  while (roadNodes.length < targetCount) {
+    const i = roadNodes.length;
+    let prevX = 0;
+    let prevY = 0;
+    if (i > 0) {
+      prevX = roadNodes[i - 1].x;
+      prevY = roadNodes[i - 1].y;
+    }
+    const sCurve = Math.sin(i * 0.13 * curveMultiplier) * 0.74;
+    const hairPin = Math.sin(i * 0.052 * curveMultiplier) * 0.46;
+    const microWiggle = Math.cos(i * 0.28 * curveMultiplier) * 0.18;
+    const angle = -Math.PI / 2 + (i < 8 ? 0 : sCurve + hairPin + microWiggle);
+    const newNode = {
+      x: prevX + Math.cos(angle) * ROAD_NODE_DIST,
+      y: prevY + Math.sin(angle) * ROAD_NODE_DIST
+    };
+    roadNodes.push(newNode);
+
+    if (i >= 4) {
+      generateTreesForNode(i, newNode.x, newNode.y, angle);
+    }
+  }
+}
+
+extendRoad(1400);
+
+let rainParticles = [];
+function updateRainParticles(count) {
+  rainParticles = [];
+  for (let i = 0; i < count; i++) {
+    rainParticles.push({
+      x: Math.random() * w,
+      y: Math.random() * h,
+      len: Math.random() * 18 + 10,
+      speed: Math.random() * 10 + 16,
+      opacity: Math.random() * 0.4 + 0.3
+    });
+  }
+}
+updateRainParticles(320);
+
+let audioCtx = null;
+let isAudioActive = false;
+let rainGain = null;
+let mudGain = null;
+
+function initAudio() {
+  if (isAudioActive) return;
+  try {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    const bufferSize = audioCtx.sampleRate * 2;
+    const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    const output = noiseBuffer.getChannelData(0);
+    let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+    for (let i = 0; i < bufferSize; i++) {
+      const white = Math.random() * 2 - 1;
+      b0 = 0.99886 * b0 + white * 0.0555;
+      b1 = 0.99332 * b1 + white * 0.0750;
+      b2 = 0.96900 * b2 + white * 0.1538;
+      b3 = 0.86650 * b3 + white * 0.3104;
+      b4 = 0.55000 * b4 + white * 0.5329;
+      b5 = -0.7616 * b5 - white * 0.0168;
+      output[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.536) * 0.035;
+      b6 = white * 0.1159;
+    }
+    const noise = audioCtx.createBufferSource();
+    noise.buffer = noiseBuffer;
+    noise.loop = true;
+
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = isSunsetActive ? 1250 : 1000;
+
+    rainGain = audioCtx.createGain();
+    rainGain.gain.value = isRainActive ? 0.35 : 0;
+
+    noise.connect(filter);
+    filter.connect(rainGain);
+    rainGain.connect(audioCtx.destination);
+    noise.start();
+
+    const mudOsc = audioCtx.createOscillator();
+    mudOsc.type = 'sawtooth';
+    mudOsc.frequency.value = 46;
+    const mudFilter = audioCtx.createBiquadFilter();
+    mudFilter.type = 'lowpass';
+    mudFilter.frequency.value = 180;
+    mudGain = audioCtx.createGain();
+    mudGain.gain.value = 0;
+    mudOsc.connect(mudFilter);
+    mudFilter.connect(mudGain);
+    mudGain.connect(audioCtx.destination);
+    mudOsc.start();
+
+    startLofiChords(audioCtx);
+    isAudioActive = true;
+  } catch(e) {
+    console.error("Audio init error:", e);
+  }
+}
+
+function playTreeRustle() {
+  if (!audioCtx || !isAudioActive) return;
+  try {
+    const now = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    const filter = audioCtx.createBiquadFilter();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(140, now);
+    osc.frequency.exponentialRampToValueAtTime(45, now + 0.18);
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(360, now);
+    gain.gain.setValueAtTime(0.08, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(now);
+    osc.stop(now + 0.22);
+  } catch(e) {}
+}
+
+function startLofiChords(ctx) {
+  const chords = [
+    [146.83, 174.61, 220.00, 261.63, 329.63],
+    [98.00, 174.61, 246.94, 329.63],
+    [130.81, 164.81, 196.00, 246.94, 293.66],
+    [110.00, 196.00, 261.63, 329.63]
+  ];
+  let chordIdx = 0;
+
+  function playChord() {
+    if (!ctx) return;
+    const now = ctx.currentTime;
+    const notes = chords[chordIdx % chords.length];
+    chordIdx++;
+
+    notes.forEach((freq) => {
+      const osc = ctx.createOscillator();
+      const oscGain = ctx.createGain();
+      const lpf = ctx.createBiquadFilter();
+
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+
+      const vibrato = ctx.createOscillator();
+      const vibGain = ctx.createGain();
+      vibrato.frequency.value = 0.28;
+      vibGain.gain.value = 0.7;
+      vibrato.connect(osc.frequency);
+      vibrato.start(now);
+
+      lpf.type = 'lowpass';
+      lpf.frequency.value = 850;
+
+      oscGain.gain.setValueAtTime(0.0001, now);
+      oscGain.gain.linearRampToValueAtTime(0.045, now + 0.15);
+      oscGain.gain.exponentialRampToValueAtTime(0.0001, now + 3.8);
+
+      osc.connect(lpf);
+      lpf.connect(oscGain);
+      oscGain.connect(ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + 4.0);
+    });
+
+    const kickOsc = ctx.createOscillator();
+    const kickGain = ctx.createGain();
+    kickOsc.frequency.setValueAtTime(65, now);
+    kickOsc.frequency.exponentialRampToValueAtTime(28, now + 0.2);
+    kickGain.gain.setValueAtTime(0.12, now);
+    kickGain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+    kickOsc.connect(kickGain);
+    kickGain.connect(ctx.destination);
+    kickOsc.start(now);
+    kickOsc.stop(now + 0.25);
+
+    setTimeout(playChord, 3333);
+  }
+
+  playChord();
+}
+
+let startTime = Date.now();
+let toastTimeout = null;
+function showToast(icon, text) {
+  const toast = document.getElementById('hud-toast');
+  const txt = document.getElementById('hud-toast-text');
+  if (!toast || !txt) return;
+  toast.querySelector('.hud-toast-icon').textContent = icon;
+  txt.textContent = text;
+  toast.classList.remove('hide');
+  if (toastTimeout) clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => {
+    toast.classList.add('hide');
+  }, 1900);
+}
+
+function updateHUDLabels() {
+  const weatherEl = document.getElementById('amb-weather');
+  const badgeEl = document.getElementById('hud-weather-badge');
+  const ambDot = document.getElementById('amb-indicator');
+
+  let titleText = "";
+  let badgeClass = "hud-badge";
+
+  if (isSunsetActive && isRainActive) {
+    titleText = "GOLDEN SUNSET • RAIN DRIFT";
+    badgeClass = "hud-badge";
+    if (weatherEl) weatherEl.textContent = "Golden Sunset Rain & Wet Asphalt";
+  } else if (isSunsetActive && !isRainActive) {
+    titleText = "GOLDEN SUNSET • DRY ASPHALT";
+    badgeClass = "hud-badge sunset-dry";
+    if (weatherEl) weatherEl.textContent = "Golden Sunset (Dry Asphalt)";
+  } else if (!isSunsetActive && isRainActive) {
+    titleText = "NIGHT RAIN • WET ASPHALT";
+    badgeClass = "hud-badge night-rain";
+    if (weatherEl) weatherEl.textContent = "Night Rain & Wet Asphalt";
+  } else {
+    titleText = "CLEAR NIGHT • DRY ASPHALT";
+    badgeClass = "hud-badge night-dry";
+    if (weatherEl) weatherEl.textContent = "Clear Starry Night (Dry Asphalt)";
+  }
+
+  if (badgeEl) {
+    badgeEl.textContent = titleText;
+    badgeEl.className = badgeClass;
+  }
+
+  if (ambDot && !isCarInMud) {
+    ambDot.className = isSunsetActive ? 'amb-dot' : 'amb-dot night-dot';
+  }
+}
+
+function applySunsetState(enabled, notifyServer = false) {
+  isSunsetActive = enabled;
+  const sunsetBtn = document.getElementById('sunset-toggle-btn');
+  if (sunsetBtn) {
+    sunsetBtn.textContent = isSunsetActive ? '🌅 Sunset: ON [P]' : '🌙 Night [P]';
+    sunsetBtn.className = isSunsetActive ? 'hud-pill-btn sunset-mode' : 'hud-pill-btn night-mode';
+  }
+
+  updateHUDLabels();
+
+  if (notifyServer) {
+    fetch('/api/toggle-sunset', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sunsetEnabled: isSunsetActive })
+    }).catch(() => {});
+  }
+}
+
+function toggleSunset(notifyServer = true) {
+  applySunsetState(!isSunsetActive, notifyServer);
+  showToast(
+    isSunsetActive ? '🌅' : '🌙',
+    isSunsetActive
+      ? (isRainActive ? 'Golden Sunset Rain • Warm dusk wet drifting [P]' : 'Golden Sunset Clear • Golden hour dry asphalt [P]')
+      : (isRainActive ? 'Night Rain • Slick midnight asphalt [P]' : 'Clear Starry Night • Cool night traction [P]')
+  );
+}
+
+function applyRainState(enabled, notifyServer = false) {
+  isRainActive = enabled;
+  if (!isRainActive) {
+    if (rainGain && audioCtx) {
+      rainGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.12);
+    }
+    car.lateralGrip = 0.92;
+    const btnEl = document.getElementById('rain-toggle-btn');
+    if (btnEl) {
+      btnEl.textContent = '☀️ Dry [T]';
+      btnEl.className = 'hud-pill-btn dry-mode';
+    }
+  } else {
+    if (rainGain && audioCtx) {
+      rainGain.gain.setTargetAtTime((rainDensity / 100) * 0.38, audioCtx.currentTime, 0.12);
+    }
+    car.lateralGrip = Math.max(0.58, 0.94 - (rainDensity * 0.0035));
+    const btnEl = document.getElementById('rain-toggle-btn');
+    if (btnEl) {
+      btnEl.textContent = '🌧 Rain: ON [T]';
+      btnEl.className = 'hud-pill-btn rain-mode';
+    }
+  }
+
+  updateHUDLabels();
+
+  if (notifyServer) {
+    fetch('/api/toggle-rain', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rainEnabled: isRainActive })
+    }).catch(() => {});
+  }
+}
+
+function toggleRain(notifyServer = true) {
+  applyRainState(!isRainActive, notifyServer);
+  showToast(
+    isRainActive ? '🌧' : '☀️',
+    isRainActive
+      ? (isSunsetActive ? 'Sunset Rain ON • Warm wet asphalt sheen [T]' : 'Night Rain ON • Slick midnight asphalt [T]')
+      : (isSunsetActive ? 'Rain OFF • Warm golden sunset dry asphalt [T]' : 'Rain OFF • Clear starry night dry asphalt [T]')
+  );
+}
+
+const sunsetBtn = document.getElementById('sunset-toggle-btn');
+if (sunsetBtn) {
+  sunsetBtn.addEventListener('click', () => toggleSunset(true));
+}
+const rainBtn = document.getElementById('rain-toggle-btn');
+if (rainBtn) {
+  rainBtn.addEventListener('click', () => toggleRain(true));
+}
+
+function restartCar(notifyServer = true) {
+  car.x = 0;
+  car.y = 0;
+  car.vx = 0;
+  car.vy = 0;
+  car.speed = 0;
+  car.driftAngle = 0;
+  car.steer = 0;
+  car.angle = -Math.PI / 2;
+
+  totalDistanceKm = 0;
+
+  camX = 0;
+  camY = 0;
+
+  skids.length = 0;
+  mudTracks.length = 0;
+  mudParticles.length = 0;
+  sprayParticles.length = 0;
+  smokeParticles.length = 0;
+  leafParticles.length = 0;
+
+  lastClosestNode = 0;
+  isCarInMud = false;
+  currentSurfaceName = isRainActive ? "Wet Asphalt (Smooth Sheen)" : "Dry Asphalt (High Grip)";
+
+  startTime = Date.now();
+
+  if (mudGain && audioCtx) {
+    mudGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.05);
+  }
+
+  const surfaceEl = document.getElementById('hud-surface');
+  if (surfaceEl) {
+    surfaceEl.textContent = 'ASPHALT';
+    surfaceEl.className = 'stat-val hud-surface-val on-asphalt';
+  }
+  const speedEl = document.getElementById('hud-speed');
+  if (speedEl) speedEl.textContent = '0';
+  const distEl = document.getElementById('hud-dist');
+  if (distEl) distEl.textContent = '0.00 km';
+  const driftEl = document.getElementById('hud-drift');
+  if (driftEl) driftEl.textContent = '0°';
+  const timeEl = document.getElementById('hud-time');
+  if (timeEl) timeEl.textContent = '00:00';
+
+  updateHUDLabels();
+  showToast('↺', 'Restarted with [R] • Odometer reset to 0.00 km');
+
+  if (notifyServer) {
+    fetch('/api/heartbeat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        speed: 0,
+        driftAngle: 0,
+        duration: 0,
+        distanceKm: 0,
+        inMud: false,
+        sunsetEnabled: isSunsetActive,
+        rainEnabled: isRainActive,
+        surface: currentSurfaceName,
+        roadside: "Lush Touge Pine Forest All Around Road",
+        restarted: true
+      })
+    }).catch(() => {});
+  }
+}
+
+// Telemetry syncing
+setInterval(() => {
+  const elapsed = Math.floor((Date.now() - startTime) / 1000);
+  const m = Math.floor(elapsed / 60);
+  const s = elapsed % 60;
+  const timeEl = document.getElementById('hud-time');
+  if (timeEl) {
+    timeEl.textContent = String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+  }
+
+  fetch('/api/heartbeat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      speed: Math.round(car.speed * 8),
+      driftAngle: Math.round(Math.abs(car.driftAngle * 180 / Math.PI)),
+      duration: elapsed,
+      distanceKm: parseFloat(totalDistanceKm.toFixed(2)),
+      inMud: isCarInMud,
+      sunsetEnabled: isSunsetActive,
+      rainEnabled: isRainActive,
+      surface: currentSurfaceName,
+      roadside: "Lush Touge Pine Forest All Around Road"
+    })
+  }).catch(() => {});
+}, 1200);
+
+let lastAppliedResetId = 0;
+setInterval(() => {
+  fetch('/api/state')
+    .then(r => r.json())
+    .then(data => {
+      if (data.resetId && data.resetId !== lastAppliedResetId) {
+        lastAppliedResetId = data.resetId;
+        restartCar(false);
+      }
+      if (typeof data.sunsetEnabled === 'boolean' && data.sunsetEnabled !== isSunsetActive) {
+        applySunsetState(data.sunsetEnabled, false);
+      }
+      if (typeof data.rainEnabled === 'boolean' && data.rainEnabled !== isRainActive) {
+        applyRainState(data.rainEnabled, false);
+      }
+      if (data.weatherPreset) document.getElementById('amb-weather').textContent = data.weatherPreset;
+      if (data.soundtrack) document.getElementById('amb-music').textContent = data.soundtrack;
+      if (data.forest) document.getElementById('amb-trees').textContent = data.forest;
+      if (typeof data.curveMultiplier === 'number' && data.curveMultiplier !== curveMultiplier) {
+        curveMultiplier = data.curveMultiplier;
+      }
+      if (typeof data.rainDensity === 'number' && data.rainDensity !== rainDensity) {
+        rainDensity = data.rainDensity;
+        updateRainParticles(Math.floor(rainDensity * 3.8));
+        if (isRainActive) {
+          car.lateralGrip = Math.max(0.58, 0.94 - (rainDensity * 0.0035));
+          if (rainGain && audioCtx) rainGain.gain.value = (rainDensity / 100) * 0.45;
+        }
+      }
+    })
+    .catch(() => {});
+}, 1200);
+
+function drawLushTree(c, tree, inHeadlights, distToCar, beamDiff) {
+  const swayIntensity = tree.tier === 0 ? 2.2 : (tree.tier === 1 ? 1.6 : 0.9);
+  const swayX = Math.sin(Date.now() * 0.0016 + tree.sway) * swayIntensity;
+  const swayY = Math.cos(Date.now() * 0.0012 + tree.sway) * (swayIntensity * 0.6);
+
+  if (tree.tier === 3) {
+    c.fillStyle = isSunsetActive
+      ? (isRainActive ? 'rgba(28, 14, 20, 0.45)' : 'rgba(32, 16, 22, 0.4)')
+      : (isRainActive ? 'rgba(8, 18, 16, 0.42)' : 'rgba(10, 22, 18, 0.35)');
+    c.beginPath();
+    c.arc(tree.x, tree.y, tree.r, 0, Math.PI * 2);
+    c.fill();
+    return;
+  }
+
+  const shadowAlpha = tree.tier === 0 ? 0.75 : 0.45;
+  c.fillStyle = isSunsetActive ? 'rgba(18, 8, 12, ' + shadowAlpha + ')' : 'rgba(8, 10, 14, ' + shadowAlpha + ')';
+  c.beginPath();
+  c.ellipse(tree.x + 3, tree.y + 4, tree.r * 1.15, tree.r * 0.95, 0, 0, Math.PI * 2);
+  c.fill();
+
+  if (tree.tier <= 1) {
+    c.fillStyle = tree.shade === 0 ? '#18100c' : '#221410';
+    c.beginPath();
+    c.arc(tree.x, tree.y, tree.trunkR * 1.4, 0, Math.PI * 2);
+    c.fill();
+
+    c.fillStyle = isSunsetActive ? 'rgba(54, 38, 24, 0.6)' : 'rgba(32, 54, 40, 0.55)';
+    c.beginPath();
+    c.arc(tree.x - 1, tree.y - 1, tree.trunkR * 0.8, 0, Math.PI * 2);
+    c.fill();
+  }
+
+  const palettes = isSunsetActive
+    ? [
+        ['#140d12', '#1c1618', '#262420', '#3b3226', '#524332'],
+        ['#120c10', '#1a1416', '#221f1c', '#332c22', '#4a3d2c'],
+        ['#160e14', '#1e181b', '#2a2722', '#3e3528', '#5a4836']
+      ]
+    : [
+        ['#07140e', '#0b2418', '#103322', '#184730', '#256344'],
+        ['#06110c', '#091d15', '#0e2b20', '#143c2c', '#1f543e'],
+        ['#081610', '#0e261c', '#13392a', '#1c4e3a', '#2c6d52']
+      ];
+  const p = palettes[tree.species % 3];
+
+  const layerConfigs = [
+    { scale: 1.0, pts: 12, color: p[0], innerRatio: 0.76 },
+    { scale: 0.78, pts: 10, color: p[1], innerRatio: 0.74 },
+    { scale: 0.54, pts: 8, color: p[2], innerRatio: 0.72 },
+    { scale: 0.32, pts: 6, color: p[3], innerRatio: 0.70 },
+    { scale: 0.16, pts: 5, color: p[4], innerRatio: 0.68 }
+  ];
+
+  layerConfigs.forEach((layer, lIdx) => {
+    c.save();
+    const lSway = (lIdx * 0.22 + 0.1);
+    c.translate(tree.x + swayX * lSway, tree.y + swayY * lSway);
+    c.fillStyle = layer.color;
+    c.beginPath();
+
+    const count = layer.pts;
+    const baseR = tree.r * layer.scale;
+
+    for (let i = 0; i < count * 2; i++) {
+      const a = (i / (count * 2)) * Math.PI * 2;
+      const rad = (i % 2 === 0) ? baseR : baseR * layer.innerRatio;
+      const px = Math.cos(a) * rad;
+      const py = Math.sin(a) * rad;
+      if (i === 0) c.moveTo(px, py);
+      else c.lineTo(px, py);
+    }
+    c.closePath();
+    c.fill();
+
+    if (isSunsetActive && lIdx >= 2) {
+      c.fillStyle = 'rgba(245, 140, 50, 0.16)';
+      c.fill();
+    }
+
+    if (inHeadlights && distToCar > 0) {
+      const litFactor = Math.min(0.55, (1 - distToCar / 380) * (1 - beamDiff / 0.48) * 0.62);
+      c.fillStyle = 'rgba(255, 238, 190, ' + (litFactor * (0.8 + lIdx * 0.1)) + ')';
+      c.fill();
+    }
+    c.restore();
+  });
+
+  if (isRainActive && tree.tier === 0) {
+    c.fillStyle = isSunsetActive ? 'rgba(255, 205, 160, 0.5)' : 'rgba(200, 230, 255, 0.55)';
+    c.beginPath();
+    c.arc(tree.x + swayX * 0.8, tree.y + swayY * 0.8, 2.4, 0, Math.PI * 2);
+    c.fill();
+  }
+}
+
+function loop() {
+  requestAnimationFrame(loop);
+
+  let minDist = Infinity;
+  let closestIdx = lastClosestNode;
+  const sStart = Math.max(0, lastClosestNode - 25);
+  const sEnd = Math.min(roadNodes.length - 1, lastClosestNode + 55);
+
+  for (let i = sStart; i < sEnd; i++) {
+    const n1 = roadNodes[i];
+    const n2 = roadNodes[i + 1];
+    if (!n2) continue;
+    const dx = n2.x - n1.x;
+    const dy = n2.y - n1.y;
+    const lenSq = dx * dx + dy * dy;
+    if (lenSq === 0) continue;
+    let t = ((car.x - n1.x) * dx + (car.y - n1.y) * dy) / lenSq;
+    t = Math.max(0, Math.min(1, t));
+    const px = n1.x + t * dx;
+    const py = n1.y + t * dy;
+    const dist = Math.hypot(car.x - px, car.y - py);
+    if (dist < minDist) {
+      minDist = dist;
+      closestIdx = i;
+    }
+  }
+  lastClosestNode = closestIdx;
+
+  const ROAD_EDGE = 118;
+  isCarInMud = minDist > ROAD_EDGE;
+  const mudDepth = isCarInMud ? Math.min(1, (minDist - ROAD_EDGE) / 55) : 0;
+  currentSurfaceName = isCarInMud
+    ? (mudDepth > 0.5 ? "Deep Mud & Trees (-70% Drag)" : "Muddy Shoulder (Slowdown)")
+    : (isRainActive ? (isSunsetActive ? "Wet Asphalt (Sunset Sheen)" : "Wet Asphalt (Smooth)") : (isSunsetActive ? "Dry Asphalt (Sunset Grip)" : "Dry Asphalt (High Grip)"));
+
+  const surfaceEl = document.getElementById('hud-surface');
+  const ambIndicator = document.getElementById('amb-indicator');
+  if (surfaceEl) {
+    if (isCarInMud) {
+      surfaceEl.textContent = mudDepth > 0.5 ? 'DEEP MUD' : 'MUD SHOULDER';
+      surfaceEl.className = 'stat-val hud-surface-val in-mud';
+      if (ambIndicator) ambIndicator.className = 'amb-dot mud-alert';
+    } else {
+      surfaceEl.textContent = 'ASPHALT';
+      surfaceEl.className = 'stat-val hud-surface-val on-asphalt';
+      if (ambIndicator) ambIndicator.className = isSunsetActive ? 'amb-dot' : 'amb-dot night-dot';
+    }
+  }
+
+  if (mudGain && audioCtx) {
+    const targetMudGain = isCarInMud && car.speed > 0.4 ? Math.min(0.24, car.speed * 0.04) : 0;
+    mudGain.gain.setTargetAtTime(targetMudGain, audioCtx.currentTime, 0.08);
+  }
+
+  const targetSteer = keys.left ? -0.065 : (keys.right ? 0.065 : 0);
+  car.steer += (targetSteer - car.steer) * 0.22;
+
+  const baseAccel = isCarInMud ? car.accel * 0.4 : car.accel;
+  const accel = keys.up ? baseAccel : (keys.down ? -baseAccel * 0.55 : 0);
+  const fwdX = Math.cos(car.angle);
+  const fwdY = Math.sin(car.angle);
+
+  car.vx += fwdX * accel;
+  car.vy += fwdY * accel;
+
+  const forwardVel = car.vx * fwdX + car.vy * fwdY;
+  const rightX = -fwdY;
+  const rightY = fwdX;
+  let lateralVel = car.vx * rightX + car.vy * rightY;
+
+  const currentGrip = keys.handbrake ? 0.52 : (isCarInMud ? 0.68 : car.lateralGrip);
+  lateralVel *= currentGrip;
+
+  car.vx = (fwdX * forwardVel * car.friction) + (rightX * lateralVel);
+  car.vy = (fwdY * forwardVel * car.friction) + (rightY * lateralVel);
+
+  if (isCarInMud) {
+    const mudDrag = 0.88 - (mudDepth * 0.06);
+    car.vx *= mudDrag;
+    car.vy *= mudDrag;
+    car.speed = Math.sqrt(car.vx * car.vx + car.vy * car.vy);
+
+    const maxMudSpeed = 3.6 + (1 - mudDepth) * 1.6;
+    if (car.speed > maxMudSpeed) {
+      const scale = maxMudSpeed / car.speed;
+      car.vx *= scale;
+      car.vy *= scale;
+      car.speed = maxMudSpeed;
+    }
+  }
+
+  for (let i = 0; i < trees.length; i++) {
+    const tree = trees[i];
+    if (tree.tier > 1) continue;
+    if (Math.abs(tree.x - car.x) > 65 || Math.abs(tree.y - car.y) > 65) continue;
+    const dx = car.x - tree.x;
+    const dy = car.y - tree.y;
+    const dist = Math.hypot(dx, dy);
+    const minDist = (tree.trunkR || 4) + 13;
+    if (dist < minDist && dist > 0) {
+      const nx = dx / dist;
+      const ny = dy / dist;
+      const overlap = minDist - dist;
+      car.x += nx * overlap;
+      car.y += ny * overlap;
+
+      const dot = car.vx * nx + car.vy * ny;
+      if (dot < 0) {
+        car.vx = (car.vx - 1.4 * dot * nx) * 0.7;
+        car.vy = (car.vy - 1.4 * dot * ny) * 0.7;
+      }
+      car.speed *= 0.7;
+
+      if (Date.now() - tree.hitCooldown > 300) {
+        tree.hitCooldown = Date.now();
+        playTreeRustle();
+        for (let s = 0; s < 8; s++) {
+          leafParticles.push({
+            x: tree.x + (Math.random() - 0.5) * tree.r,
+            y: tree.y + (Math.random() - 0.5) * tree.r,
+            vx: nx * (Math.random() * 2.5 + 1) + (Math.random() - 0.5) * 2,
+            vy: ny * (Math.random() * 2.5 + 1) + (Math.random() - 0.5) * 2,
+            size: Math.random() * 3 + 2,
+            alpha: 0.9,
+            color: isSunsetActive ? 'rgba(74, 52, 36,' : 'rgba(35, 85, 55,'
+          });
+        }
+      }
+    }
+  }
+
+  car.x += car.vx;
+  car.y += car.vy;
+  car.speed = Math.sqrt(car.vx * car.vx + car.vy * car.vy);
+
+  // Accumulate distance in kilometers (km)
+  if (car.speed > 0.05) {
+    // car.speed * 8 is in mph; 1 mph = 1.60934 km/h; at 60fps dt = 1/60s:
+    // km/frame = (car.speed * 8 * 1.60934) / (3600 * 60)
+    totalDistanceKm += (car.speed * 8 * 1.60934) / 216000;
+  }
+
+  if (car.speed > 0.4) {
+    car.angle += car.steer * (car.speed / car.maxSpeed) * 1.1;
+    const moveAngle = Math.atan2(car.vy, car.vx);
+    let diff = car.angle - moveAngle;
+    while (diff > Math.PI) diff -= Math.PI * 2;
+    while (diff < -Math.PI) diff += Math.PI * 2;
+    car.driftAngle = diff;
+  } else {
+    car.driftAngle = 0;
+  }
+
+  const rearX = car.x - Math.cos(car.angle) * 16;
+  const rearY = car.y - Math.sin(car.angle) * 16;
+  const rX = -Math.sin(car.angle) * 9;
+  const rY = Math.cos(car.angle) * 9;
+
+  if (isCarInMud && car.speed > 0.4) {
+    mudTracks.push({ x1: rearX - rX, y1: rearY - rY, x2: rearX + rX, y2: rearY + rY, alpha: 0.65 });
+    if (mudTracks.length > 400) mudTracks.shift();
+
+    for (let s = 0; s < 3; s++) {
+      mudParticles.push({
+        x: rearX + (Math.random() - 0.5) * 14,
+        y: rearY + (Math.random() - 0.5) * 14,
+        vx: -Math.cos(car.angle) * (car.speed * 0.3) + (Math.random() - 0.5) * 3,
+        vy: -Math.sin(car.angle) * (car.speed * 0.3) + (Math.random() - 0.5) * 3,
+        size: Math.random() * 3 + 2,
+        alpha: 0.75,
+        color: Math.random() > 0.5 ? 'rgba(54, 38, 22,' : 'rgba(82, 58, 34,'
+      });
+    }
+    if (mudParticles.length > 140) mudParticles.splice(0, 20);
+  } else if (!isCarInMud && Math.abs(car.driftAngle) > 0.18 && car.speed > 2.4) {
+    skids.push({ x1: rearX - rX, y1: rearY - rY, x2: rearX + rX, y2: rearY + rY, alpha: isRainActive ? 0.5 : 0.65 });
+    if (skids.length > 500) skids.shift();
+
+    if (isRainActive) {
+      for (let s = 0; s < 2; s++) {
+        sprayParticles.push({
+          x: rearX + (Math.random() - 0.5) * 12,
+          y: rearY + (Math.random() - 0.5) * 12,
+          vx: -Math.cos(car.angle) * (car.speed * 0.25) + (Math.random() - 0.5) * 2,
+          vy: -Math.sin(car.angle) * (car.speed * 0.25) + (Math.random() - 0.5) * 2,
+          alpha: 0.45,
+          size: Math.random() * 2.5 + 1.5
+        });
+      }
+      if (sprayParticles.length > 120) sprayParticles.splice(0, 20);
+    } else {
+      for (let s = 0; s < 2; s++) {
+        smokeParticles.push({
+          x: rearX + (Math.random() - 0.5) * 10,
+          y: rearY + (Math.random() - 0.5) * 10,
+          vx: -Math.cos(car.angle) * (car.speed * 0.15) + (Math.random() - 0.5) * 1.5,
+          vy: -Math.sin(car.angle) * (car.speed * 0.15) + (Math.random() - 0.5) * 1.5,
+          alpha: 0.35,
+          size: Math.random() * 3 + 2
+        });
+      }
+      if (smokeParticles.length > 100) smokeParticles.splice(0, 20);
+    }
+  }
+
+  const lastNode = roadNodes[roadNodes.length - 1];
+  if (car.y < lastNode.y + 12000) {
+    extendRoad(roadNodes.length + 320);
+  }
+
+  if (trees.length > 1200 && trees[0].y > car.y + 2800) {
+    trees.splice(0, 80);
+  }
+
+  document.getElementById('hud-speed').textContent = Math.round(car.speed * 8);
+  const distEl = document.getElementById('hud-dist');
+  if (distEl) distEl.textContent = totalDistanceKm.toFixed(2) + ' km';
+  document.getElementById('hud-drift').textContent = Math.round(Math.abs(car.driftAngle * 180 / Math.PI)) + '°';
+
+  camX += (car.x - camX) * 0.08;
+  camY += (car.y - camY) * 0.08;
+
+  // Render Sky & Background
+  if (isSunsetActive) {
+    const skyGrad = ctx.createLinearGradient(0, 0, 0, h);
+    if (isRainActive) {
+      skyGrad.addColorStop(0, '#1c1020');
+      skyGrad.addColorStop(0.35, '#3b1828');
+      skyGrad.addColorStop(0.65, '#6e272b');
+      skyGrad.addColorStop(0.86, '#af4e20');
+      skyGrad.addColorStop(1, '#db722d');
+    } else {
+      skyGrad.addColorStop(0, '#141026');
+      skyGrad.addColorStop(0.3, '#341535');
+      skyGrad.addColorStop(0.58, '#6b1f37');
+      skyGrad.addColorStop(0.8, '#be461a');
+      skyGrad.addColorStop(0.93, '#e87323');
+      skyGrad.addColorStop(1, '#f7ab3e');
+    }
+    ctx.fillStyle = skyGrad;
+    ctx.fillRect(0, 0, w, h);
+
+    // Glowing Sun Disc on Horizon
+    const sunX = w * 0.5 - (camX * 0.02) % (w * 0.3);
+    const sunY = h * 0.65 - (camY * 0.015) % (h * 0.08);
+    const sunR = isRainActive ? 80 : 66;
+
+    const sunBloom = ctx.createRadialGradient(sunX, sunY, 12, sunX, sunY, sunR * 3);
+    sunBloom.addColorStop(0, isRainActive ? 'rgba(255, 210, 150, 0.55)' : 'rgba(255, 240, 195, 0.85)');
+    sunBloom.addColorStop(0.3, isRainActive ? 'rgba(235, 125, 45, 0.35)' : 'rgba(255, 155, 55, 0.55)');
+    sunBloom.addColorStop(0.65, isRainActive ? 'rgba(185, 65, 30, 0.15)' : 'rgba(215, 85, 30, 0.22)');
+    sunBloom.addColorStop(1, 'rgba(160, 45, 20, 0)');
+    ctx.fillStyle = sunBloom;
+    ctx.beginPath();
+    ctx.arc(sunX, sunY, sunR * 3, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = isRainActive ? 'rgba(255, 230, 180, 0.72)' : 'rgba(255, 250, 220, 0.95)';
+    ctx.beginPath();
+    ctx.arc(sunX, sunY, sunR * 0.45, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Distant mountain ridge silhouette
+    ctx.fillStyle = isRainActive ? '#150a18' : '#180c1d';
+    ctx.beginPath();
+    ctx.moveTo(0, h * 0.75);
+    const step = w / 16;
+    for (let m = 0; m <= 16; m++) {
+      const mx = m * step;
+      const my = h * 0.72 - (Math.sin(m * 1.3) * 32 + Math.cos(m * 0.7) * 20);
+      ctx.lineTo(mx, my);
+    }
+    ctx.lineTo(w, h);
+    ctx.lineTo(0, h);
+    ctx.closePath();
+    ctx.fill();
+  } else {
+    ctx.fillStyle = isRainActive ? '#060a10' : '#05070d';
+    ctx.fillRect(0, 0, w, h);
+
+    if (!isRainActive) {
+      ctx.fillStyle = '#ffffff';
+      stars.forEach(st => {
+        const a = st.alpha + Math.sin(Date.now() * st.twinkleSpeed + st.twinkleOffset) * 0.22;
+        ctx.globalAlpha = Math.max(0.12, Math.min(0.9, a));
+        ctx.beginPath();
+        ctx.arc(st.x, st.y, st.r, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      ctx.globalAlpha = 1.0;
+    }
+  }
+
+  ctx.save();
+  ctx.translate(w / 2 - camX, h / 2 - camY);
+
+  // Road underlayers
+  ctx.lineWidth = 1200;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.strokeStyle = isSunsetActive
+    ? (isRainActive ? '#120b12' : '#140c14')
+    : (isRainActive ? '#050c09' : '#040907');
+  ctx.beginPath();
+  roadNodes.forEach((node, i) => {
+    if (i === 0) ctx.moveTo(node.x, node.y);
+    else ctx.lineTo(node.x, node.y);
+  });
+  ctx.stroke();
+
+  ctx.lineWidth = 620;
+  ctx.strokeStyle = isSunsetActive
+    ? (isRainActive ? '#190e16' : '#1b1018')
+    : (isRainActive ? '#08140f' : '#07110d');
+  ctx.stroke();
+
+  ctx.lineWidth = 370;
+  ctx.strokeStyle = '#221410';
+  ctx.stroke();
+
+  ctx.lineWidth = 310;
+  ctx.strokeStyle = '#2d1a12';
+  ctx.stroke();
+
+  ctx.lineWidth = 264;
+  ctx.strokeStyle = '#1e120c';
+  ctx.stroke();
+
+  // Asphalt Main Track
+  ctx.lineWidth = 236;
+  ctx.strokeStyle = isSunsetActive
+    ? (isRainActive ? '#1b1319' : '#22181d')
+    : (isRainActive ? '#111720' : '#181e28');
+  ctx.stroke();
+
+  if (isRainActive) {
+    ctx.lineWidth = 224;
+    ctx.strokeStyle = isSunsetActive ? '#261821' : '#141d29';
+    ctx.stroke();
+  }
+
+  // Edge road marking lines
+  ctx.lineWidth = 216;
+  ctx.strokeStyle = isSunsetActive
+    ? (isRainActive ? 'rgba(255, 215, 175, 0.28)' : 'rgba(255, 230, 200, 0.38)')
+    : (isRainActive ? 'rgba(255, 255, 255, 0.22)' : 'rgba(255, 255, 255, 0.32)');
+  ctx.stroke();
+
+  ctx.lineWidth = 208;
+  ctx.strokeStyle = isSunsetActive
+    ? (isRainActive ? '#181116' : '#1d1519')
+    : (isRainActive ? '#121822' : '#171c26');
+  ctx.stroke();
+
+  // Centerline Dashed Strip
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = isSunsetActive
+    ? (isRainActive ? 'rgba(255, 175, 45, 0.85)' : 'rgba(255, 195, 60, 0.92)')
+    : (isRainActive ? 'rgba(240, 186, 48, 0.7)' : 'rgba(245, 196, 62, 0.85)');
+  ctx.setLineDash([20, 24]);
+  ctx.beginPath();
+  roadNodes.forEach((node, i) => {
+    if (i === 0) ctx.moveTo(node.x, node.y);
+    else ctx.lineTo(node.x, node.y);
+  });
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Mud Tracks & Skids
+  ctx.fillStyle = 'rgba(42, 28, 16, 0.6)';
+  mudTracks.forEach((track) => {
+    ctx.beginPath();
+    ctx.arc(track.x1, track.y1, 3.5, 0, Math.PI * 2);
+    ctx.arc(track.x2, track.y2, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  ctx.fillStyle = isSunsetActive
+    ? (isRainActive ? 'rgba(16, 10, 14, 0.65)' : 'rgba(20, 12, 16, 0.75)')
+    : (isRainActive ? 'rgba(8, 12, 18, 0.55)' : 'rgba(10, 14, 20, 0.7)');
+  skids.forEach((skid) => {
+    ctx.beginPath();
+    ctx.arc(skid.x1, skid.y1, 2.5, 0, Math.PI * 2);
+    ctx.arc(skid.x2, skid.y2, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  // Render Trees
+  const visibleTrees = [];
+  for (let i = 0; i < trees.length; i++) {
+    const tree = trees[i];
+    if (Math.abs(tree.x - camX) > w / 2 + 100 || Math.abs(tree.y - camY) > h / 2 + 100) {
+      continue;
+    }
+    visibleTrees.push(tree);
+  }
+  visibleTrees.sort((a, b) => b.tier - a.tier || a.y - b.y);
+
+  for (let i = 0; i < visibleTrees.length; i++) {
+    const tree = visibleTrees[i];
+    const toTreeX = tree.x - car.x;
+    const toTreeY = tree.y - car.y;
+    const distToCar = Math.hypot(toTreeX, toTreeY);
+    const angleToTree = Math.atan2(toTreeY, toTreeX);
+    let beamDiff = Math.abs(angleToTree - car.angle);
+    while (beamDiff > Math.PI) beamDiff = Math.abs(beamDiff - Math.PI * 2);
+    const inHeadlights = distToCar < 380 && beamDiff < 0.48;
+    drawLushTree(ctx, tree, inHeadlights, distToCar, beamDiff);
+  }
+
+  // Mud Clods
+  for (let i = mudParticles.length - 1; i >= 0; i--) {
+    const mp = mudParticles[i];
+    mp.x += mp.vx;
+    mp.y += mp.vy;
+    mp.alpha -= 0.02;
+    mp.size += 0.15;
+    if (mp.alpha <= 0) {
+      mudParticles.splice(i, 1);
+      continue;
+    }
+    ctx.fillStyle = mp.color + mp.alpha + ')';
+    ctx.beginPath();
+    ctx.arc(mp.x, mp.y, mp.size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Leaves
+  for (let i = leafParticles.length - 1; i >= 0; i--) {
+    const lp = leafParticles[i];
+    lp.x += lp.vx;
+    lp.y += lp.vy;
+    lp.vx *= 0.94;
+    lp.vy *= 0.94;
+    lp.alpha -= 0.024;
+    if (lp.alpha <= 0) {
+      leafParticles.splice(i, 1);
+      continue;
+    }
+    ctx.fillStyle = lp.color + lp.alpha + ')';
+    ctx.beginPath();
+    ctx.arc(lp.x, lp.y, lp.size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Spray / Smoke
+  if (isRainActive) {
+    for (let i = sprayParticles.length - 1; i >= 0; i--) {
+      const sp = sprayParticles[i];
+      sp.x += sp.vx;
+      sp.y += sp.vy;
+      sp.alpha -= 0.02;
+      sp.size += 0.25;
+      if (sp.alpha <= 0) {
+        sprayParticles.splice(i, 1);
+        continue;
+      }
+      ctx.fillStyle = isSunsetActive
+        ? 'rgba(255, 190, 140, ' + (sp.alpha * 0.38) + ')'
+        : 'rgba(160, 200, 240, ' + (sp.alpha * 0.35) + ')';
+      ctx.beginPath();
+      ctx.arc(sp.x, sp.y, sp.size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  } else {
+    for (let i = smokeParticles.length - 1; i >= 0; i--) {
+      const smk = smokeParticles[i];
+      smk.x += smk.vx;
+      smk.y += smk.vy;
+      smk.alpha -= 0.018;
+      smk.size += 0.35;
+      if (smk.alpha <= 0) {
+        smokeParticles.splice(i, 1);
+        continue;
+      }
+      ctx.fillStyle = isSunsetActive
+        ? 'rgba(240, 200, 180, ' + (smk.alpha * 0.28) + ')'
+        : 'rgba(210, 220, 230, ' + (smk.alpha * 0.25) + ')';
+      ctx.beginPath();
+      ctx.arc(smk.x, smk.y, smk.size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  // Draw Drift Car
+  ctx.save();
+  ctx.translate(car.x, car.y);
+  ctx.rotate(car.angle);
+
+  // Headlight beam
+  const grad = ctx.createRadialGradient(24, 0, 10, 180, 0, 210);
+  grad.addColorStop(0, 'rgba(255, 250, 210, 0.44)');
+  grad.addColorStop(0.5, 'rgba(255, 248, 200, 0.18)');
+  grad.addColorStop(1, 'rgba(255, 248, 200, 0)');
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.moveTo(18, -6);
+  ctx.lineTo(260, -75);
+  ctx.lineTo(260, 75);
+  ctx.lineTo(18, 6);
+  ctx.closePath();
+  ctx.fill();
+
+  // Taillight glow
+  const tailGrad = ctx.createRadialGradient(-18, 0, 2, -28, 0, 48);
+  tailGrad.addColorStop(0, 'rgba(255, 34, 51, 0.65)');
+  tailGrad.addColorStop(1, 'rgba(255, 34, 51, 0)');
+  ctx.fillStyle = tailGrad;
+  ctx.beginPath();
+  ctx.arc(-18, 0, 48, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Car chassis
+  ctx.fillStyle = isCarInMud ? '#22262a' : (isSunsetActive ? '#241a20' : '#1e2838');
+  ctx.strokeStyle = isCarInMud
+    ? '#c27c32'
+    : (isSunsetActive ? (isRainActive ? '#ea580c' : '#f59e0b') : (isRainActive ? '#38bdf8' : '#34d399'));
+  ctx.lineWidth = 1.6;
+
+  ctx.beginPath();
+  ctx.roundRect(-22, -11, 44, 22, 5);
+  ctx.fill();
+  ctx.stroke();
+
+  // Roof / Cockpit
+  ctx.fillStyle = '#0a0d13';
+  ctx.beginPath();
+  ctx.roundRect(-8, -8, 20, 16, 3);
+  ctx.fill();
+
+  // Headlight lamps
+  ctx.fillStyle = '#fffbe8';
+  ctx.fillRect(20, -10, 3, 4);
+  ctx.fillRect(20, 6, 3, 4);
+
+  // Taillight bar
+  ctx.fillStyle = '#ff2233';
+  ctx.fillRect(-22, -9, 2, 18);
+
+  ctx.restore();
+  ctx.restore();
+
+  // Falling Rain overlay
+  if (isRainActive) {
+    ctx.strokeStyle = isSunsetActive ? 'rgba(255, 215, 175, 0.42)' : 'rgba(162, 196, 232, 0.35)';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    rainParticles.forEach((p) => {
+      p.y += p.speed;
+      p.x += 1.5;
+      if (p.y > h) {
+        p.y = -20;
+        p.x = Math.random() * w;
+      }
+      ctx.moveTo(p.x, p.y);
+      ctx.lineTo(p.x + 3, p.y + p.len);
+    });
+    ctx.stroke();
+  }
+}
+
+loop();
+</script>
+</body>
+</html>

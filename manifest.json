@@ -1,0 +1,15 @@
+{
+  "name": "Zen Cruise",
+  "short_name": "Zen Cruise",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0c0810",
+  "theme_color": "#ea580c",
+  "icons": [
+    {
+      "src": "/icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
