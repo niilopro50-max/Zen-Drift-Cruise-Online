@@ -437,8 +437,8 @@ const mobileDrivingMode =
   window.matchMedia('(pointer: coarse)').matches || window.innerWidth <= 700;
 
 if (mobileDrivingMode) {
-  car.maxSpeed = 9.375;
-  car.accel = 0.29;
+  car.maxSpeed = 4.375;
+  car.accel = 0.20;
 }
 
 
@@ -1167,8 +1167,10 @@ function loop() {
     mudGain.gain.setTargetAtTime(targetMudGain, audioCtx.currentTime, 0.08);
   }
 
-  const targetSteer = keys.left ? -0.065 : (keys.right ? 0.065 : 0);
-  car.steer += (targetSteer - car.steer) * 0.22;
+  const steerLimit = mobileDrivingMode ? 0.045 : 0.065;
+  const steerSmooth = mobileDrivingMode ? 0.10 : 0.22;
+  const targetSteer = keys.left ? -steerLimit : (keys.right ? steerLimit : 0);
+  car.steer += (targetSteer - car.steer) * steerSmooth;
 
   const baseAccel = isCarInMud ? car.accel * 0.4 : car.accel;
   const accel = keys.up ? baseAccel : (keys.down ? -baseAccel * 0.55 : 0);
@@ -1256,7 +1258,8 @@ function loop() {
   }
 
   if (car.speed > 0.4) {
-    car.angle += car.steer * (car.speed / car.maxSpeed) * 1.1;
+    const turnStrength = mobileDrivingMode ? 0.85 : 1.1;
+    car.angle += car.steer * (car.speed / car.maxSpeed) * turnStrength;
     const moveAngle = Math.atan2(car.vy, car.vx);
     let diff = car.angle - moveAngle;
     while (diff > Math.PI) diff -= Math.PI * 2;
