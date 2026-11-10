@@ -201,6 +201,37 @@
   }
 }
 
+
+@media (pointer: coarse), (max-width: 700px) {
+  #touch-utility-buttons {
+    position: fixed;
+    top: 88px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+    width: max-content;
+    max-width: calc(100vw - 20px);
+    pointer-events: auto;
+    z-index: 85;
+  }
+
+  .touch-utility-btn {
+    padding: 9px 11px;
+    border: 1px solid rgba(255,255,255,0.24);
+    border-radius: 12px;
+    background: rgba(18,14,24,0.88);
+    color: white;
+    font-size: 10px;
+    font-weight: 800;
+    touch-action: manipulation;
+  }
+
+  #touch-restart { border-color: rgba(244,63,94,0.65); }
+}
+
 </style>
 <link rel="manifest" href="/manifest.json">
 </head>
@@ -281,6 +312,11 @@
 
 
 <div id="touch-controls">
+  <div id="touch-utility-buttons">
+    <button id="touch-restart" class="touch-utility-btn" type="button">↻ RESTART</button>
+    <button id="touch-rain" class="touch-utility-btn" type="button">🌧 RAIN: ON</button>
+    <button id="touch-time" class="touch-utility-btn" type="button">🌅 SUNSET: ON</button>
+  </div>
   <div id="touch-steering-buttons">
     <button id="touch-left" class="touch-drive-btn touch-steer-btn" type="button">◀<br>LEFT</button>
     <button id="touch-right" class="touch-drive-btn touch-steer-btn" type="button">▶<br>RIGHT</button>
@@ -398,8 +434,8 @@ const mobileDrivingMode =
   window.matchMedia('(pointer: coarse)').matches || window.innerWidth <= 700;
 
 if (mobileDrivingMode) {
-  car.maxSpeed = 11.25;
-  car.accel = 0.24;
+  car.maxSpeed = 9.375;
+  car.accel = 0.29;
 }
 
 
@@ -435,7 +471,7 @@ function initStars() {
   for (let i = 0; i < 110; i++) {
     stars.push({
       x: Math.random() * w,
-      y: Math.random() * (h * 0.75),
+      y: Math.random() * (h * 0.80),
       r: Math.random() * 1.5 + 0.4,
       alpha: Math.random() * 0.6 + 0.25,
       twinkleSpeed: Math.random() * 0.03 + 0.012,
@@ -756,6 +792,10 @@ function updateHUDLabels() {
 
 function applySunsetState(enabled, notifyServer = false) {
   isSunsetActive = enabled;
+  const mobileTimeBtn = document.getElementById('touch-time');
+  if (mobileTimeBtn) {
+    mobileTimeBtn.textContent = isSunsetActive ? '🌅 SUNSET: ON' : '🌙 NIGHT: ON';
+  }
   const sunsetBtn = document.getElementById('sunset-toggle-btn');
   if (sunsetBtn) {
     sunsetBtn.textContent = isSunsetActive ? '🌅 Sunset: ON [P]' : '🌙 Night [P]';
@@ -785,6 +825,10 @@ function toggleSunset(notifyServer = true) {
 
 function applyRainState(enabled, notifyServer = false) {
   isRainActive = enabled;
+  const mobileRainBtn = document.getElementById('touch-rain');
+  if (mobileRainBtn) {
+    mobileRainBtn.textContent = isRainActive ? '🌧 RAIN: ON' : '☀️ DRY: ON';
+  }
   if (!isRainActive) {
     if (rainGain && audioCtx) {
       rainGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.12);
@@ -827,6 +871,10 @@ function toggleRain(notifyServer = true) {
       : (isSunsetActive ? 'Rain OFF • Warm golden sunset dry asphalt [T]' : 'Rain OFF • Clear starry night dry asphalt [T]')
   );
 }
+
+document.getElementById('touch-restart')?.addEventListener('click', () => restartCar(true));
+document.getElementById('touch-rain')?.addEventListener('click', () => toggleRain(true));
+document.getElementById('touch-time')?.addEventListener('click', () => toggleSunset(true));
 
 const sunsetBtn = document.getElementById('sunset-toggle-btn');
 if (sunsetBtn) {
@@ -1281,8 +1329,11 @@ function loop() {
   if (distEl) distEl.textContent = totalDistanceKm.toFixed(2) + ' km';
   document.getElementById('hud-drift').textContent = Math.round(Math.abs(car.driftAngle * 180 / Math.PI)) + '°';
 
+  const cameraZoom = mobileDrivingMode ? 0.80 : 1;
+  const cameraLookAhead = mobileDrivingMode ? h * 0.18 : 0;
+
   camX += (car.x - camX) * 0.08;
-  camY += (car.y - camY) * 0.08;
+  camY += (car.y + cameraLookAhead - camY) * 0.08;
 
   // Render Sky & Background
   if (isSunsetActive) {
@@ -1356,7 +1407,13 @@ function loop() {
   }
 
   ctx.save();
-  ctx.translate(w / 2 - camX, h / 2 - camY);
+  if (mobileDrivingMode) {
+    ctx.translate(w / 2, h * 0.75);
+    ctx.scale(cameraZoom, cameraZoom);
+    ctx.translate(-camX, -camY);
+  } else {
+    ctx.translate(w / 2 - camX, h / 2 - camY);
+  }
 
   // Road underlayers
   ctx.lineWidth = 1200;
