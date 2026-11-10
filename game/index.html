@@ -51,6 +51,117 @@
   .ov-title { font-size: 26px; font-weight: 700; color: #f8fafc; margin-bottom: 8px; }
   .ov-sub { font-size: 13.5px; color: #cbd5e1; line-height: 1.55; margin-bottom: 24px; }
   .ov-btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 28px; border-radius: 999px; background: #ea580c; color: #f8fafc; font-size: 14px; font-weight: 600; border: none; cursor: pointer; box-shadow: 0 4px 18px rgba(234,88,12,0.4); }
+
+/* Mobile touch driving controls */
+#touch-controls {
+  display: none;
+}
+
+@media (pointer: coarse), (max-width: 700px) {
+  #hud {
+    padding: 12px;
+  }
+
+  .hud-title {
+    font-size: 17px;
+  }
+
+  .hud-tag {
+    font-size: 9px;
+  }
+
+  .hud-stats {
+    gap: 9px;
+  }
+
+  .stat-val {
+    font-size: 15px;
+  }
+
+  .stat-lbl {
+    font-size: 8px;
+  }
+
+  .hud-bottom {
+    display: none;
+  }
+
+  #touch-controls {
+    position: fixed;
+    inset: 0;
+    z-index: 70;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding: 0 22px calc(24px + env(safe-area-inset-bottom, 0px));
+    pointer-events: none;
+    touch-action: none;
+  }
+
+  #joystick-base {
+    width: 124px;
+    height: 124px;
+    border-radius: 50%;
+    position: relative;
+    background: rgba(255,255,255,0.13);
+    border: 2px solid rgba(255,255,255,0.35);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.35);
+    pointer-events: auto;
+    touch-action: none;
+  }
+
+  #joystick-knob {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: rgba(234,88,12,0.9);
+    border: 2px solid rgba(255,255,255,0.8);
+    box-shadow: 0 0 18px rgba(234,88,12,0.5);
+    pointer-events: none;
+  }
+
+  #touch-buttons {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    pointer-events: auto;
+  }
+
+  .touch-drive-btn {
+    border: 2px solid rgba(255,255,255,0.55);
+    border-radius: 22px;
+    color: white;
+    font-size: 13px;
+    font-weight: 800;
+    text-shadow: 0 1px 4px #000;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.4);
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  #touch-accelerate {
+    width: 76px;
+    height: 112px;
+    background: rgba(22,163,74,0.78);
+  }
+
+  #touch-brake {
+    width: 68px;
+    height: 82px;
+    background: rgba(37,99,235,0.8);
+  }
+
+  .touch-drive-btn:active {
+    filter: brightness(1.3);
+    transform: scale(0.96);
+  }
+}
+
 </style>
 <link rel="manifest" href="/manifest.json">
 </head>
@@ -129,6 +240,17 @@
   </div>
 </div>
 
+
+<div id="touch-controls">
+  <div id="joystick-base" aria-label="Steering joystick">
+    <div id="joystick-knob"></div>
+  </div>
+  <div id="touch-buttons">
+    <button id="touch-brake" class="touch-drive-btn" type="button">BRAKE</button>
+    <button id="touch-accelerate" class="touch-drive-btn" type="button">GAS</button>
+  </div>
+</div>
+
 <script>
 const canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d');
@@ -167,6 +289,79 @@ window.addEventListener('keyup', (e) => {
   if (['ArrowRight', 'KeyD'].includes(e.code)) keys.right = false;
   if (e.code === 'Space') keys.handbrake = false;
 });
+
+
+// Mobile joystick and multitouch driving controls
+let touchSteer = 0;
+
+const joystickBase = document.getElementById('joystick-base');
+const joystickKnob = document.getElementById('joystick-knob');
+let joystickPointerId = null;
+
+function moveJoystick(event) {
+  const rect = joystickBase.getBoundingClientRect();
+  const maxRadius = (rect.width - joystickKnob.offsetWidth) / 2;
+  let dx = event.clientX - (rect.left + rect.width / 2);
+  let dy = event.clientY - (rect.top + rect.height / 2);
+  const distance = Math.hypot(dx, dy);
+
+  if (distance > maxRadius) {
+    dx = dx / distance * maxRadius;
+    dy = dy / distance * maxRadius;
+  }
+
+  touchSteer = dx / maxRadius;
+  joystickKnob.style.transform =
+    `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+}
+
+function resetJoystick() {
+  joystickPointerId = null;
+  touchSteer = 0;
+  joystickKnob.style.transform = 'translate(-50%, -50%)';
+}
+
+joystickBase.addEventListener('pointerdown', (event) => {
+  event.preventDefault();
+  joystickPointerId = event.pointerId;
+  joystickBase.setPointerCapture(event.pointerId);
+  moveJoystick(event);
+});
+
+joystickBase.addEventListener('pointermove', (event) => {
+  if (event.pointerId === joystickPointerId) {
+    event.preventDefault();
+    moveJoystick(event);
+  }
+});
+
+joystickBase.addEventListener('pointerup', (event) => {
+  if (event.pointerId === joystickPointerId) resetJoystick();
+});
+
+joystickBase.addEventListener('pointercancel', resetJoystick);
+joystickBase.addEventListener('lostpointercapture', resetJoystick);
+
+function setupTouchButton(id, key) {
+  const button = document.getElementById(id);
+
+  button.addEventListener('pointerdown', (event) => {
+    event.preventDefault();
+    keys[key] = true;
+    button.setPointerCapture(event.pointerId);
+  });
+
+  const release = () => {
+    keys[key] = false;
+  };
+
+  button.addEventListener('pointerup', release);
+  button.addEventListener('pointercancel', release);
+  button.addEventListener('lostpointercapture', release);
+}
+
+setupTouchButton('touch-accelerate', 'up');
+setupTouchButton('touch-brake', 'down');
 
 const overlay = document.getElementById('overlay');
 overlay.addEventListener('click', dismissOverlay);
@@ -914,7 +1109,7 @@ function loop() {
     mudGain.gain.setTargetAtTime(targetMudGain, audioCtx.currentTime, 0.08);
   }
 
-  const targetSteer = keys.left ? -0.065 : (keys.right ? 0.065 : 0);
+  const targetSteer = Math.abs(touchSteer) > 0.04 ? touchSteer * 0.065 : (keys.left ? -0.065 : (keys.right ? 0.065 : 0));
   car.steer += (targetSteer - car.steer) * 0.22;
 
   const baseAccel = isCarInMud ? car.accel * 0.4 : car.accel;
