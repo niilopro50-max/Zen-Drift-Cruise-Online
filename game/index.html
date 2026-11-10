@@ -1116,7 +1116,7 @@ function loop() {
     mudGain.gain.setTargetAtTime(targetMudGain, audioCtx.currentTime, 0.08);
   }
 
-  const targetSteer = Math.abs(touchSteer) > 0.04 ? touchSteer * 0.065 : (keys.left ? -0.065 : (keys.right ? 0.065 : 0));
+  const targetSteer = keys.left ? -0.065 : (keys.right ? 0.065 : 0);
   car.steer += (targetSteer - car.steer) * 0.22;
 
   const baseAccel = isCarInMud ? car.accel * 0.4 : car.accel;
