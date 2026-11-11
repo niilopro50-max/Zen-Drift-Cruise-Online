@@ -47,6 +47,99 @@
   .hud-toast.hide { opacity: 0; transform: translateX(-50%) translateY(-8px); }
   .hud-toast-icon { font-size: 15px; color: #fb923c; }
 
+  #race-status {
+    display: none;
+    position: fixed;
+    top: 112px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 140;
+    padding: 10px 20px;
+    border: 1px solid rgba(251,146,60,0.65);
+    border-radius: 12px;
+    background: rgba(12,16,26,0.9);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 900;
+    letter-spacing: 1.5px;
+    text-align: center;
+    white-space: nowrap;
+    box-shadow: 0 8px 28px rgba(0,0,0,0.4);
+    pointer-events: none;
+  }
+
+#time-attack-hud {
+  display: none;
+  position: relative;
+  top: auto;
+  left: auto;
+  transform: none;
+  z-index: 135;
+  flex: 0 1 340px;
+  width: min(340px, 30vw);
+  min-width: 0;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid rgba(56,189,248,0.32);
+  border-radius: 10px;
+  background: rgba(8,14,25,0.88);
+  box-shadow: 0 8px 28px rgba(0,0,0,0.34);
+  backdrop-filter: blur(12px);
+  pointer-events: none;
+}
+
+#time-attack-hud .race-hud-cell {
+  min-width: 0;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  background: rgba(15,23,42,0.72);
+  text-align: center;
+}
+
+#time-attack-hud .race-hud-label {
+  color: #94a3b8;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  white-space: nowrap;
+}
+
+#time-attack-hud .race-hud-value {
+  color: #f8fafc;
+  font-size: 16px;
+  line-height: 1.2;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+#race-hud-checkpoints { color: #7dd3fc !important; }
+#race-hud-best { color: #fcd34d !important; }
+#race-hud-delta.ahead { color: #4ade80 !important; }
+#race-hud-delta.behind { color: #fb923c !important; }
+
+@media (max-width: 600px) {
+  #time-attack-hud {
+    flex: 0 1 220px;
+    width: min(220px, 28vw);
+    margin: 0 5px;
+  }
+  #time-attack-hud .race-hud-cell {
+    padding: 8px 4px;
+  }
+  #time-attack-hud .race-hud-label {
+    font-size: 8px;
+    letter-spacing: 0.06em;
+  }
+  #time-attack-hud .race-hud-value {
+    font-size: 13px;
+  }
+}
+
+
   #overlay {
     position: fixed;
     inset: 0;
@@ -552,6 +645,20 @@
       <span class="hud-tag">VoiceOS Experience</span>
       <div class="hud-title">Zen Cruise <span class="hud-badge" id="hud-weather-badge">GOLDEN SUNSET • RAIN DRIFT</span></div>
     </div>
+    <div id="time-attack-hud" aria-label="Time Attack race information">
+      <div class="race-hud-cell">
+        <span class="race-hud-label">CHECKPOINTS</span>
+        <strong class="race-hud-value" id="race-hud-checkpoints">0/3</strong>
+      </div>
+      <div class="race-hud-cell">
+        <span class="race-hud-label">PERSONAL BEST</span>
+        <strong class="race-hud-value" id="race-hud-best">--:--.--</strong>
+      </div>
+      <div class="race-hud-cell">
+        <span class="race-hud-label">GHOST DELTA</span>
+        <strong class="race-hud-value" id="race-hud-delta">--</strong>
+      </div>
+    </div>
     <div class="hud-stats">
       <div class="stat-box">
         <span class="stat-val hud-surface-val on-asphalt" id="hud-surface">ASPHALT</span>
@@ -581,6 +688,7 @@
     <span class="hud-toast-icon">🌅</span>
     <span id="hud-toast-text">Golden Sunset Active • Rain on wet asphalt</span>
   </div>
+  <div id="race-status" aria-live="polite"></div>
   <div class="hud-bottom">
     <div class="hud-ctrls">
       <span>Steer:</span>
@@ -685,15 +793,16 @@
         ENDLESS TOUGE
         <small>AVAILABLE NOW • FREE DRIVE</small>
       </div>
-      <div class="menu-mode-card" style="opacity:0.48;border-color:rgba(255,255,255,0.12)">
+      <div class="menu-mode-card">
         TIME ATTACK
-        <small>COMING SOON</small>
+        <small>3 CHECKPOINTS • 1 FINISH LINE • PERSONAL BEST</small>
       </div>
       <div class="menu-mode-card" style="opacity:0.48;border-color:rgba(255,255,255,0.12)">
         DRIFT CHALLENGE
         <small>COMING SOON</small>
       </div>
-      <button class="ov-btn" id="mode-endless" type="button">▶ &nbsp; PLAY ENDLESS TOUGE</button>
+      <button class="ov-btn" id="mode-time-attack" type="button">🏁 &nbsp; START TIME ATTACK</button>
+      <button class="menu-back" id="mode-endless" type="button">▶ &nbsp; PLAY ENDLESS TOUGE</button>
       <button class="menu-back" data-menu-back type="button">← BACK TO MENU</button>
     </section>
 
@@ -714,9 +823,25 @@
     <section id="menu-pause-page" class="ov-page" hidden>
       <div class="menu-eyebrow">TAKE A BREATHER</div>
       <div class="ov-title">GAME <span>PAUSED</span></div>
-      <div class="ov-sub">Your cruise is paused. Take your time.</div>
+      <div class="ov-sub">Your game is paused. The race clock stops too.</div>
       <button class="ov-btn" id="resume-btn" type="button">▶ &nbsp; RESUME</button>
       <button class="menu-back" id="pause-home-btn" type="button">⌂ &nbsp; BACK TO HOME</button>
+    </section>
+
+    <section id="menu-time-attack-results-page" class="ov-page" hidden>
+      <div class="menu-eyebrow">TOUGE TIME ATTACK</div>
+      <div class="ov-title">RACE <span>COMPLETE</span></div>
+      <p class="ov-page-copy" id="race-result-message">Course complete.</p>
+      <div class="menu-mode-card">
+        YOUR TIME
+        <div id="race-result-time" style="font-size:34px;font-weight:900;margin-top:8px;">00:00.00</div>
+      </div>
+      <div class="menu-mode-card">
+        PERSONAL BEST
+        <div id="race-result-best" style="font-size:25px;font-weight:900;margin-top:8px;">--:--.--</div>
+      </div>
+      <button class="ov-btn" id="race-retry-btn" type="button">↻ &nbsp; RACE AGAIN</button>
+      <button class="menu-back" id="race-home-btn" type="button">⌂ &nbsp; BACK TO HOME</button>
     </section>
 
   </div>
@@ -791,7 +916,7 @@ window.addEventListener('keydown', (e) => {
     cycleMusic();
   }
   if ((e.code === 'KeyR' || e.key === 'r' || e.key === 'R') && !e.repeat) {
-    restartCar(true);
+    restartCurrentMode();
   }
 
 });
@@ -836,8 +961,16 @@ setupTouchButton('touch-brake', 'down');
 const overlay = document.getElementById('overlay');
 
 function showMenuPage(page) {
-  ['home', 'garage-page', 'modes-page', 'settings-page', 'pause-page'].forEach((name) => {
-    document.getElementById('menu-' + name).hidden = name !== page;
+  [
+    'home',
+    'garage-page',
+    'modes-page',
+    'settings-page',
+    'pause-page',
+    'time-attack-results-page'
+  ].forEach((name) => {
+    const element = document.getElementById('menu-' + name);
+    if (element) element.hidden = name !== page;
   });
 }
 
@@ -855,7 +988,17 @@ function togglePause() {
   if (gamePaused) {
     pausedAt = Date.now();
   } else if (pausedAt !== null) {
-    totalPausedMs += Date.now() - pausedAt;
+    const pauseDuration = Date.now() - pausedAt;
+    totalPausedMs += pauseDuration;
+
+    if (gameMode === 'timeAttack') {
+      if (timeAttackState === 'countdown') {
+        timeAttackStartAt += pauseDuration;
+      } else if (timeAttackState === 'racing') {
+        timeAttackPausedMs += pauseDuration;
+      }
+    }
+
     pausedAt = null;
   }
 
@@ -873,14 +1016,215 @@ function togglePause() {
 function returnToHome() {
   gamePaused = false;
   gameStarted = false;
+  gameMode = 'endless';
+  timeAttackState = 'idle';
+  updateRaceHUDMode();
+  updateRaceStatus('', false);
   clearDrivingKeys();
   restartCar(false);
   showMenuPage('home');
   overlay.classList.remove('hide');
 }
 
+function formatRaceTime(milliseconds) {
+  const safe = Math.max(0, milliseconds);
+  const minutes = Math.floor(safe / 60000);
+  const seconds = Math.floor((safe % 60000) / 1000);
+  const centiseconds = Math.floor((safe % 1000) / 10);
+  return String(minutes).padStart(2, '0') + ':' +
+    String(seconds).padStart(2, '0') + '.' +
+    String(centiseconds).padStart(2, '0');
+}
+
+function updateRaceStatus(message, visible = true) {
+  const element = document.getElementById('race-status');
+  if (!element) return;
+  element.textContent = message;
+  element.style.display = visible ? 'block' : 'none';
+}
+
+function updateRaceHUDMode() {
+  const isTimeAttack = gameMode === 'timeAttack';
+  const label = document.querySelector('#hud-time + .stat-lbl');
+  const panel = document.getElementById('time-attack-hud');
+
+  if (label) label.textContent = isTimeAttack ? 'Race Time' : 'Cruise Time';
+  if (panel) {
+    panel.style.display = isTimeAttack && timeAttackState !== 'finished'
+      ? 'grid'
+      : 'none';
+  }
+
+  updateTimeAttackHUD(true);
+}
+
+let timeAttackHudLastUpdate = 0;
+
+function updateTimeAttackHUD(force = false) {
+  if (gameMode !== 'timeAttack') return;
+
+  const now = Date.now();
+  if (!force && now - timeAttackHudLastUpdate < 120) return;
+  timeAttackHudLastUpdate = now;
+
+  const checkpointEl = document.getElementById('race-hud-checkpoints');
+  const bestEl = document.getElementById('race-hud-best');
+  const deltaEl = document.getElementById('race-hud-delta');
+
+  if (checkpointEl) {
+    checkpointEl.textContent = Math.min(3, timeAttackCheckpoint) + '/3';
+  }
+
+  const best = getTimeAttackBest();
+  if (bestEl) {
+    bestEl.textContent = best === null ? '--:--.--' : formatRaceTime(best);
+  }
+
+  if (!deltaEl) return;
+
+  deltaEl.classList.remove('ahead', 'behind');
+  const samples = timeAttackGhost && timeAttackGhost.samples;
+
+  if (!samples || !samples.length || timeAttackState !== 'racing') {
+    deltaEl.textContent = '--';
+    return;
+  }
+
+  // Busca la muestra del fantasma registrada en el nodo más cercano.
+  let closestSample = null;
+  let closestNodeDistance = Infinity;
+
+  for (const sample of samples) {
+    if (!Number.isFinite(sample.n) || !Number.isFinite(sample.t)) continue;
+
+    const distance = Math.abs(sample.n - lastClosestNode);
+    if (distance < closestNodeDistance) {
+      closestNodeDistance = distance;
+      closestSample = sample;
+    }
+  }
+
+  // Evita mostrar una diferencia engañosa si el fantasma está lejos
+  // o si el registro antiguo todavía no contiene progreso por nodos.
+  if (!closestSample || closestNodeDistance > 8) {
+    deltaEl.textContent = '--';
+    return;
+  }
+
+  const delta = getRaceElapsedMs() - closestSample.t;
+
+  if (Math.abs(delta) < 10) {
+    deltaEl.textContent = 'EVEN';
+  } else if (delta > 0) {
+    deltaEl.textContent = '+' + (delta / 1000).toFixed(2) + 's';
+    deltaEl.classList.add('behind');
+  } else {
+    deltaEl.textContent = '−' + (Math.abs(delta) / 1000).toFixed(2) + 's';
+    deltaEl.classList.add('ahead');
+  }
+}
+
+function getRaceElapsedMs() {
+  if (timeAttackState === 'finished') return timeAttackFinishMs;
+  if (timeAttackState !== 'racing') return 0;
+
+  const currentPauseMs = gamePaused && pausedAt !== null
+    ? Date.now() - pausedAt
+    : 0;
+
+  return Math.max(
+    0,
+    Date.now() - timeAttackStartAt - timeAttackPausedMs - currentPauseMs
+  );
+}
+
+function getTimeAttackBest() {
+  try {
+    const value = Number(localStorage.getItem('zen-drift-time-attack-best'));
+    return Number.isFinite(value) && value > 0 ? value : null;
+  } catch (_) {
+    return null;
+  }
+}
+
+function finishTimeAttack() {
+  recordTimeAttackGhostSample();
+  timeAttackFinishMs = getRaceElapsedMs();
+  timeAttackState = 'finished';
+  gameStarted = false;
+  gamePaused = true;
+  pausedAt = null;
+  clearDrivingKeys();
+  setAutoDrive(false);
+  updateRaceStatus('', false);
+
+  const previousBest = getTimeAttackBest();
+  const isNewBest = previousBest === null || timeAttackFinishMs < previousBest;
+  const best = isNewBest ? timeAttackFinishMs : previousBest;
+
+  if (isNewBest) {
+    try {
+      localStorage.setItem('zen-drift-time-attack-best', String(timeAttackFinishMs));
+          if (timeAttackRecording.length > 1) {
+        localStorage.setItem('zen-drift-time-attack-ghost', JSON.stringify({
+          v: 1,
+          duration: timeAttackFinishMs,
+          samples: timeAttackRecording
+        }));
+      }
+} catch (_) {}
+  }
+
+  document.getElementById('race-result-time').textContent =
+    formatRaceTime(timeAttackFinishMs);
+  document.getElementById('race-result-best').textContent =
+    formatRaceTime(best);
+  document.getElementById('race-result-message').textContent =
+    isNewBest ? 'NEW PERSONAL BEST! All checkpoints cleared.' :
+      'All checkpoints cleared. Can you beat your best time?';
+
+  showMenuPage('time-attack-results-page');
+  overlay.classList.remove('hide');
+}
+
+function startTimeAttack() {
+  gameMode = 'timeAttack';
+  restartCar(false);
+
+  gameStarted = true;
+  gamePaused = false;
+  timeAttackState = 'countdown';
+  timeAttackStartAt = Date.now() + 3000;
+  timeAttackPausedMs = 0;
+  timeAttackFinishMs = 0;
+  timeAttackCheckpoint = 0;
+
+  timeAttackRecording = [];
+  timeAttackLastSampleAt = 0;
+  timeAttackHudLastUpdate = 0;
+  timeAttackGhost = loadTimeAttackGhost();
+  updateRaceHUDMode();
+  updateTimeAttackHUD(true);
+  updateRaceStatus('GET READY • 3', true);
+  clearDrivingKeys();
+  overlay.classList.add('hide');
+  initAudio();
+}
+
+function restartCurrentMode() {
+  if (gameMode === 'timeAttack') {
+    startTimeAttack();
+  } else {
+    restartCar(true);
+  }
+}
+
 function startGame() {
   if (gameStarted) return;
+  gameMode = 'endless';
+  timeAttackState = 'idle';
+  updateRaceHUDMode();
+  updateRaceStatus('', false);
   gameStarted = true;
   gamePaused = false;
   clearDrivingKeys();
@@ -894,6 +1238,9 @@ document.getElementById('pause-home-btn').addEventListener('click', returnToHome
 
 document.getElementById('start-btn').addEventListener('click', startGame);
 document.getElementById('mode-endless').addEventListener('click', startGame);
+document.getElementById('mode-time-attack').addEventListener('click', startTimeAttack);
+document.getElementById('race-retry-btn').addEventListener('click', startTimeAttack);
+document.getElementById('race-home-btn').addEventListener('click', returnToHome);
 
 document.getElementById('menu-garage').addEventListener('click', () => showMenuPage('garage-page'));
 document.getElementById('menu-modes').addEventListener('click', () => showMenuPage('modes-page'));
@@ -1430,6 +1777,111 @@ function cycleMusic() {
 updateMusicButtons();
 
 let startTime = Date.now();
+let gameMode = 'endless';
+let timeAttackState = 'idle';
+let timeAttackStartAt = 0;
+let timeAttackPausedMs = 0;
+let timeAttackFinishMs = 0;
+let timeAttackCheckpoint = 0;
+
+// Time Attack ghost recording and playback.
+let timeAttackRecording = [];
+let timeAttackLastSampleAt = 0;
+let timeAttackGhost = null;
+
+function loadTimeAttackGhost() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('zen-drift-time-attack-ghost'));
+    if (
+      saved &&
+      saved.v === 1 &&
+      Array.isArray(saved.samples) &&
+      saved.samples.length > 1
+    ) {
+      return saved;
+    }
+  } catch (_) {}
+  return null;
+}
+
+function recordTimeAttackGhostSample() {
+  if (gameMode !== 'timeAttack' || timeAttackState !== 'racing') return;
+
+  const now = Date.now();
+  if (now - timeAttackLastSampleAt < 40) return;
+  timeAttackLastSampleAt = now;
+
+  timeAttackRecording.push({
+    t: getRaceElapsedMs(),
+    x: car.x,
+    y: car.y,
+    a: car.angle,
+    n: lastClosestNode
+  });
+  updateTimeAttackHUD();
+}
+
+function getTimeAttackGhostPose(elapsed) {
+  const samples = timeAttackGhost && timeAttackGhost.samples;
+  if (!samples || samples.length < 2) return null;
+  if (elapsed > samples[samples.length - 1].t) return null;
+
+  let low = 0;
+  let high = samples.length - 1;
+
+  while (low < high) {
+    const mid = Math.floor((low + high) / 2);
+    if (samples[mid].t < elapsed) low = mid + 1;
+    else high = mid;
+  }
+
+  const b = samples[low];
+  const a = samples[Math.max(0, low - 1)];
+  const span = b.t - a.t;
+  const f = span > 0 ? Math.max(0, Math.min(1, (elapsed - a.t) / span)) : 0;
+
+  let angleDiff = ((b.a - a.a + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
+
+  return {
+    x: a.x + (b.x - a.x) * f,
+    y: a.y + (b.y - a.y) * f,
+    a: a.a + angleDiff * f
+  };
+}
+
+function drawTimeAttackGhost() {
+  if (
+    gameMode !== 'timeAttack' ||
+    timeAttackState !== 'racing' ||
+    !timeAttackGhost
+  ) return;
+
+  const pose = getTimeAttackGhostPose(getRaceElapsedMs());
+  if (!pose) return;
+
+  ctx.save();
+  ctx.globalAlpha = 0.38;
+  ctx.translate(pose.x, pose.y);
+  ctx.rotate(pose.a);
+
+  ctx.fillStyle = '#38bdf8';
+  ctx.strokeStyle = '#e0f7ff';
+  ctx.lineWidth = 2;
+
+  ctx.beginPath();
+  ctx.roundRect(-22, -11, 44, 22, 5);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = '#075985';
+  ctx.beginPath();
+  ctx.roundRect(-8, -8, 20, 16, 3);
+  ctx.fill();
+
+  ctx.restore();
+}
+
+const TIME_ATTACK_CHECKPOINT_NODES = [100, 200, 300, 400];
 let pausedAt = null;
 let totalPausedMs = 0;
 let toastTimeout = null;
@@ -1603,7 +2055,7 @@ function toggleRain(notifyServer = true) {
   );
 }
 
-document.getElementById('touch-restart')?.addEventListener('click', () => restartCar(true));
+document.getElementById('touch-restart')?.addEventListener('click', restartCurrentMode);
 document.getElementById('touch-rain')?.addEventListener('click', () => toggleRain(true));
 document.getElementById('touch-time')?.addEventListener('click', () => toggleSunset(true));
 
@@ -1746,14 +2198,18 @@ setInterval(() => {
   const currentPauseMs = gamePaused && pausedAt !== null
     ? Date.now() - pausedAt
     : 0;
-  const elapsed = Math.floor(
-    (Date.now() - startTime - totalPausedMs - currentPauseMs) / 1000
-  );
+  const elapsed = gameMode === 'timeAttack'
+    ? Math.floor(getRaceElapsedMs() / 1000)
+    : Math.floor(
+        (Date.now() - startTime - totalPausedMs - currentPauseMs) / 1000
+      );
   const m = Math.floor(elapsed / 60);
-  const s = elapsed % 60;
+  const sec = elapsed % 60;
   const timeEl = document.getElementById('hud-time');
   if (timeEl) {
-    timeEl.textContent = String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+    timeEl.textContent = gameMode === 'timeAttack'
+      ? formatRaceTime(getRaceElapsedMs())
+      : String(m).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
   }
 
   fetch('/api/heartbeat', {
@@ -1954,9 +2410,78 @@ function drawLushTree(c, tree, inHeadlights, distToCar, beamDiff) {
   }
 }
 
+function drawTimeAttackGate() {
+  if (gameMode !== 'timeAttack' ||
+      !['countdown', 'racing'].includes(timeAttackState)) return;
+
+  const nodeIndex = TIME_ATTACK_CHECKPOINT_NODES[timeAttackCheckpoint];
+  const node = roadNodes[nodeIndex];
+  const before = roadNodes[nodeIndex - 1];
+  const after = roadNodes[nodeIndex + 1];
+  if (!node || !before || !after) return;
+
+  const dx = after.x - before.x;
+  const dy = after.y - before.y;
+  const length = Math.hypot(dx, dy) || 1;
+  const nx = -dy / length;
+  const ny = dx / length;
+  const leftX = node.x + nx * 150;
+  const leftY = node.y + ny * 150;
+  const rightX = node.x - nx * 150;
+  const rightY = node.y - ny * 150;
+  const isFinish = timeAttackCheckpoint === TIME_ATTACK_CHECKPOINT_NODES.length - 1;
+
+  ctx.save();
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  ctx.strokeStyle = isFinish ? '#22c55e' : '#f97316';
+  ctx.lineWidth = 13;
+  ctx.beginPath();
+  ctx.moveTo(leftX, leftY);
+  ctx.lineTo(leftX, leftY - 82);
+  ctx.moveTo(rightX, rightY);
+  ctx.lineTo(rightX, rightY - 82);
+  ctx.stroke();
+
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineWidth = 15;
+  ctx.setLineDash([22, 12]);
+  ctx.beginPath();
+  ctx.moveTo(leftX, leftY - 82);
+  ctx.lineTo(rightX, rightY - 82);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.fillStyle = isFinish ? '#86efac' : '#fed7aa';
+  ctx.font = '900 19px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(
+    isFinish ? 'FINISH' : 'CHECKPOINT ' + (timeAttackCheckpoint + 1),
+    node.x,
+    node.y - 105
+  );
+  ctx.restore();
+}
+
 function loop() {
   requestAnimationFrame(loop);
   if (gamePaused) return;
+
+  if (gameMode === 'timeAttack') {
+    if (timeAttackState === 'countdown') {
+      const remaining = timeAttackStartAt - Date.now();
+      if (remaining > 0) {
+        updateRaceStatus('GET READY • ' + Math.ceil(remaining / 1000), true);
+        return;
+      }
+      timeAttackState = 'racing';
+      timeAttackStartAt = Date.now();
+      timeAttackPausedMs = 0;
+      updateRaceStatus('GO! • CHECKPOINTS 0/3', true);
+    }
+    if (timeAttackState !== 'racing') return;
+  }
 
   let minDist = Infinity;
   let closestIdx = lastClosestNode;
@@ -1982,6 +2507,23 @@ function loop() {
     }
   }
   lastClosestNode = closestIdx;
+
+  if (gameMode === 'timeAttack' && timeAttackState === 'racing') {
+    const targetNode = TIME_ATTACK_CHECKPOINT_NODES[timeAttackCheckpoint];
+    if (lastClosestNode >= targetNode) {
+      if (timeAttackCheckpoint === TIME_ATTACK_CHECKPOINT_NODES.length - 1) {
+        finishTimeAttack();
+        return;
+      }
+
+      timeAttackCheckpoint++;
+      updateRaceStatus(
+        'CHECKPOINT ' + timeAttackCheckpoint + '/3 • KEEP GOING!',
+        true
+      );
+      showToast('🏁', 'Checkpoint ' + timeAttackCheckpoint + ' of 3 cleared!');
+    }
+  }
 
   const ROAD_EDGE = 118;
   isCarInMud = minDist > ROAD_EDGE;
@@ -2171,6 +2713,8 @@ function loop() {
   } else {
     car.driftAngle = 0;
   }
+
+  recordTimeAttackGhostSample();
 
   const rearX = car.x - Math.cos(car.angle) * 16;
   const rearY = car.y - Math.sin(car.angle) * 16;
@@ -2446,6 +2990,9 @@ function loop() {
     ctx.fill();
   });
 
+  // Draw the next checkpoint or finish gate along the existing road.
+  drawTimeAttackGate();
+
   // Render Trees
   const visibleTrees = [];
   for (let i = 0; i < trees.length; i++) {
@@ -2542,6 +3089,13 @@ function loop() {
       ctx.fill();
     }
   }
+
+  // Draw the previous personal-best ghost before the real car.
+
+
+  drawTimeAttackGhost();
+
+
 
   // Draw Drift Car
   ctx.save();

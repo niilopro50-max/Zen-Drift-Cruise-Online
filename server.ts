@@ -1245,4 +1245,7 @@ server.registerTool(
 
 startHttpServer();
 
-await server.connect(new StdioServerTransport());
+// Public web mode: keep VoiceOS MCP local.
+if (process.env.ZEN_WEB_ONLY !== "1") {
+  await server.connect(new StdioServerTransport());
+}
