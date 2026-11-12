@@ -3536,6 +3536,7 @@ let rainDensity = 85;
 // Distance tracking in kilometers (km)
 let totalDistanceKm = 0;
 
+const desktopMode = new URLSearchParams(window.location.search).get('desktop') === '1';
 // Car physics state
 const car = {
   x: 0,
@@ -3561,8 +3562,12 @@ if (mobileDrivingMode) {
   car.accel = 0.20;
 }
 
+if (desktopMode) {
+  car.accel = 0.18;
+}
+
 function updateCarPerformance() {
-  const standardMaxSpeed = mobileDrivingMode ? 4.375 : 15.0;
+  const standardMaxSpeed = desktopMode ? 8 : (mobileDrivingMode ? 4.375 : 15.0);
   car.maxSpeed = standardMaxSpeed * (selectedCarType === 'f1' ? 1.15 : 1);
 }
 
@@ -4678,8 +4683,14 @@ function drawTimeAttackGate() {
   ctx.restore();
 }
 
+const desktopFixedFrame = desktopMode;
+
 function loop() {
-  requestAnimationFrame(loop);
+  if (desktopFixedFrame) {
+    setTimeout(loop, 1000 / 60);
+  } else {
+    requestAnimationFrame(loop);
+  }
   if (gamePaused) return;
 
   if (gameMode === 'timeAttack') {
@@ -4905,6 +4916,12 @@ function loop() {
   car.x += car.vx;
   car.y += car.vy;
   car.speed = Math.sqrt(car.vx * car.vx + car.vy * car.vy);
+  if (desktopMode && car.speed > car.maxSpeed) {
+    const speedScale = car.maxSpeed / car.speed;
+    car.vx *= speedScale;
+    car.vy *= speedScale;
+    car.speed = car.maxSpeed;
+  }
 
   // Accumulate distance in kilometers (km)
   if (car.speed > 0.05) {

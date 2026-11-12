@@ -5,3 +5,14 @@ node_modules/
 .DS_Store
 *.log
 server.ts.before-render
+
+# Generated desktop builds
+release-build/
+desktop-server.mjs
+desktop-server-test.mjs
+
+# Historical local backups
+*.backup
+*.backup-*
+*.before-*
+*.nickname-backup

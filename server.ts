@@ -78,7 +78,8 @@ let currentAmbiance = {
 
 
 
-function startHttpServer() {
+export function startHttpServer(): Promise<{ server: http.Server; port: number }> {
+  return new Promise((resolve, reject) => {
   const server = http.createServer((req, res) => {
     const url = new URL(req.url || "/", "http://127.0.0.1:" + localPort);
 
@@ -262,24 +263,33 @@ function startHttpServer() {
     res.end("Not Found");
   });
 
+  let settled = false;
+  let fallbackAttempted = false;
+
   const announce = () => {
     const addr = server.address();
     if (addr && typeof addr === "object") {
       localPort = addr.port;
       console.log(`Zen Drift HTTP server listening on ${listenHost}:${localPort}`);
+      settled = true;
+      resolve({ server, port: localPort });
     }
   };
 
   server.on("error", (error: Error & { code?: string }) => {
-    if (error.code === "EADDRINUSE") {
+    if (error.code === "EADDRINUSE" && !fallbackAttempted && !settled) {
+      fallbackAttempted = true;
       console.log("Port busy. Selecting another port...");
       server.listen(0, listenHost, announce);
+    } else if (!settled) {
+      reject(error);
     } else {
       console.error("HTTP server error:", error);
     }
   });
 
   server.listen(localPort, listenHost, announce);
+  });
 }
 
 function formatDuration(sec: number): string {
@@ -1320,9 +1330,12 @@ server.registerTool(
   },
 );
 
-startHttpServer();
+// Desktop mode starts the HTTP server explicitly from Electron.
+if (process.env.ZEN_DESKTOP_MODE !== "1") {
+  startHttpServer();
+}
 
 // Public web mode: keep VoiceOS MCP local.
-if (process.env.ZEN_WEB_ONLY !== "1") {
+if (process.env.ZEN_WEB_ONLY !== "1" && process.env.ZEN_DESKTOP_MODE !== "1") {
   await server.connect(new StdioServerTransport());
 }

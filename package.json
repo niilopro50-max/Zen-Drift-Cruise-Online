@@ -5,11 +5,82 @@
   "description": "Chill drifting at golden sunset or starry night with rain, km odometer counter, mountain pines, and lofi beats.",
   "type": "module",
   "scripts": {
-    "start": "tsx server.ts"
+    "start": "tsx server.ts",
+    "desktop:build": "esbuild server.ts --bundle --platform=node --format=esm --packages=external --outfile=desktop-server.mjs",
+    "desktop:dev": "npm run desktop:build && electron .",
+    "desktop:mac": "npm run desktop:build && electron-builder --mac dmg --arm64",
+    "desktop:win": "npm run desktop:build && electron-builder --win nsis --x64"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.28.0",
-    "zod": "^3.24.0",
-    "tsx": "^4.20.2"
+    "tsx": "^4.20.2",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "electron": "^45.3.1",
+    "electron-builder": "^26.18.0",
+    "esbuild": "^0.28.2",
+    "png-to-ico": "^3.0.2"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true,
+    "electron-winstaller@5.4.0": true
+  },
+  "main": "desktop/main.js",
+  "build": {
+    "appId": "com.zendriftcruise.app",
+    "productName": "Zen Drift Cruise",
+    "directories": {
+      "output": "release-build"
+    },
+    "files": [
+      "desktop/**/*",
+      "desktop-server.mjs",
+      "game/**/*",
+      "website/**/*",
+      "icons/**/*",
+      "downloads/zen-drift-cruise.zip",
+      "manifest.json",
+      "sw.js",
+      "package.json",
+      "!**/*.backup*",
+      "!**/*.before-*",
+      "!**/*.nickname-backup",
+      "!**/*.log",
+      "!release-build/**"
+    ],
+    "mac": {
+      "category": "public.app-category.games",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64"
+          ]
+        }
+      ],
+      "icon": "icons/icon.icns"
+    },
+    "dmg": {
+      "title": "Zen Drift Cruise"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "icons/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
   }
 }
