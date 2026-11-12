@@ -35,6 +35,11 @@ const PWA_ASSETS = {
     contentType: "image/png",
     cacheControl: "public, max-age=86400",
   },
+  "/assets/zen-mclaren.jpg": {
+    body: readFileSync(new URL("./game/assets/zen-mclaren.jpg", import.meta.url)),
+    contentType: "image/jpeg",
+    cacheControl: "public, max-age=86400",
+  },
 };
 
 
