@@ -1,5 +1,5 @@
 import http from "node:http";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { execFile } from "node:child_process";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
@@ -8,6 +8,8 @@ import { renderCustom, markHtml, esc, clip } from "./widgetKit.ts";
 
 const ACCENT = "#ea580c";
 const GAME_HTML = readFileSync(new URL("./game/index.html", import.meta.url), "utf8");
+const WEBSITE_HTML = readFileSync(new URL("./website/index.html", import.meta.url), "utf8");
+const DOWNLOAD_HTML = readFileSync(new URL("./website/download.html", import.meta.url), "utf8");
 
 const PWA_ASSETS = {
   "/manifest.json": {
@@ -93,9 +95,39 @@ function startHttpServer() {
 
     if (req.method === "GET" && url.pathname === "/") {
       res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+      res.end(WEBSITE_HTML);
+      return;
+    }
+
+    if (req.method === "GET" && (url.pathname === "/play" || url.pathname === "/play/")) {
+      res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
       res.end(GAME_HTML);
       return;
     }
+
+    if (req.method === "GET" && (url.pathname === "/download" || url.pathname === "/download/")) {
+      res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+      res.end(DOWNLOAD_HTML);
+      return;
+    }
+
+    if (req.method === "GET" && url.pathname === "/downloads/zen-drift-cruise.zip") {
+      const zipPath = new URL("./downloads/zen-drift-cruise.zip", import.meta.url);
+      if (!existsSync(zipPath)) {
+        res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
+        res.end("Download not found.");
+        return;
+      }
+      const zip = readFileSync(zipPath);
+      res.writeHead(200, {
+        "Content-Type": "application/zip",
+        "Content-Disposition": 'attachment; filename="zen-drift-cruise.zip"',
+        "Content-Length": zip.length,
+      });
+      res.end(zip);
+      return;
+    }
+
 
     if (req.method === "GET" && url.pathname === "/api/state") {
       res.writeHead(200, {

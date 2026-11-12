@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#090909">
+<meta name="description" content="Zen Drift Cruise — escape, drive and drift. Play online or download the game.">
+<title>Zen Drift Cruise | Find Your Flow</title>
+<link rel="icon" href="/icons/icon-192.png">
+<style>
+:root {
+  --orange: #f26a21;
+  --black: #090909;
+  --white: #f5f3ef;
+  --muted: #aaa6a1;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--black);
+  color: var(--white);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+a { color: inherit; text-decoration: none; }
+header {
+  height: 78px;
+  padding: 0 7%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #ffffff14;
+  position: relative;
+  z-index: 2;
+  background: #090909;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  font-size: 15px;
+}
+.brand img { width: 39px; height: 39px; object-fit: contain; }
+nav { display: flex; align-items: center; gap: 32px; font-size: 13px; font-weight: 700; }
+nav a:not(.nav-cta) { color: #c8c5c1; }
+nav a:hover { color: var(--orange); }
+.nav-cta {
+  background: var(--orange);
+  color: #090909;
+  padding: 12px 19px;
+  border-radius: 4px;
+}
+.hero {
+  min-height: 690px;
+  height: calc(100svh - 78px);
+  max-height: 900px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  background:
+    linear-gradient(90deg, #090909 0%, #090909e8 34%, #09090970 68%, #09090930 100%),
+    linear-gradient(0deg, #090909 0%, transparent 34%),
+    url("/assets/zen-mclaren.jpg") center 54% / cover no-repeat;
+}
+.hero-content {
+  width: min(650px, 86%);
+  margin-left: 10%;
+  position: relative;
+  z-index: 1;
+  padding: 65px 0;
+}
+.eyebrow {
+  color: var(--orange);
+  font-size: 11px;
+  letter-spacing: 4px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+h1 {
+  font-size: clamp(55px, 8.5vw, 112px);
+  line-height: .91;
+  letter-spacing: -6px;
+  margin: 23px 0;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+h1 span { color: var(--orange); }
+.hero p {
+  max-width: 430px;
+  color: #c4c0bb;
+  font-size: 16px;
+  line-height: 1.8;
+  margin: 26px 0 34px;
+}
+.actions { display: flex; flex-wrap: wrap; gap: 13px; }
+.btn {
+  min-height: 54px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 27px;
+  border: 1px solid #ffffff55;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 1.2px;
+  transition: .2s ease;
+}
+.btn-primary { background: var(--orange); border-color: var(--orange); color: #090909; }
+.btn:hover { transform: translateY(-3px); }
+.btn-secondary:hover { border-color: var(--orange); color: var(--orange); }
+.hero-note {
+  position: absolute;
+  right: 7%;
+  bottom: 40px;
+  color: #ffffff9c;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+section { padding: 105px 9%; }
+.section-label {
+  color: var(--orange);
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  font-size: 11px;
+  font-weight: 900;
+}
+.section-title {
+  font-size: clamp(34px, 5vw, 58px);
+  letter-spacing: -2px;
+  line-height: 1;
+  margin: 17px 0;
+  text-transform: uppercase;
+}
+.intro {
+  max-width: 560px;
+  color: var(--muted);
+  line-height: 1.8;
+  font-size: 15px;
+}
+.features {
+  background: #111;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+.feature {
+  border: 1px solid #ffffff18;
+  padding: 31px;
+  min-height: 210px;
+  background: linear-gradient(145deg, #181818, #101010);
+}
+.feature-number { color: var(--orange); font-size: 12px; font-weight: 900; letter-spacing: 2px; }
+.feature h3 { font-size: 19px; text-transform: uppercase; margin: 24px 0 10px; }
+.feature p { color: var(--muted); font-size: 13px; line-height: 1.7; margin: 0; }
+.download-section {
+  text-align: center;
+  background: var(--orange);
+  color: #090909;
+}
+.download-section .section-label { color: #090909b5; }
+.download-section .intro { color: #23150e; margin: 0 auto 28px; }
+.download-section .btn { border-color: #090909; color: #090909; }
+.download-section .btn:hover { background: #090909; color: white; }
+footer {
+  padding: 30px 7%;
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  color: #8e8983;
+  font-size: 11px;
+  letter-spacing: 1px;
+}
+@media (max-width: 700px) {
+  header { height: 68px; padding: 0 5%; }
+  .brand { font-size: 12px; gap: 8px; }
+  .brand img { width: 33px; height: 33px; }
+  nav { gap: 13px; font-size: 11px; }
+  nav a:nth-child(2) { display: none; }
+  .nav-cta { padding: 10px 12px; }
+  .hero {
+    min-height: 700px;
+    height: calc(100svh - 68px);
+    background-position: 58% center;
+  }
+  .hero-content { margin-left: 7%; width: 88%; padding-top: 20px; }
+  h1 { font-size: clamp(53px, 15vw, 85px); letter-spacing: -3px; }
+  .hero p { font-size: 14px; max-width: 330px; }
+  .btn { min-height: 50px; padding: 0 18px; font-size: 10px; }
+  .hero-note { right: 7%; bottom: 22px; font-size: 8px; }
+  section { padding: 75px 7%; }
+  .features { grid-template-columns: 1fr; }
+  .feature { min-height: 170px; }
+  footer { padding: 25px 7%; flex-direction: column; }
+}
+</style>
+</head>
+<body>
+<header>
+  <a class="brand" href="/">
+    <img src="/icons/icon-192.png" alt="Zen Drift Cruise">
+    <span>ZEN DRIFT CRUISE</span>
+  </a>
+  <nav>
+    <a href="#experience">EXPERIENCE</a>
+    <a href="/download">DOWNLOAD</a>
+    <a class="nav-cta" href="/play">PLAY NOW ↗</a>
+  </nav>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="hero-content">
+      <div class="eyebrow">Your road. Your rhythm.</div>
+      <h1>FIND<br>YOUR <span>FLOW.</span></h1>
+      <p>
+        Leave the noise behind. Get behind the wheel, explore the road
+        and enjoy the freedom of Zen Drift Cruise.
+      </p>
+      <div class="actions">
+        <a class="btn btn-primary" href="/play">▶ &nbsp; PLAY ONLINE</a>
+        <a class="btn btn-secondary" href="/download">DOWNLOAD GAME</a>
+      </div>
+    </div>
+    <div class="hero-note">DRIVE • EXPLORE • RELAX</div>
+  </section>
+
+  <section id="experience">
+    <div class="section-label">The experience</div>
+    <h2 class="section-title">More than a drive.</h2>
+    <p class="intro">
+      A place to slow down, find your rhythm and enjoy the road.
+      Start playing directly in your browser whenever you want.
+    </p>
+  </section>
+
+  <section class="features">
+    <article class="feature">
+      <div class="feature-number">01 / FREEDOM</div>
+      <h3>Your own journey</h3>
+      <p>Take the wheel and enjoy the open road at your own pace.</p>
+    </article>
+    <article class="feature">
+      <div class="feature-number">02 / ATMOSPHERE</div>
+      <h3>Find your mood</h3>
+      <p>Enjoy the atmosphere and make every drive your own experience.</p>
+    </article>
+    <article class="feature">
+      <div class="feature-number">03 / ACCESS</div>
+      <h3>Play your way</h3>
+      <p>Launch the game online or explore the available download options.</p>
+    </article>
+  </section>
+
+  <section class="download-section">
+    <div class="section-label">Ready when you are</div>
+    <h2 class="section-title">The road is waiting.</h2>
+    <p class="intro">Jump straight into the experience or visit the download page.</p>
+    <div class="actions" style="justify-content:center">
+      <a class="btn" href="/play">PLAY ONLINE ↗</a>
+      <a class="btn" href="/download">DOWNLOAD OPTIONS</a>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <span>© 2026 ZEN DRIFT CRUISE</span>
+  <span>BUILT FOR THE LOVE OF THE DRIVE.</span>
+</footer>
+</body>
+</html>
