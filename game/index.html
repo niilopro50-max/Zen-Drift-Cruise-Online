@@ -636,6 +636,11 @@
 
 </style>
 <link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#ea580c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Zen Cruise">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 </head>
 <body>
 <canvas id="c"></canvas>
@@ -3270,6 +3275,19 @@ function loop() {
 }
 
 loop();
+</script>
+
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js", {
+      scope: "/",
+      updateViaCache: "none"
+    }).catch((error) => {
+      console.warn("Zen Cruise Service Worker registration failed:", error);
+    });
+  });
+}
 </script>
 </body>
 </html>

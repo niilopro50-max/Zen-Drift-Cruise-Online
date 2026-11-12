@@ -9,6 +9,35 @@ import { renderCustom, markHtml, esc, clip } from "./widgetKit.ts";
 const ACCENT = "#ea580c";
 const GAME_HTML = readFileSync(new URL("./game/index.html", import.meta.url), "utf8");
 
+const PWA_ASSETS = {
+  "/manifest.json": {
+    body: readFileSync(new URL("./manifest.json", import.meta.url), "utf8"),
+    contentType: "application/manifest+json; charset=utf-8",
+    cacheControl: "no-cache",
+  },
+  "/sw.js": {
+    body: readFileSync(new URL("./sw.js", import.meta.url), "utf8"),
+    contentType: "application/javascript; charset=utf-8",
+    cacheControl: "no-cache",
+  },
+  "/icons/icon-192.png": {
+    body: readFileSync(new URL("./icons/icon-192.png", import.meta.url)),
+    contentType: "image/png",
+    cacheControl: "public, max-age=86400",
+  },
+  "/icons/icon-512.png": {
+    body: readFileSync(new URL("./icons/icon-512.png", import.meta.url)),
+    contentType: "image/png",
+    cacheControl: "public, max-age=86400",
+  },
+  "/icons/apple-touch-icon.png": {
+    body: readFileSync(new URL("./icons/apple-touch-icon.png", import.meta.url)),
+    contentType: "image/png",
+    cacheControl: "public, max-age=86400",
+  },
+};
+
+
 // State management for the local drift cruise session
 let localPort = Number(process.env.PORT) || 48291;
 const listenHost = process.env.PORT ? "0.0.0.0" : "127.0.0.1";
@@ -45,6 +74,17 @@ let currentAmbiance = {
 function startHttpServer() {
   const server = http.createServer((req, res) => {
     const url = new URL(req.url || "/", "http://127.0.0.1:" + localPort);
+
+    const pwaAsset = req.method === "GET" ? PWA_ASSETS[url.pathname as keyof typeof PWA_ASSETS] : undefined;
+    if (pwaAsset) {
+      res.writeHead(200, {
+        "Content-Type": pwaAsset.contentType,
+        "Cache-Control": pwaAsset.cacheControl,
+        ...(url.pathname === "/sw.js" ? { "Service-Worker-Allowed": "/" } : {}),
+      });
+      res.end(pwaAsset.body);
+      return;
+    }
 
     if (req.method === "GET" && url.pathname === "/") {
       res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
