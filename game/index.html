@@ -2478,6 +2478,75 @@
 /* END ZEN DRIFT ORANGE LIGHTNING */
 
 
+
+/* PLAYER IDENTITY — ZEN MOTORSPORT */
+.player-name-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin: 0 0 16px;
+  text-align: left;
+}
+
+.player-name-panel label {
+  color: #fb923c;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 2px;
+}
+
+#player-name-input {
+  width: 100%;
+  min-height: 46px;
+  box-sizing: border-box;
+  padding: 0 13px;
+  border: 1px solid rgba(249,115,22,.38);
+  border-radius: 9px;
+  outline: none;
+  background: #101216;
+  color: #fff;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: .5px;
+}
+
+#player-name-input:focus {
+  border-color: #f97316;
+  box-shadow: 0 0 0 3px rgba(249,115,22,.12);
+}
+
+#player-name-input::placeholder {
+  color: #737985;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.player-name-hint {
+  color: #737985;
+  font-size: 8px;
+  letter-spacing: 1.1px;
+}
+
+.hud-player-name {
+  display: inline-block;
+  width: fit-content;
+  max-width: 190px;
+  overflow: hidden;
+  color: #fb923c;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 700px) {
+  .player-name-panel { margin-bottom: 13px; }
+  #player-name-input { min-height: 44px; font-size: 16px; }
+  .hud-player-name { max-width: 125px; font-size: 8px; }
+}
+
 </style>
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#ea580c">
@@ -2493,6 +2562,7 @@
     <div class="hud-brand">
       <span class="hud-tag">VoiceOS Experience</span>
       <div class="hud-title">Zen Cruise <span class="hud-badge" id="hud-weather-badge">GOLDEN SUNSET • RAIN DRIFT</span></div>
+      <span id="hud-player-name" class="hud-player-name">DRIVER</span>
     </div>
     <div id="time-attack-hud" aria-label="Time Attack race information">
       <div class="race-hud-cell">
@@ -2784,6 +2854,21 @@
       <div class="garage-current">
         <span class="garage-current-dot"></span>
         <span id="garage-current-label">DRIFT CAR • RED</span>
+      </div>
+
+      <div class="player-name-panel">
+        <label for="player-name-input">YOUR DRIVER NAME</label>
+        <input
+          id="player-name-input"
+          type="text"
+          maxlength="16"
+          minlength="3"
+          autocomplete="nickname"
+          autocapitalize="words"
+          spellcheck="false"
+          placeholder="Enter nickname (3–16 characters)"
+        >
+        <span class="player-name-hint">YOUR NAME WILL APPEAR IN THE GAME</span>
       </div>
 
       <button class="ov-btn" id="garage-drive" type="button">▶ &nbsp; SELECT CAR</button>
@@ -3295,6 +3380,67 @@ document.querySelectorAll('[data-menu-back]').forEach((button) => {
   button.addEventListener('click', () => showMenuPage('home'));
 });
 
+
+// Local player identity — foundation for future online multiplayer
+const PLAYER_NAME_KEY = 'zen-drift-player-name';
+const PLAYER_ID_KEY = 'zen-drift-player-id';
+
+function createLocalPlayerId() {
+  if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+    return window.crypto.randomUUID();
+  }
+  return 'player-' + Date.now().toString(36) + '-' +
+    Math.random().toString(36).slice(2, 12);
+}
+
+let localPlayerId = localStorage.getItem(PLAYER_ID_KEY);
+if (!localPlayerId) {
+  localPlayerId = createLocalPlayerId();
+  localStorage.setItem(PLAYER_ID_KEY, localPlayerId);
+}
+
+function cleanPlayerName(value) {
+  return value
+    .replace(/[^a-zA-Z0-9 _-]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 16);
+}
+
+const playerNameInput = document.getElementById('player-name-input');
+const hudPlayerName = document.getElementById('hud-player-name');
+let playerName = cleanPlayerName(localStorage.getItem(PLAYER_NAME_KEY) || 'Driver');
+
+if (playerName.length < 3) playerName = 'Driver';
+
+function updatePlayerNameDisplay() {
+  hudPlayerName.textContent = playerName.toUpperCase();
+  playerNameInput.value = playerName;
+}
+
+playerNameInput.addEventListener('input', () => {
+  const cleaned = cleanPlayerName(playerNameInput.value);
+  if (playerNameInput.value !== cleaned) {
+    playerNameInput.value = cleaned;
+  }
+});
+
+playerNameInput.addEventListener('change', () => {
+  const cleaned = cleanPlayerName(playerNameInput.value);
+  if (cleaned.length >= 3) {
+    playerName = cleaned;
+    localStorage.setItem(PLAYER_NAME_KEY, playerName);
+  }
+  updatePlayerNameDisplay();
+});
+
+playerNameInput.addEventListener('keydown', (event) => {
+  if (event.key === 'Enter') {
+    playerNameInput.blur();
+  }
+});
+
+updatePlayerNameDisplay();
 
 // Garage vehicle selection
 let selectedCarType = 'drift';
