@@ -3355,6 +3355,7 @@ document.querySelectorAll('[data-car-select]').forEach((button) => {
   button.addEventListener('click', () => {
     selectedCarType = button.dataset.carSelect;
     updateGarageSelection();
+    updateCarPerformance();
   });
 });
 
@@ -3412,6 +3413,11 @@ const mobileDrivingMode =
 if (mobileDrivingMode) {
   car.maxSpeed = 4.375;
   car.accel = 0.20;
+}
+
+function updateCarPerformance() {
+  const standardMaxSpeed = mobileDrivingMode ? 4.375 : 15.0;
+  car.maxSpeed = standardMaxSpeed * (selectedCarType === 'f1' ? 1.15 : 1);
 }
 
 
@@ -4674,7 +4680,7 @@ function loop() {
 
   car.steer += (targetSteer - car.steer) * steerSmooth;
 
-  const baseAccel = isCarInMud ? car.accel * 0.4 : car.accel;
+  const baseAccel = (isCarInMud ? car.accel * 0.4 : car.accel) * (selectedCarType === 'f1' ? 1.15 : 1);
   const accel = autoDriveEnabled
     ? (autoThrottle ? baseAccel : (autoBrake ? -baseAccel * 0.55 : 0))
     : (keys.up ? baseAccel : (keys.down ? -baseAccel * 0.55 : 0));
@@ -4689,7 +4695,7 @@ function loop() {
   const rightY = fwdX;
   let lateralVel = car.vx * rightX + car.vy * rightY;
 
-  const currentGrip = keys.handbrake ? 0.52 : (isCarInMud ? 0.68 : car.lateralGrip);
+  const currentGrip = selectedCarType === 'f1' ? 0.08 : (keys.handbrake ? 0.52 : (isCarInMud ? 0.68 : car.lateralGrip));
   lateralVel *= currentGrip;
 
   car.vx = (fwdX * forwardVel * car.friction) + (rightX * lateralVel);
