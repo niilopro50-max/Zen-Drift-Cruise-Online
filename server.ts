@@ -42,6 +42,16 @@ const PWA_ASSETS = {
     contentType: "image/jpeg",
     cacheControl: "public, max-age=86400",
   },
+  "/robots.txt": {
+    body: readFileSync(new URL("./website/robots.txt", import.meta.url), "utf8"),
+    contentType: "text/plain; charset=utf-8",
+    cacheControl: "public, max-age=3600",
+  },
+  "/sitemap.xml": {
+    body: readFileSync(new URL("./website/sitemap.xml", import.meta.url), "utf8"),
+    contentType: "application/xml; charset=utf-8",
+    cacheControl: "public, max-age=3600",
+  },
 };
 
 

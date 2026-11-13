@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://zen-drift-cruise-online.onrender.com/sitemap.xml
