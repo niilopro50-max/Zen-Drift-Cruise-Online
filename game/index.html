@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
 <title>Zen Cruise • Golden Sunset & Rain Drift Touge</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -2547,6 +2547,420 @@
   .hud-player-name { max-width: 125px; font-size: 8px; }
 }
 
+
+
+/* ===== ZEN DRIFT GAME MENU FINAL RESPONSIVE ===== */
+
+html, body {
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  overflow: hidden;
+}
+
+body {
+  overscroll-behavior: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+#overlay {
+  padding: max(18px, env(safe-area-inset-top))
+           max(18px, env(safe-area-inset-right))
+           max(18px, env(safe-area-inset-bottom))
+           max(18px, env(safe-area-inset-left));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+#overlay:has(#menu-home:not([hidden])) {
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(ellipse at 78% 50%, rgba(234,88,12,.22), transparent 43%),
+    radial-gradient(ellipse at 15% 15%, rgba(255,255,255,.055), transparent 34%),
+    linear-gradient(135deg, #070a10 0%, #11141d 58%, #211108 100%);
+}
+
+#overlay:has(#menu-home:not([hidden])) .ov-box {
+  position: relative;
+  width: min(1120px, 100%);
+  max-width: 1120px;
+  padding: clamp(24px, 4vw, 54px);
+  text-align: left;
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 24px;
+  background:
+    linear-gradient(115deg, rgba(18,22,31,.98), rgba(12,14,21,.97));
+  box-shadow: 0 30px 100px rgba(0,0,0,.65);
+}
+
+#menu-home {
+  display: grid !important;
+  grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr) !important;
+  grid-template-areas:
+    "eyebrow visual"
+    "copy visual"
+    "chips visual"
+    "play visual"
+    "nav visual" !important;
+  align-items: center;
+  justify-items: stretch;
+  column-gap: clamp(22px, 4vw, 56px);
+  row-gap: 0;
+  text-align: left;
+}
+
+#menu-home > .menu-eyebrow {
+  grid-area: eyebrow;
+  margin-bottom: 18px;
+}
+
+#menu-home .menu-hero-copy {
+  grid-area: copy;
+  text-align: left;
+}
+
+#menu-home .ov-title {
+  font-size: clamp(52px, 6vw, 82px);
+  line-height: .92;
+  letter-spacing: -3px;
+  margin-bottom: 18px;
+}
+
+#menu-home .ov-sub {
+  max-width: 410px;
+  margin: 0 0 22px;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+#menu-home .menu-hero-visual {
+  display: flex !important;
+  grid-area: visual;
+  grid-row: 1 / 6;
+  min-width: 0;
+  min-height: clamp(300px, 43vw, 470px);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 18px;
+  background:
+    radial-gradient(ellipse at 50% 65%, rgba(249,115,22,.19), transparent 58%),
+    linear-gradient(145deg, rgba(255,255,255,.045), rgba(0,0,0,.12));
+}
+
+#menu-home .hero-car-image {
+  display: block;
+  width: 112%;
+  max-width: 690px;
+  height: clamp(240px, 34vw, 390px);
+  object-fit: contain;
+  filter: drop-shadow(0 24px 30px rgba(0,0,0,.65));
+}
+
+#menu-home .hero-car-label,
+#menu-home .hero-car-caption {
+  position: relative;
+  z-index: 1;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 2.5px;
+  text-align: center;
+}
+
+#menu-home .hero-car-label {
+  align-self: flex-end;
+  margin: 12px 16px 0;
+  color: #fb923c;
+}
+
+#menu-home .hero-car-caption {
+  margin: -2px 0 16px;
+  color: #aab4c5;
+}
+
+#menu-home .menu-chip-row {
+  grid-area: chips;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 22px;
+}
+
+#menu-home #start-btn {
+  display: flex !important;
+  grid-area: play;
+  width: min(100%, 360px);
+  min-height: 58px;
+  justify-self: start;
+  align-items: center;
+  justify-content: center;
+  border-radius: 11px;
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  box-shadow: 0 10px 30px rgba(234,88,12,.32);
+}
+
+#menu-home .menu-nav {
+  display: grid !important;
+  grid-area: nav;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  width: 100%;
+  max-width: 500px;
+  gap: 9px;
+  margin-top: 18px;
+}
+
+#menu-home .menu-nav button {
+  min-width: 0;
+  min-height: 52px;
+  padding: 10px 8px;
+  border: 1px solid rgba(255,255,255,.15);
+  border-radius: 10px;
+  background: rgba(255,255,255,.045);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: .8px;
+  touch-action: manipulation;
+}
+
+#menu-home #menu-modes {
+  border-color: rgba(255,180,120,.55);
+  background: linear-gradient(110deg, #f97316, #c2410c);
+  box-shadow: 0 8px 24px rgba(234,88,12,.25);
+}
+
+#menu-home .menu-nav button:active,
+#menu-home #start-btn:active {
+  transform: scale(.98);
+}
+
+@media (max-width: 700px) {
+  #overlay {
+    align-items: flex-start;
+    justify-content: center;
+    padding: max(12px, env(safe-area-inset-top))
+             max(12px, env(safe-area-inset-right))
+             max(12px, env(safe-area-inset-bottom))
+             max(12px, env(safe-area-inset-left));
+  }
+
+  #overlay:has(#menu-home:not([hidden])) {
+    align-items: flex-start;
+  }
+
+  #overlay:has(#menu-home:not([hidden])) .ov-box {
+    width: 100%;
+    max-width: 540px;
+    margin: auto 0;
+    padding: 22px 18px;
+    border-radius: 18px;
+  }
+
+  #menu-home {
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-areas:
+      "eyebrow"
+      "copy"
+      "visual"
+      "chips"
+      "play"
+      "nav" !important;
+    column-gap: 0;
+  }
+
+  #menu-home > .menu-eyebrow {
+    margin-bottom: 12px;
+    font-size: 9px;
+    letter-spacing: 3px;
+  }
+
+  #menu-home .menu-hero-copy {
+    text-align: center;
+  }
+
+  #menu-home .ov-title {
+    font-size: clamp(43px, 12vw, 64px);
+    letter-spacing: -2px;
+    margin-bottom: 10px;
+  }
+
+  #menu-home .ov-sub {
+    max-width: 390px;
+    margin: 0 auto 15px;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  #menu-home .menu-hero-visual {
+    grid-row: auto;
+    min-height: 0;
+    margin: 0 0 14px;
+    padding: 5px 0 0;
+  }
+
+  #menu-home .hero-car-image {
+    width: 100%;
+    max-width: 480px;
+    height: clamp(170px, 48vw, 245px);
+  }
+
+  #menu-home .hero-car-label {
+    margin-top: 8px;
+    font-size: 8px;
+  }
+
+  #menu-home .hero-car-caption {
+    margin-bottom: 10px;
+    font-size: 8px;
+  }
+
+  #menu-home .menu-chip-row {
+    justify-content: center;
+    margin-bottom: 15px;
+    gap: 6px;
+  }
+
+  #menu-home .menu-chip {
+    font-size: 8px;
+    padding: 6px 8px;
+  }
+
+  #menu-home #start-btn {
+    width: 100%;
+    min-height: 54px;
+    justify-self: stretch;
+  }
+
+  #menu-home .menu-nav {
+    grid-template-columns: 1fr;
+    max-width: none;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  #menu-home .menu-nav button {
+    min-height: 48px;
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 380px) {
+  #overlay:has(#menu-home:not([hidden])) .ov-box {
+    padding: 18px 14px;
+  }
+
+  #menu-home .hero-car-image {
+    height: 160px;
+  }
+
+  #menu-home .menu-nav button {
+    min-height: 45px;
+  }
+}
+
+/* ===== END ZEN DRIFT GAME MENU FINAL RESPONSIVE ===== */
+
+
+
+/* ===== ZEN DRIFT HOME AND MENU NAVIGATION FIX ===== */
+
+/* Las secciones ocultas nunca deben aparecer */
+#overlay .ov-page[hidden] {
+  display: none !important;
+}
+
+/* Home: diseño centrado sin coche ni botón PLAY */
+#menu-home:not([hidden]) {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  grid-template-areas:
+    "eyebrow"
+    "copy"
+    "chips"
+    "nav" !important;
+  gap: 18px;
+  width: 100%;
+  text-align: center;
+  justify-items: center;
+}
+
+#menu-home > .menu-eyebrow {
+  grid-area: eyebrow !important;
+  margin: 0;
+}
+
+#menu-home .menu-hero-copy {
+  grid-area: copy !important;
+  width: 100%;
+  text-align: center;
+}
+
+#menu-home .ov-title {
+  font-size: clamp(48px, 8vw, 82px);
+  margin-bottom: 14px;
+}
+
+#menu-home .ov-sub {
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+#menu-home .menu-hero-visual,
+#menu-home #start-btn {
+  display: none !important;
+}
+
+#menu-home .menu-chip-row {
+  grid-area: chips !important;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 0;
+}
+
+#menu-home .menu-nav {
+  grid-area: nav !important;
+  display: flex !important;
+  flex-direction: column;
+  width: min(440px, 100%);
+  gap: 13px;
+  margin: 12px auto 0;
+}
+
+#menu-home .menu-nav button {
+  width: 100%;
+  min-height: 58px;
+}
+
+@media (max-width: 700px) {
+  #menu-home:not([hidden]) {
+    gap: 14px;
+  }
+
+  #menu-home .ov-title {
+    font-size: clamp(44px, 13vw, 66px);
+    letter-spacing: -2px;
+  }
+
+  #menu-home .menu-nav {
+    width: 100%;
+    gap: 11px;
+  }
+
+  #menu-home .menu-nav button {
+    min-height: 52px;
+  }
+}
+
+/* ===== END ZEN DRIFT HOME AND MENU NAVIGATION FIX ===== */
+
+
 </style>
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#ea580c">
@@ -2659,17 +3073,6 @@
       Find your flow. Take the mountain road.
       Relax, cruise and drift through the sunset.
     </p>
-  </div>
-
-  <div class="menu-hero-visual" aria-label="Realistic orange McLaren supercar">
-    <div class="hero-car-label">01 / VORTEX SPRINTER</div>
-    <img
-      class="hero-car-image"
-      src="/assets/zen-mclaren.jpg"
-      alt="Photorealistic orange McLaren supercar"
-      loading="eager"
-    />
-    <div class="hero-car-caption">BUILT FOR THE MOUNTAIN ROAD</div>
   </div>
 
   <div class="menu-chip-row">
