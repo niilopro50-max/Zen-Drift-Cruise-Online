@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
 <title>Zen Cruise • Golden Sunset & Rain Drift Touge</title>
+<script>if (new URLSearchParams(location.search).has('garagePreview')) document.documentElement.classList.add('garage-preview-mode');</script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: #0c0810; color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; overflow: hidden; user-select: none; width: 100%; height: 100%; position: relative; }
@@ -2302,6 +2303,7 @@
     min-height: 70px;
     padding: 11px 10px;
   }
+
   #menu-garage-page .garage-car-option.selected::after {
     top: 8px;
     right: 8px;
@@ -2309,6 +2311,39 @@
   }
   #menu-garage-page .garage-colors { gap: 12px; }
 }
+
+.garage-live-preview {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: 10px;
+  background: #080a0f;
+}
+
+.garage-preview-label {
+  position: absolute;
+  z-index: 3;
+  top: 8px;
+  right: 8px;
+  border: 1px solid rgba(251,146,60,.35);
+  border-radius: 999px;
+  padding: 4px 7px;
+  background: rgba(8,10,15,.78);
+  color: #fdba74;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  pointer-events: none;
+}
+
+html.garage-preview-mode,
+html.garage-preview-mode body { width: 100%; height: 100%; overflow: hidden; background: #080a0f; }
+html.garage-preview-mode body > :not(#c) { display: none !important; }
+html.garage-preview-mode #c { position: fixed; inset: 0; width: 100%; height: 100%; }
+
 @media (prefers-reduced-motion: reduce) {
   #menu-garage-page .garage-car-option,
   #menu-garage-page .garage-color,
@@ -3160,147 +3195,8 @@ body {
           <div class="garage-stage-glow"></div>
           <div class="garage-stage-ring"></div>
           
-<svg class="garage-car-art" viewBox="40 50 580 210" role="img" aria-label="Selected vehicle">
-  <defs>
-    <linearGradient id="garageGlass" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#607589"/>
-      <stop offset=".28" stop-color="#192431"/>
-      <stop offset=".72" stop-color="#080d13"/>
-      <stop offset="1" stop-color="#242b34"/>
-    </linearGradient>
-    <linearGradient id="garageTyre" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#282b30"/>
-      <stop offset=".45" stop-color="#08090c"/>
-      <stop offset="1" stop-color="#35373c"/>
-    </linearGradient>
-    <linearGradient id="garageBody" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#ffffff" stop-opacity=".55"/>
-      <stop offset=".3" stop-color="#ffffff" stop-opacity=".12"/>
-      <stop offset="1" stop-color="#000000" stop-opacity=".35"/>
-    </linearGradient>
-    <linearGradient id="garageCarbon" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#303238"/>
-      <stop offset=".45" stop-color="#101216"/>
-      <stop offset="1" stop-color="#050608"/>
-    </linearGradient>
-    <filter id="garageShadow" x="-30%" y="-50%" width="160%" height="200%">
-      <feGaussianBlur stdDeviation="12"/>
-    </filter>
-    <filter id="garageOrangeGlow" x="-40%" y="-40%" width="180%" height="180%">
-      <feGaussianBlur stdDeviation="3.5" result="blur"/>
-      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
-  </defs>
-
-  <ellipse cx="320" cy="239" rx="232" ry="22" fill="#000" opacity=".76" filter="url(#garageShadow)"/>
-
-  <g class="garage-svg-drift">
-    <!-- Rear wing and carbon wing supports -->
-    <path d="M98 132 L104 98 L112 97 L117 134 M145 131 L150 99 L158 99 L158 139" fill="none" stroke="#22262b" stroke-width="7"/>
-    <path d="M87 91 L166 91 L160 102 L91 102Z" fill="url(#garageCarbon)" stroke="#68717c" stroke-width="2"/>
-    <path d="M95 94 L158 94" stroke="#ef4444" stroke-width="2"/>
-
-    <!-- Low wide GT coupe silhouette -->
-    <path class="garage-car-paint"
-      d="M70 190 L83 162 L109 146 L160 136 L191 131 L224 98 Q236 86 253 85 L356 85 Q379 87 397 109 L420 127 L479 138 L518 152 L548 173 L561 189 L555 199 L500 201 Q494 158 455 158 Q416 158 408 201 L244 201 Q237 158 198 158 Q160 158 151 201 L87 201Z"
-      stroke="#f1f3f5" stroke-opacity=".82" stroke-width="2.4"/>
-    <path
-      d="M70 190 L83 162 L109 146 L160 136 L191 131 L224 98 Q236 86 253 85 L356 85 Q379 87 397 109 L420 127 L479 138 L518 152 L548 173 L561 189 L555 199 L500 201 Q494 158 455 158 Q416 158 408 201 L244 201 Q237 158 198 158 Q160 158 151 201 L87 201Z"
-      fill="url(#garageBody)"/>
-    <!-- Black roof, glass and carbon hood -->
-    <path d="M188 132 L220 100 Q232 91 249 91 L352 91 Q371 93 388 113 L408 132Z" fill="url(#garageCarbon)" stroke="#8b929b" stroke-opacity=".65" stroke-width="2"/>
-    <path d="M211 128 L235 101 Q242 97 254 97 L294 97 L294 128Z" fill="url(#garageGlass)" stroke="#aebbc8" stroke-opacity=".38" stroke-width="1.5"/>
-    <path d="M302 97 L351 97 Q367 100 380 116 L392 128 L302 128Z" fill="url(#garageGlass)" stroke="#aebbc8" stroke-opacity=".38" stroke-width="1.5"/>
-    <path d="M300 98 L300 128" stroke="#d7e0e8" stroke-opacity=".42" stroke-width="2"/>
-    <path d="M408 134 L475 140 L512 154 L482 162 L435 150Z" fill="url(#garageCarbon)" stroke="#40454c" stroke-width="1.5"/>
-    <path d="M418 137 L474 143" stroke="#fff" stroke-opacity=".32" stroke-width="2"/>
-
-    <!-- GT-R inspired race livery and aerodynamic details -->
-    <path d="M105 153 L180 139 L202 143 L170 153 L118 164Z" fill="url(#garageCarbon)"/>
-    <path d="M240 137 L383 137 L418 147 L400 155 L235 155Z" fill="url(#garageCarbon)" opacity=".95"/>
-    <path d="M253 139 L374 139" stroke="#f8fafc" stroke-opacity=".8" stroke-width="2"/>
-    <path d="M293 143 L365 143" stroke="#ef4444" stroke-width="3"/>
-    <path d="M301 150 L354 150" stroke="#111827" stroke-width="4"/>
-    <path d="M86 184 L550 184" stroke="#fff" stroke-opacity=".65" stroke-width="2"/>
-    <path d="M92 190 L149 190 M245 190 L408 190 M500 190 L551 190" stroke="#171a1f" stroke-width="6"/>
-    <path d="M133 167 L151 162 L156 171 L137 176Z" fill="#ef4444"/>
-    <path d="M519 158 L544 171 L548 176 L524 171Z" fill="#f8fafc"/>
-    <path d="M520 178 L551 179 L557 187 L520 187Z" fill="#111318" stroke="#4c535c" stroke-width="1.5"/>
-    <path d="M529 181 L548 182" stroke="#ef4444" stroke-width="3"/>
-    <path d="M86 174 L104 168 L110 171 L96 179Z" fill="#fb334b"/>
-
-    <!-- Deep black wheels with multi-spoke alloys -->
-    <g class="garage-drift-wheel" transform="translate(198 190)">
-      <circle r="42" fill="url(#garageTyre)" stroke="#08090b" stroke-width="4"/>
-      <circle r="32" fill="#0b0d11" stroke="#737b85" stroke-width="2"/>
-      <g stroke="#c5cbd2" stroke-opacity=".8" stroke-width="2">
-        <path d="M0 -28V-7 M0 7V28 M-28 0H-7 M7 0H28 M-20 -20L-5 -5 M5 5L20 20 M20 -20L5 -5 M-5 5L-20 20"/>
-      </g>
-      <circle r="7" fill="#252a31" stroke="#d5d9de" stroke-width="2"/>
-      <circle r="3" fill="#ef4444"/>
-    </g>
-    <g class="garage-drift-wheel" transform="translate(455 190)">
-      <circle r="42" fill="url(#garageTyre)" stroke="#08090b" stroke-width="4"/>
-      <circle r="32" fill="#0b0d11" stroke="#737b85" stroke-width="2"/>
-      <g stroke="#c5cbd2" stroke-opacity=".8" stroke-width="2">
-        <path d="M0 -28V-7 M0 7V28 M-28 0H-7 M7 0H28 M-20 -20L-5 -5 M5 5L20 20 M20 -20L5 -5 M-5 5L-20 20"/>
-      </g>
-      <circle r="7" fill="#252a31" stroke="#d5d9de" stroke-width="2"/>
-      <circle r="3" fill="#ef4444"/>
-    </g>
-    <path d="M156 190 A42 42 0 0 1 240 190 M413 190 A42 42 0 0 1 497 190" fill="none" stroke="#fff" stroke-opacity=".7" stroke-width="2"/>
-  </g>
-
-  <g class="garage-svg-f1">
-    <!-- Rear wing on carbon pylons -->
-    <path d="M99 129 L105 91 L113 90 L118 139 M150 138 L155 92 L163 92 L167 145" fill="none" stroke="#2a211a" stroke-width="7"/>
-    <path d="M81 85 L172 85 L165 99 L86 99Z" fill="url(#garageCarbon)" stroke="#ff9a32" stroke-width="2" filter="url(#garageOrangeGlow)"/>
-    <path d="M87 90 L166 90" stroke="#ffd18a" stroke-width="2"/>
-
-    <!-- Exposed slick tyres and forged wheel centers -->
-    <g fill="url(#garageTyre)" stroke="#6b6155" stroke-width="2">
-      <ellipse cx="197" cy="190" rx="43" ry="51"/>
-      <ellipse cx="449" cy="190" rx="43" ry="51"/>
-    </g>
-    <g fill="#0b0d11" stroke="#ff8a23" stroke-opacity=".8" stroke-width="2">
-      <ellipse cx="197" cy="190" rx="30" ry="38"/>
-      <ellipse cx="449" cy="190" rx="30" ry="38"/>
-    </g>
-    <g stroke="#d4c4ad" stroke-opacity=".68" stroke-width="2">
-      <path d="M197 156V224 M179 160L215 220 M163 190H231 M179 220L215 160"/>
-      <path d="M449 156V224 M431 160L467 220 M415 190H483 M431 220L467 160"/>
-    </g>
-    <g fill="#ff8a23" stroke="#ffe2bd" stroke-width="1.5">
-      <circle cx="197" cy="190" r="7"/><circle cx="449" cy="190" r="7"/>
-    </g>
-
-    <!-- Formula chassis, narrow nose and sculpted sidepod -->
-    <path d="M103 185 L116 157 L146 145 L192 141 L226 132 L252 103 Q270 82 298 80 L329 84 L353 119 L385 135 L427 143 L473 154 L503 174 L510 190 L483 196 Q478 149 448 149 Q417 149 408 196 L242 196 Q236 149 197 149 Q160 149 152 196 L116 196Z"
-      fill="url(#garageCarbon)" stroke="#ff8a23" stroke-width="2.4" filter="url(#garageOrangeGlow)"/>
-    <path d="M112 181 L125 160 L184 151 L215 156 L202 174 L156 179Z" class="garage-car-paint" stroke="#ffd29b" stroke-opacity=".8" stroke-width="1.5"/>
-    <path d="M357 137 L427 145 L467 158 L446 169 L390 162Z" class="garage-car-paint" stroke="#ffd29b" stroke-opacity=".8" stroke-width="1.5"/>
-    <path d="M242 135 L390 135" stroke="#ffd29b" stroke-width="2.5" filter="url(#garageOrangeGlow)"/>
-    <path d="M125 179 L153 174 M391 169 L443 174" stroke="#ff9a32" stroke-width="3.5" filter="url(#garageOrangeGlow)"/>
-    <path d="M228 142 L252 110 M342 121 L365 141 M471 157 L495 173" fill="none" stroke="#ffd7aa" stroke-opacity=".72" stroke-width="1.8"/>
-
-    <!-- Engine cover, intake and dark cockpit glass -->
-    <path d="M239 128 L259 94 Q274 83 296 84 L322 91 L346 128Z" fill="url(#garageCarbon)" stroke="#ff9a32" stroke-opacity=".9" stroke-width="2"/>
-    <path d="M277 96 Q293 87 309 96 L319 112 L270 112Z" fill="url(#garageGlass)" stroke="#ffd3a1" stroke-opacity=".75" stroke-width="1.5"/>
-    <path d="M285 91 L292 78 L309 78 L317 94Z" fill="#15181d" stroke="#ff8a23" stroke-width="2"/>
-    <path d="M253 128 L335 128" stroke="#ffb35c" stroke-opacity=".8" stroke-width="2"/>
-    <!-- Halo, suspension and side fins -->
-    <path d="M267 106 Q293 78 323 103" fill="none" stroke="#e4e0d9" stroke-width="4"/>
-    <path d="M268 105 L324 105" stroke="#f2c08a" stroke-width="2"/>
-    <path d="M164 148 L197 190 L223 151 M419 145 L449 190 L476 154" fill="none" stroke="#ddd1c4" stroke-opacity=".8" stroke-width="2"/>
-    <path d="M222 145 L235 124 L248 151 L238 175Z M480 158 L502 170 L510 185 L486 180Z" fill="#20180f" stroke="#ff8a23" stroke-width="2"/>
-    <!-- Layered front wing -->
-    <path d="M482 184 L548 177 L580 184 L570 192 L487 199Z" fill="url(#garageCarbon)" stroke="#ff8a23" stroke-width="2"/>
-    <path d="M488 192 L560 189 M502 199 L572 196" fill="none" stroke="#ffbd72" stroke-width="2" filter="url(#garageOrangeGlow)"/>
-    <path d="M500 174 L514 184 M524 171 L533 181" stroke="#f6d1a7" stroke-width="2"/>
-    <path d="M103 161 L83 170 L80 185 L111 185" fill="none" stroke="#ff8a23" stroke-width="3"/>
-    <path d="M101 187 L151 187 M244 187 L408 187 M483 187 L509 187" stroke="#1c1b1a" stroke-width="6"/>
-  </g>
-</svg>
+<iframe id="garage-live-preview" class="garage-live-preview" title="Live auto-drive gameplay preview" loading="lazy"></iframe>
+          <span class="garage-preview-label">● LIVE AUTO DRIVE</span>
 
           <div class="garage-stage-caption">
             <span id="garage-preview-name">DRIFT CAR</span>
@@ -3549,6 +3445,7 @@ function showMenuPage(page) {
     const element = document.getElementById('menu-' + name);
     if (element) element.hidden = name !== page;
   });
+  syncGarageLivePreview(page === 'garage-page');
 }
 
 function clearDrivingKeys() {
@@ -3971,7 +3868,6 @@ function updateGarageSelection() {
   const showroom = document.getElementById('garage-showroom');
   const previewName = document.getElementById('garage-preview-name');
   const previewType = document.getElementById('garage-preview-type');
-
   if (showroom) {
     showroom.style.setProperty('--garage-paint', selectedCarColor);
     showroom.classList.toggle('is-f1', selectedCarType === 'f1');
@@ -3984,11 +3880,27 @@ function updateGarageSelection() {
   }
 }
 
+function syncGarageLivePreview(enabled = true) {
+  if (new URLSearchParams(location.search).has('garagePreview')) return;
+  const frame = document.getElementById('garage-live-preview');
+  if (!frame) return;
+  if (!enabled) {
+    if (frame.getAttribute('src') !== 'about:blank') frame.src = 'about:blank';
+    return;
+  }
+  const previewUrl = new URL('/play', location.origin);
+  previewUrl.searchParams.set('garagePreview', '1');
+  previewUrl.searchParams.set('car', selectedCarType);
+  previewUrl.searchParams.set('paint', selectedCarColor);
+  if (frame.src !== previewUrl.href) frame.src = previewUrl.href;
+}
+
 document.querySelectorAll('[data-car-select]').forEach((button) => {
   button.addEventListener('click', () => {
     selectedCarType = button.dataset.carSelect;
     selectedCarColor = garageCarColors[selectedCarType];
     updateGarageSelection();
+    syncGarageLivePreview();
     updateCarPerformance();
   });
 });
@@ -3998,6 +3910,7 @@ document.querySelectorAll('[data-car-color]').forEach((button) => {
     selectedCarColor = button.dataset.carColor;
     garageCarColors[selectedCarType] = selectedCarColor;
     updateGarageSelection();
+    syncGarageLivePreview();
   });
 });
 
@@ -4006,6 +3919,25 @@ document.getElementById('garage-drive').addEventListener('click', () => {
 });
 
 updateGarageSelection();
+
+// The garage preview runs the same game canvas in a quiet, UI-free auto-drive mode.
+if (new URLSearchParams(location.search).has('garagePreview')) {
+  window.addEventListener('load', () => {
+    const previewParams = new URLSearchParams(location.search);
+    selectedCarType = previewParams.get('car') === 'f1' ? 'f1' : 'drift';
+    const previewPaint = previewParams.get('paint');
+    if (/^#[0-9a-f]{6}$/i.test(previewPaint || '')) {
+      selectedCarColor = previewPaint;
+      garageCarColors[selectedCarType] = previewPaint;
+    }
+    updateCarPerformance();
+    gameStarted = true;
+    gamePaused = false;
+    isRainActive = false;
+    document.getElementById('overlay').classList.add('hide');
+    setAutoDrive(true);
+  }, { once: true });
+}
 
 // Weather & Environment state
 let isSunsetActive = true;
