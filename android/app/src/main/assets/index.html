@@ -4113,6 +4113,7 @@ const trees = [];
 // Procedural Road spline
 const roadNodes = [];
 const ROAD_NODE_DIST = 44;
+const ROAD_HALF_WIDTH = 150;
 let curveMultiplier = 1.7;
 
 // Clear sky stars
@@ -4139,7 +4140,7 @@ function generateTreesForNode(index, x, y, angle) {
 
   function spawnBands(sideSign) {
     if (Math.random() < 0.72) {
-      const dist = sideSign * (124 + Math.random() * 42);
+      const dist = sideSign * (ROAD_HALF_WIDTH + 20 + Math.random() * 42);
       trees.push({
         x: x + nx * dist,
         y: y + ny * dist,
@@ -4154,7 +4155,7 @@ function generateTreesForNode(index, x, y, angle) {
     }
 
     if (Math.random() < 0.88) {
-      const dist = sideSign * (170 + Math.random() * 150);
+      const dist = sideSign * (ROAD_HALF_WIDTH + 70 + Math.random() * 150);
       trees.push({
         x: x + nx * dist,
         y: y + ny * dist,
@@ -4169,7 +4170,7 @@ function generateTreesForNode(index, x, y, angle) {
     }
 
     if (Math.random() < 0.92) {
-      const dist = sideSign * (330 + Math.random() * 310);
+      const dist = sideSign * (ROAD_HALF_WIDTH + 230 + Math.random() * 310);
       trees.push({
         x: x + nx * dist,
         y: y + ny * dist,
@@ -4184,7 +4185,7 @@ function generateTreesForNode(index, x, y, angle) {
     }
 
     if (Math.random() < 0.65) {
-      const dist = sideSign * (650 + Math.random() * 300);
+      const dist = sideSign * (ROAD_HALF_WIDTH + 550 + Math.random() * 300);
       trees.push({
         x: x + nx * dist,
         y: y + ny * dist,
@@ -5295,7 +5296,7 @@ function loop() {
     }
   }
 
-  const ROAD_EDGE = 118;
+  const ROAD_EDGE = ROAD_HALF_WIDTH;
   isCarInMud = minDist > ROAD_EDGE;
   const mudDepth = isCarInMud ? Math.pow(Math.min(1, (minDist - ROAD_EDGE) / 55), 1.7) : 0;
   currentSurfaceName = isCarInMud
@@ -5683,27 +5684,27 @@ function loop() {
   });
   ctx.stroke();
 
-  ctx.lineWidth = 620;
+  ctx.lineWidth = 790;
   ctx.strokeStyle = landscapeMode === 'desert' ? '#d9b45e' : landscapeMode === 'snow' ? '#d5e2e9' :
     (isSunsetActive
       ? (isRainActive ? '#190e16' : '#1b1018')
       : (isRainActive ? '#08140f' : '#07110d'));
   ctx.stroke();
 
-  ctx.lineWidth = 370;
+  ctx.lineWidth = 470;
   ctx.strokeStyle = landscapeMode === 'desert' ? '#c99e4e' : landscapeMode === 'snow' ? '#b7c9d4' : '#221410';
   ctx.stroke();
 
-  ctx.lineWidth = 310;
+  ctx.lineWidth = 394;
   ctx.strokeStyle = landscapeMode === 'desert' ? '#b98b3e' : landscapeMode === 'snow' ? '#91a8b6' : '#2d1a12';
   ctx.stroke();
 
-  ctx.lineWidth = 264;
+  ctx.lineWidth = 335;
   ctx.strokeStyle = landscapeMode === 'desert' ? '#e9ca7a' : landscapeMode === 'snow' ? '#dce8ee' : '#1e120c';
   ctx.stroke();
 
   // Asphalt Main Track
-  ctx.lineWidth = 236;
+  ctx.lineWidth = ROAD_HALF_WIDTH * 2;
   ctx.strokeStyle = landscapeMode === 'desert' ? '#8e713e' : landscapeMode === 'snow' ? '#b9c8d1' :
     (isSunsetActive
       ? (isRainActive ? '#1b1319' : '#22181d')
@@ -5711,21 +5712,21 @@ function loop() {
   ctx.stroke();
 
   if (isRainActive) {
-    ctx.lineWidth = 224;
+    ctx.lineWidth = ROAD_HALF_WIDTH * 2 - 14;
     ctx.strokeStyle = landscapeMode === 'desert' ? '#806438' : landscapeMode === 'snow' ? '#a8bbc7' :
       (isSunsetActive ? '#261821' : '#141d29');
     ctx.stroke();
   }
 
   // Edge road marking lines
-  ctx.lineWidth = 216;
+  ctx.lineWidth = ROAD_HALF_WIDTH * 2 - 26;
   ctx.strokeStyle = landscapeMode === 'desert' ? 'rgba(255,239,190,0.8)' : landscapeMode === 'snow' ? 'rgba(255,255,255,0.82)' :
     (isSunsetActive
       ? (isRainActive ? 'rgba(255, 215, 175, 0.28)' : 'rgba(255, 230, 200, 0.38)')
       : (isRainActive ? 'rgba(255, 255, 255, 0.22)' : 'rgba(255, 255, 255, 0.32)'));
   ctx.stroke();
 
-  ctx.lineWidth = 208;
+  ctx.lineWidth = ROAD_HALF_WIDTH * 2 - 36;
   ctx.strokeStyle = landscapeMode === 'desert' ? '#98763d' : landscapeMode === 'snow' ? '#aebfca' :
     (isSunsetActive
       ? (isRainActive ? '#181116' : '#1d1519')
