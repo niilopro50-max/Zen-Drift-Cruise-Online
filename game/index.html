@@ -5848,31 +5848,39 @@ function loop() {
     ctx.fillStyle = 'rgba(255,255,255,.7)';
     ctx.fillRect(24, -15, 3, 30);
   } else {
-    // Wide sports coupe: four tyres, sculpted body and rear spoiler.
+    // Wide drift coupe on stretched tyres with a planted tuner stance.
     drawTyre(8, -15, 15, 7);
     drawTyre(8, 8, 15, 7);
     drawTyre(-22, -15, 15, 7);
     drawTyre(-22, 8, 15, 7);
 
-    // Rear diffuser and spoiler.
-    ctx.fillStyle = '#171c25';
-    ctx.fillRect(-26, -12, 5, 24);
-    ctx.fillRect(-25, -16, 7, 3);
-    ctx.fillRect(-25, 13, 7, 3);
+    // Rear diffuser, canards and a raised GT wing.
+    ctx.fillStyle = '#11151d';
+    ctx.fillRect(-28, -12, 6, 24);
+    ctx.fillRect(-28, -17, 3, 5);
+    ctx.fillRect(-28, 12, 3, 5);
+    ctx.fillRect(-31, -18, 8, 3);
+    ctx.fillRect(-31, 15, 8, 3);
+    ctx.fillStyle = '#ef4444';
+    ctx.fillRect(-31, -18, 8, 1);
+    ctx.fillRect(-31, 17, 8, 1);
 
     // Squared touring-car body with flat panels and clipped corners.
     ctx.fillStyle = paintColor;
     ctx.strokeStyle = paintOutline;
     ctx.lineWidth = 1.2;
     ctx.beginPath();
-    ctx.moveTo(27, -7);
-    ctx.lineTo(22, -10);
-    ctx.lineTo(-17, -10);
-    ctx.lineTo(-24, -7);
-    ctx.lineTo(-24, 7);
-    ctx.lineTo(-17, 10);
-    ctx.lineTo(22, 10);
-    ctx.lineTo(27, 7);
+    ctx.moveTo(30, 0);
+    ctx.lineTo(26, -7);
+    ctx.lineTo(20, -11);
+    ctx.lineTo(-18, -11);
+    ctx.lineTo(-25, -8);
+    ctx.lineTo(-29, -5);
+    ctx.lineTo(-29, 5);
+    ctx.lineTo(-25, 8);
+    ctx.lineTo(-18, 11);
+    ctx.lineTo(20, 11);
+    ctx.lineTo(26, 7);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
@@ -5881,12 +5889,12 @@ function loop() {
     ctx.fillStyle = '#101b2a';
     ctx.beginPath();
     ctx.moveTo(16, -6);
-    ctx.lineTo(10, -7.5);
-    ctx.lineTo(-13, -7.5);
-    ctx.lineTo(-17, -5);
-    ctx.lineTo(-17, 5);
-    ctx.lineTo(-13, 7.5);
-    ctx.lineTo(10, 7.5);
+    ctx.lineTo(10, -8);
+    ctx.lineTo(-13, -8);
+    ctx.lineTo(-18, -5);
+    ctx.lineTo(-18, 5);
+    ctx.lineTo(-13, 8);
+    ctx.lineTo(10, 8);
     ctx.lineTo(16, 6);
     ctx.closePath();
     ctx.fill();
@@ -5900,15 +5908,84 @@ function loop() {
     ctx.lineTo(16, 0);
     ctx.stroke();
 
-    // Bonnet lines and subtle racing detail.
-    ctx.strokeStyle = 'rgba(255,255,255,.32)';
-    ctx.lineWidth = .8;
+    // Carbon bonnet, twin racing stripes and sharp fender flares.
+    ctx.fillStyle = '#171b23';
     ctx.beginPath();
-    ctx.moveTo(19, -5);
-    ctx.lineTo(25, -2);
-    ctx.moveTo(19, 5);
-    ctx.lineTo(25, 2);
+    ctx.moveTo(19, -6);
+    ctx.lineTo(26, -2.5);
+    ctx.lineTo(26, 2.5);
+    ctx.lineTo(19, 6);
+    ctx.lineTo(16, 4);
+    ctx.lineTo(16, -4);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(251,146,60,.95)';
+    ctx.lineWidth = 1.3;
+    ctx.beginPath();
+    ctx.moveTo(20, -2.3);
+    ctx.lineTo(27, -2.3);
+    ctx.moveTo(20, 2.3);
+    ctx.lineTo(27, 2.3);
+    ctx.moveTo(25, -7);
+    ctx.lineTo(30, -3);
+    ctx.lineTo(30, 3);
+    ctx.lineTo(25, 7);
     ctx.stroke();
+
+    // Side skirts and angular door livery.
+    ctx.fillStyle = '#11151d';
+    ctx.fillRect(-14, -12, 28, 2);
+    ctx.fillRect(-14, 10, 28, 2);
+    ctx.fillStyle = '#ef4444';
+    ctx.beginPath();
+    ctx.moveTo(-8, -10);
+    ctx.lineTo(1, -10);
+    ctx.lineTo(7, -8.8);
+    ctx.lineTo(-3, -8.8);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(-8, 10);
+    ctx.lineTo(1, 10);
+    ctx.lineTo(7, 8.8);
+    ctx.lineTo(-3, 8.8);
+    ctx.closePath();
+    ctx.fill();
+
+    // Widebody arches and forged wheel-center highlights.
+    ctx.strokeStyle = 'rgba(20,24,32,.95)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(14, -10);
+    ctx.quadraticCurveTo(9, -15, 4, -10);
+    ctx.moveTo(-16, -10);
+    ctx.quadraticCurveTo(-21, -15, -26, -9);
+    ctx.moveTo(14, 10);
+    ctx.quadraticCurveTo(9, 15, 4, 10);
+    ctx.moveTo(-16, 10);
+    ctx.quadraticCurveTo(-21, 15, -26, 9);
+    ctx.stroke();
+    ctx.fillStyle = '#fb923c';
+    [[15, -11], [15, 11], [-20, -11], [-20, 11]].forEach(([x, y]) => {
+      ctx.beginPath();
+      ctx.arc(x, y, 1.5, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    // Subtle underbody glow gives the white coupe a custom night-run look.
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.shadowColor = 'rgba(249,115,22,.8)';
+    ctx.shadowBlur = 9;
+    ctx.strokeStyle = 'rgba(249,115,22,.48)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(-10, -12);
+    ctx.lineTo(12, -12);
+    ctx.moveTo(-10, 12);
+    ctx.lineTo(12, 12);
+    ctx.stroke();
+    ctx.restore();
   }
 
   // Headlight lamps.
