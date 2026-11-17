@@ -5259,6 +5259,7 @@ function loop() {
 
   let minDist = Infinity;
   let closestIdx = lastClosestNode;
+  let signedRoadOffset = 0;
   const sStart = Math.max(0, lastClosestNode - 25);
   const sEnd = Math.min(roadNodes.length - 1, lastClosestNode + 55);
 
@@ -5278,6 +5279,8 @@ function loop() {
     if (dist < minDist) {
       minDist = dist;
       closestIdx = i;
+      const segmentLength = Math.sqrt(lenSq);
+      signedRoadOffset = ((car.x - px) * -dy + (car.y - py) * dx) / segmentLength;
     }
   }
   lastClosestNode = closestIdx;
@@ -5328,6 +5331,7 @@ function loop() {
   let targetSteer = keys.left ? -steerLimit : (keys.right ? steerLimit : 0);
   let autoThrottle = false;
   let autoBrake = false;
+  let autoDriftStrength = 0;
 
   if (autoDriveEnabled && roadNodes.length > closestIdx + 12) {
     // Dynamic look-ahead: longer at higher speeds.
@@ -5371,12 +5375,32 @@ function loop() {
 
     const curvature = Math.abs(curveDelta) / (6 * ROAD_NODE_DIST);
     const safeCurvature = Math.max(curvature, 0.0001);
+    const curveDirection = Math.sign(curveDelta);
+    const roadPosition = Math.abs(signedRoadOffset) / ROAD_HALF_WIDTH;
+    const driftRoom = Math.max(0, Math.min(1, 1 - roadPosition / 0.78));
+    autoDriftStrength = curveDirection === 0
+      ? 0
+      : Math.max(0, Math.min(1, curvature * 220)) * driftRoom;
+
+    // Nudge the nose into the bend, then pull it back toward the road center
+    // as the car approaches either edge.
+    const driftSteer = curveDirection * steerLimit * 0.22 * autoDriftStrength;
+    const centerCorrection = Math.max(
+      -steerLimit * 0.32,
+      Math.min(steerLimit * 0.32, -signedRoadOffset / ROAD_HALF_WIDTH * steerLimit * 0.32)
+    );
+    targetSteer = Math.max(
+      -steerLimit,
+      Math.min(steerLimit, targetSteer + driftSteer + centerCorrection)
+    );
 
     let targetSpeed = Math.sqrt(0.62 / safeCurvature);
     targetSpeed = Math.max(
       car.maxSpeed * 0.34,
       Math.min(car.maxSpeed * 0.84, targetSpeed)
     );
+    targetSpeed *= 1 - autoDriftStrength * 0.10;
+    targetSpeed *= Math.max(0.62, 1 - Math.max(0, roadPosition - 0.45) * 0.55);
 
     if (isCarInMud) targetSpeed *= 0.72;
 
@@ -5402,8 +5426,11 @@ function loop() {
   let lateralVel = car.vx * rightX + car.vy * rightY;
 
   const currentGrip = selectedCarType === 'f1'
-    ? 0.08
-    : (keys.handbrake ? 0.96 : (isCarInMud ? 0.68 : car.lateralGrip));
+    ? (autoDriveEnabled ? 0.08 + autoDriftStrength * 0.06 : 0.08)
+    : (keys.handbrake ? 0.96 : (isCarInMud ? 0.68 : Math.max(
+      car.lateralGrip,
+      0.82 + autoDriftStrength * 0.11
+    )));
   lateralVel *= currentGrip;
 
   car.vx = (fwdX * forwardVel * car.friction) + (rightX * lateralVel);
