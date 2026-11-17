@@ -5340,8 +5340,8 @@ function loop() {
   if (autoDriveEnabled && roadNodes.length > closestIdx + 12) {
     // Dynamic look-ahead: longer at higher speeds.
     const lookAheadDistance = Math.max(
-      82,
-      Math.min(170, 82 + car.speed * 7)
+      58,
+      Math.min(120, 58 + car.speed * 4.2)
     );
     const targetIndex = Math.min(
       roadNodes.length - 1,
@@ -5358,7 +5358,7 @@ function loop() {
     while (headingError > Math.PI) headingError -= Math.PI * 2;
     while (headingError < -Math.PI) headingError += Math.PI * 2;
 
-    const steeringGain = mobileDrivingMode ? 0.72 : 0.75;
+    const steeringGain = mobileDrivingMode ? 0.84 : 0.86;
     targetSteer = Math.max(
       -steerLimit,
       Math.min(steerLimit, headingError * steeringGain)
@@ -5381,17 +5381,17 @@ function loop() {
     const safeCurvature = Math.max(curvature, 0.0001);
     const curveDirection = Math.sign(curveDelta);
     const roadPosition = Math.abs(signedRoadOffset) / ROAD_HALF_WIDTH;
-    const driftRoom = Math.max(0, Math.min(1, 1 - roadPosition / 0.78));
+    const driftRoom = Math.max(0, Math.min(1, 1 - roadPosition / 0.45));
     autoDriftStrength = curveDirection === 0
       ? 0
       : Math.max(0, Math.min(1, curvature * 220)) * driftRoom;
 
     // Nudge the nose into the bend, then pull it back toward the road center
     // as the car approaches either edge.
-    const driftSteer = curveDirection * steerLimit * 0.22 * autoDriftStrength;
+    const driftSteer = curveDirection * steerLimit * 0.18 * autoDriftStrength;
     const centerCorrection = Math.max(
-      -steerLimit * 0.32,
-      Math.min(steerLimit * 0.32, -signedRoadOffset / ROAD_HALF_WIDTH * steerLimit * 0.32)
+      -steerLimit * 0.70,
+      Math.min(steerLimit * 0.70, -signedRoadOffset / ROAD_HALF_WIDTH * steerLimit * 0.90)
     );
     targetSteer = Math.max(
       -steerLimit,
@@ -5404,7 +5404,7 @@ function loop() {
       Math.min(car.maxSpeed * 0.84, targetSpeed)
     );
     targetSpeed *= 1 - autoDriftStrength * 0.10;
-    targetSpeed *= Math.max(0.62, 1 - Math.max(0, roadPosition - 0.45) * 0.55);
+    targetSpeed *= Math.max(0.50, 1 - Math.max(0, roadPosition - 0.30) * 0.70);
 
     if (isCarInMud) targetSpeed *= 0.72;
 
@@ -5497,22 +5497,6 @@ function loop() {
 
   car.x += car.vx;
   car.y += car.vy;
-  if (autoDriveEnabled && Number.isFinite(minDist)) {
-    const maxAutoDriveOffset = ROAD_HALF_WIDTH * 0.72;
-    const nextRoadOffset = signedRoadOffset + car.vx * roadNormalX + car.vy * roadNormalY;
-    if (Math.abs(nextRoadOffset) > maxAutoDriveOffset) {
-      const side = Math.sign(nextRoadOffset);
-      const excess = nextRoadOffset - side * maxAutoDriveOffset;
-      car.x -= roadNormalX * excess;
-      car.y -= roadNormalY * excess;
-
-      const outwardSpeed = side * (car.vx * roadNormalX + car.vy * roadNormalY);
-      if (outwardSpeed > 0) {
-        car.vx -= roadNormalX * side * outwardSpeed;
-        car.vy -= roadNormalY * side * outwardSpeed;
-      }
-    }
-  }
   car.speed = Math.sqrt(car.vx * car.vx + car.vy * car.vy);
   if (desktopMode && car.speed > car.maxSpeed) {
     const speedScale = car.maxSpeed / car.speed;
