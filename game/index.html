@@ -3537,6 +3537,7 @@ setupTouchButton('touch-brake', 'down');
 const overlay = document.getElementById('overlay');
 
 function showMenuPage(page) {
+  muteWeatherAudio();
   [
     'home',
     'garage-page',
@@ -4326,6 +4327,14 @@ function stopThunderSound() {
   }
   naturalThunderSound.pause();
   naturalThunderSound.currentTime = 0;
+}
+
+function muteWeatherAudio() {
+  stopThunderSound();
+  if (!rainGain || !audioCtx) return;
+  const now = audioCtx.currentTime;
+  rainGain.gain.cancelScheduledValues(now);
+  rainGain.gain.setValueAtTime(0, now);
 }
 
 function playThunderSound() {
