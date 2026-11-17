@@ -3561,6 +3561,8 @@ function togglePause() {
   if (!gameStarted) return;
 
   gamePaused = !gamePaused;
+  syncRainAmbience();
+  if (gamePaused) stopThunderSound();
 
   if (gamePaused) {
     pausedAt = Date.now();
@@ -3593,6 +3595,8 @@ function togglePause() {
 function returnToHome() {
   gamePaused = false;
   gameStarted = false;
+  syncRainAmbience();
+  stopThunderSound();
   gameMode = 'endless';
   timeAttackState = 'idle';
   updateRaceHUDMode();
@@ -3769,6 +3773,8 @@ function finishTimeAttack() {
   timeAttackState = 'finished';
   gameStarted = false;
   gamePaused = true;
+  syncRainAmbience();
+  stopThunderSound();
   pausedAt = null;
   clearDrivingKeys();
   setAutoDrive(false);
@@ -3825,6 +3831,7 @@ function startTimeAttack() {
   clearDrivingKeys();
   overlay.classList.add('hide');
   initAudio();
+  syncRainAmbience();
 }
 
 function restartCurrentMode() {
@@ -3846,6 +3853,7 @@ function startGame() {
   clearDrivingKeys();
   overlay.classList.add('hide');
   initAudio();
+  syncRainAmbience();
 }
 
 document.getElementById('pause-btn').addEventListener('click', togglePause);
@@ -4297,8 +4305,31 @@ const naturalThunderSound = new Audio('https://upload.wikimedia.org/wikipedia/co
 naturalThunderSound.preload = 'auto';
 naturalThunderSound.volume = 0.58;
 
+function shouldPlayRainAmbience() {
+  return isRainActive && gameStarted && !gamePaused;
+}
+
+function syncRainAmbience() {
+  if (!rainGain || !audioCtx) return;
+  const now = audioCtx.currentTime;
+  const target = shouldPlayRainAmbience() ? (rainDensity / 100) * 0.38 : 0;
+  rainGain.gain.cancelScheduledValues(now);
+  rainGain.gain.setTargetAtTime(target, now, 0.12);
+}
+
+function stopThunderSound() {
+  nextThunderAt = null;
+  lightningFlashStartedAt = 0;
+  if (pendingThunderTimeout !== null) {
+    window.clearTimeout(pendingThunderTimeout);
+    pendingThunderTimeout = null;
+  }
+  naturalThunderSound.pause();
+  naturalThunderSound.currentTime = 0;
+}
+
 function playThunderSound() {
-  if (!isRainActive || rainDensity <= 80) return;
+  if (!shouldPlayRainAmbience() || rainDensity <= 80) return;
   if (!naturalThunderSound.paused) return;
   naturalThunderSound.currentTime = 0;
   naturalThunderSound.play().catch((error) => {
@@ -4307,17 +4338,8 @@ function playThunderSound() {
 }
 
 function updateThunder(now) {
-  if (!isRainActive || rainDensity <= 80) {
-    nextThunderAt = null;
-    lightningFlashStartedAt = 0;
-    if (pendingThunderTimeout !== null) {
-      window.clearTimeout(pendingThunderTimeout);
-      pendingThunderTimeout = null;
-    }
-    if (!naturalThunderSound.paused) {
-      naturalThunderSound.pause();
-      naturalThunderSound.currentTime = 0;
-    }
+  if (!shouldPlayRainAmbience() || rainDensity <= 80) {
+    stopThunderSound();
     return;
   }
 
@@ -4364,7 +4386,7 @@ function initAudio() {
     rainFilter.frequency.value = 700 + rainDensity * 9;
 
     rainGain = audioCtx.createGain();
-    rainGain.gain.value = isRainActive ? (rainDensity / 100) * 0.38 : 0;
+    rainGain.gain.value = shouldPlayRainAmbience() ? (rainDensity / 100) * 0.38 : 0;
 
     noise.connect(rainFilter);
     rainFilter.connect(rainGain);
@@ -4811,17 +4833,8 @@ function applyRainState(enabled, notifyServer = false) {
     mobileRainBtn.textContent = isRainActive ? `🌧 RAIN: ${Math.round(rainDensity)}%` : '☀️ DRY: ON';
   }
   if (!isRainActive) {
-    nextThunderAt = null;
-    if (pendingThunderTimeout !== null) {
-      window.clearTimeout(pendingThunderTimeout);
-      pendingThunderTimeout = null;
-    }
-    naturalThunderSound.pause();
-    naturalThunderSound.currentTime = 0;
-    if (rainGain && audioCtx) {
-      rainGain.gain.cancelScheduledValues(audioCtx.currentTime);
-      rainGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.12);
-    }
+    stopThunderSound();
+    syncRainAmbience();
     if (rainFilter && audioCtx) {
       rainFilter.frequency.setTargetAtTime(700, audioCtx.currentTime, 0.12);
     }
@@ -4833,9 +4846,7 @@ function applyRainState(enabled, notifyServer = false) {
       btnEl.className = 'hud-pill-btn dry-mode';
     }
   } else {
-    if (rainGain && audioCtx) {
-      rainGain.gain.setTargetAtTime((rainDensity / 100) * 0.38, audioCtx.currentTime, 0.12);
-    }
+    syncRainAmbience();
     if (rainFilter && audioCtx) {
       rainFilter.frequency.setTargetAtTime(700 + rainDensity * 9, audioCtx.currentTime, 0.12);
     }
@@ -5111,7 +5122,7 @@ if (localServerSync) {
           updateRainControls();
           if (isRainActive) {
             car.lateralGrip = Math.min(0.88, 0.82 + (rainDensity * 0.0006));
-            if (rainGain && audioCtx) rainGain.gain.value = (rainDensity / 100) * 0.45;
+            syncRainAmbience();
             if (rainFilter && audioCtx) rainFilter.frequency.value = 700 + rainDensity * 9;
           }
         }
