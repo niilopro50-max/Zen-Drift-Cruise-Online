@@ -1,7 +1,8 @@
-const CACHE_NAME = "zen-cruise-v1";
+const CACHE_NAME = "zen-cruise-v2";
 
 const APP_FILES = [
   "/",
+  "/play",
   "/manifest.json",
   "/icons/icon-192.png",
   "/icons/icon-512.png",
@@ -41,17 +42,22 @@ self.addEventListener("fetch", (event) => {
   }
 
   if (request.mode === "navigate") {
+    const cachePath = url.pathname === "/play/" ? "/play" : url.pathname;
     event.respondWith(
       fetch(request)
         .then(async (response) => {
           if (response.ok) {
             const cache = await caches.open(CACHE_NAME);
-            await cache.put("/", response.clone());
+            await cache.put(cachePath, response.clone());
           }
           return response;
         })
         .catch(async () => {
-          return (await caches.match("/")) || Response.error();
+          const cache = await caches.open(CACHE_NAME);
+          return (await cache.match(cachePath)) ||
+            (await cache.match("/play")) ||
+            (await cache.match("/")) ||
+            Response.error();
         })
     );
     return;

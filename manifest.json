@@ -3,7 +3,7 @@
   "name": "Zen Cruise",
   "short_name": "Zen Cruise",
   "description": "A relaxing low-poly drifting experience.",
-  "start_url": "/",
+  "start_url": "/play",
   "scope": "/",
   "display": "standalone",
   "background_color": "#0c0810",
