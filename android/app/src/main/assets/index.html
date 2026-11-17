@@ -44,6 +44,10 @@
   .hud-pill-btn.dry-mode { background: rgba(245,158,11,0.2); border: 1px solid rgba(245,158,11,0.45); color: #fde68a; }
   .hud-pill-btn.music-mode { background: rgba(168,85,247,0.2); border: 1px solid rgba(168,85,247,0.45); color: #e9d5ff; }
   .hud-pill-btn:hover { transform: scale(1.04); }
+  .rain-intensity-control { gap: 6px; font-size: 10px; color: #bae6fd; }
+  .rain-intensity-control input { width: 78px; accent-color: #38bdf8; pointer-events: auto; cursor: pointer; }
+  .rain-intensity-control output { min-width: 28px; color: #f8fafc; font-variant-numeric: tabular-nums; text-align: right; }
+  .touch-rain-intensity { display: none; }
   .hud-toast { position: absolute; top: 76px; left: 50%; transform: translateX(-50%) translateY(0); background: rgba(18,14,24,0.94); border: 1px solid rgba(234,88,12,0.5); box-shadow: 0 8px 24px rgba(0,0,0,0.6), 0 0 16px rgba(234,88,12,0.25); backdrop-filter: blur(14px); color: #f8fafc; padding: 7px 18px; border-radius: 999px; font-size: 12.5px; font-weight: 600; display: flex; align-items: center; gap: 8px; opacity: 1; transition: opacity 0.25s ease, transform 0.25s ease; pointer-events: none; z-index: 50; }
   .hud-toast.hide { opacity: 0; transform: translateX(-50%) translateY(-8px); }
   .hud-toast-icon { font-size: 15px; color: #fb923c; }
@@ -676,6 +680,24 @@
     font-weight: 800;
     touch-action: manipulation;
   }
+
+  .touch-rain-intensity {
+    width: 190px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px 12px;
+    border: 1px solid rgba(56,189,248,0.38);
+    border-radius: 12px;
+    background: rgba(18,14,24,0.94);
+    color: #bae6fd;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: .08em;
+  }
+  .touch-rain-intensity label { display: flex; justify-content: space-between; align-items: center; }
+  .touch-rain-intensity output { color: #f8fafc; font-variant-numeric: tabular-nums; }
+  .touch-rain-intensity input { width: 100%; accent-color: #38bdf8; touch-action: pan-x; }
 
   #touch-restart { border-color: rgba(244,63,94,0.65); }
 }
@@ -3167,6 +3189,11 @@ body {
       <div class="amb-item">
         <button id="rain-toggle-btn" class="hud-pill-btn rain-mode">🌧 Rain: ON [T]</button>
       </div>
+      <div class="amb-item rain-intensity-control">
+        <label for="rain-intensity">RAIN</label>
+        <input id="rain-intensity" type="range" min="0" max="100" step="5" value="85" aria-label="Rain intensity">
+        <output id="rain-level" for="rain-intensity">85%</output>
+      </div>
       <div class="amb-item">
         <button id="music-toggle-btn" class="hud-pill-btn music-mode" type="button">🎵 Music: Lo-fi [M]</button>
       </div>
@@ -3376,6 +3403,10 @@ body {
   <div id="touch-utility-buttons" class="collapsed">
     <button id="touch-restart" class="touch-utility-btn" type="button">↻ RESTART</button>
     <button id="touch-rain" class="touch-utility-btn" type="button">🌧 RAIN: ON</button>
+    <div class="touch-rain-intensity">
+      <label for="touch-rain-intensity"><span>RAIN INTENSITY</span><output id="touch-rain-level" for="touch-rain-intensity">85%</output></label>
+      <input id="touch-rain-intensity" type="range" min="0" max="100" step="5" value="85" aria-label="Rain intensity">
+    </div>
     <button id="touch-music" class="touch-utility-btn" type="button">🎵 MUSIC: LO-FI</button>
     <button id="touch-time" class="touch-utility-btn" type="button">🌅 SUNSET: ON</button>
     <button id="touch-auto-drive" class="touch-utility-btn touch-auto-drive" type="button" aria-pressed="false">🤖 AUTO DRIVE: OFF</button>
@@ -3996,7 +4027,7 @@ if (new URLSearchParams(location.search).has('garagePreview')) {
     updateCarPerformance();
     gameStarted = true;
     gamePaused = false;
-    isRainActive = false;
+    applyRainState(false, false);
     document.getElementById('overlay').classList.add('hide');
     setAutoDrive(true);
   }, { once: true });
@@ -4021,6 +4052,9 @@ let rainDensity = 85;
 let totalDistanceKm = 0;
 
 const desktopMode = new URLSearchParams(window.location.search).get('desktop') === '1';
+// The HTTP server has one shared state object. Only sync with it when the game
+// is running on this computer; public web players need independent settings.
+const localServerSync = ['localhost', '127.0.0.1', '[::1]'].includes(window.location.hostname);
 // Car physics state
 const car = {
   x: 0,
@@ -4209,11 +4243,12 @@ function updateRainParticles(count) {
     });
   }
 }
-updateRainParticles(320);
+updateRainParticles(Math.round(rainDensity * 3.8));
 
 let audioCtx = null;
 let isAudioActive = false;
 let rainGain = null;
+let rainFilter = null;
 let mudGain = null;
 
 function initAudio() {
@@ -4240,15 +4275,15 @@ function initAudio() {
     noise.buffer = noiseBuffer;
     noise.loop = true;
 
-    const filter = audioCtx.createBiquadFilter();
-    filter.type = 'lowpass';
-    filter.frequency.value = isSunsetActive ? 1250 : 1000;
+    rainFilter = audioCtx.createBiquadFilter();
+    rainFilter.type = 'lowpass';
+    rainFilter.frequency.value = 700 + rainDensity * 9;
 
     rainGain = audioCtx.createGain();
-    rainGain.gain.value = isRainActive ? 0.35 : 0;
+    rainGain.gain.value = isRainActive ? (rainDensity / 100) * 0.38 : 0;
 
-    noise.connect(filter);
-    filter.connect(rainGain);
+    noise.connect(rainFilter);
+    rainFilter.connect(rainGain);
     rainGain.connect(audioCtx.destination);
     noise.start();
 
@@ -4622,10 +4657,10 @@ function updateHUDLabels() {
     desert: 'Desert Dunes'
   };
   const titleText = (names[landscapeMode] || names.sunset) +
-    (isRainActive ? ' • RAIN' : ' • DRY ASPHALT');
+    (isRainActive ? ` • RAIN ${Math.round(rainDensity)}%` : ' • DRY ASPHALT');
   if (weatherEl) {
     weatherEl.textContent = (weatherNames[landscapeMode] || weatherNames.sunset) +
-      (isRainActive ? ' & Wet Asphalt' : ' (Dry Asphalt)');
+      (isRainActive ? ` & Wet Asphalt (${Math.round(rainDensity)}%)` : ' (Dry Asphalt)');
   }
   if (badgeEl) {
     badgeEl.textContent = titleText;
@@ -4659,7 +4694,7 @@ function setLandscape(mode, notifyServer = true) {
 
   updateHUDLabels();
 
-  if (notifyServer) {
+  if (notifyServer && localServerSync) {
     fetch('/api/toggle-sunset', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -4681,45 +4716,25 @@ function toggleSunset(notifyServer = true) {
 }
 
 function applyRainState(enabled, notifyServer = false) {
-  isSunsetActive = enabled;
-  const mobileTimeBtn = document.getElementById('touch-time');
-  if (mobileTimeBtn) {
-    mobileTimeBtn.textContent = isSunsetActive ? '🌅 SUNSET: ON' : '🌙 NIGHT: ON';
-  }
-  const sunsetBtn = document.getElementById('sunset-toggle-btn');
-  if (sunsetBtn) {
-    sunsetBtn.textContent = isSunsetActive ? '🌅 Sunset: ON [P]' : '🌙 Night [P]';
-    sunsetBtn.className = isSunsetActive ? 'hud-pill-btn sunset-mode' : 'hud-pill-btn night-mode';
-  }
-
-  updateHUDLabels();
-
-  if (notifyServer) {
-    fetch('/api/toggle-sunset', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sunsetEnabled: isSunsetActive })
-    }).catch(() => {});
-  }
-}
-
-function toggleSunset(notifyServer = true) {
-  const current = LANDSCAPES.findIndex(item => item.id === landscapeMode);
-  const next = LANDSCAPES[(current + 1) % LANDSCAPES.length];
-  setLandscape(next.id, notifyServer);
-}
-
-function applyRainState(enabled, notifyServer = false) {
   isRainActive = enabled;
+  if (isRainActive && rainDensity <= 0) {
+    rainDensity = lastRainDensity || 85;
+    updateRainParticles(Math.round(rainDensity * 3.8));
+  }
+  if (isRainActive) lastRainDensity = rainDensity;
   const mobileRainBtn = document.getElementById('touch-rain');
   if (mobileRainBtn) {
-    mobileRainBtn.textContent = isRainActive ? '🌧 RAIN: ON' : '☀️ DRY: ON';
+    mobileRainBtn.textContent = isRainActive ? `🌧 RAIN: ${Math.round(rainDensity)}%` : '☀️ DRY: ON';
   }
   if (!isRainActive) {
     if (rainGain && audioCtx) {
       rainGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.12);
     }
+    if (rainFilter && audioCtx) {
+      rainFilter.frequency.setTargetAtTime(700, audioCtx.currentTime, 0.12);
+    }
     car.lateralGrip = 0.92;
+    currentSurfaceName = 'Dry Asphalt (High Grip)';
     const btnEl = document.getElementById('rain-toggle-btn');
     if (btnEl) {
       btnEl.textContent = '☀️ Dry [T]';
@@ -4729,27 +4744,66 @@ function applyRainState(enabled, notifyServer = false) {
     if (rainGain && audioCtx) {
       rainGain.gain.setTargetAtTime((rainDensity / 100) * 0.38, audioCtx.currentTime, 0.12);
     }
+    if (rainFilter && audioCtx) {
+      rainFilter.frequency.setTargetAtTime(700 + rainDensity * 9, audioCtx.currentTime, 0.12);
+    }
     car.lateralGrip = Math.max(0.58, 0.94 - (rainDensity * 0.0035));
+    currentSurfaceName = 'Wet Asphalt (Smooth Sheen)';
     const btnEl = document.getElementById('rain-toggle-btn');
     if (btnEl) {
-      btnEl.textContent = '🌧 Rain: ON [T]';
+      btnEl.textContent = `🌧 Rain: ${Math.round(rainDensity)}% [T]`;
       btnEl.className = 'hud-pill-btn rain-mode';
     }
   }
 
+  updateRainControls();
   updateHUDLabels();
 
-  if (notifyServer) {
+  if (notifyServer && localServerSync) {
     fetch('/api/toggle-rain', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ rainEnabled: isRainActive })
+      body: JSON.stringify({ rainEnabled: isRainActive, rainDensity })
     }).catch(() => {});
   }
 }
 
+let lastRainDensity = rainDensity;
+function updateRainControls() {
+  const shownValue = isRainActive ? `${Math.round(rainDensity)}%` : 'OFF';
+  const desktopButton = document.getElementById('rain-toggle-btn');
+  if (desktopButton) {
+    desktopButton.textContent = isRainActive
+      ? `🌧 Rain: ${Math.round(rainDensity)}% [T]`
+      : '☀️ Dry [T]';
+    desktopButton.className = isRainActive ? 'hud-pill-btn rain-mode' : 'hud-pill-btn dry-mode';
+  }
+  const mobileButton = document.getElementById('touch-rain');
+  if (mobileButton) {
+    mobileButton.textContent = isRainActive
+      ? `🌧 RAIN: ${Math.round(rainDensity)}%`
+      : '☀️ DRY: ON';
+  }
+  ['rain-intensity', 'touch-rain-intensity'].forEach((id) => {
+    const slider = document.getElementById(id);
+    if (slider) slider.value = String(isRainActive ? rainDensity : 0);
+  });
+  ['rain-level', 'touch-rain-level'].forEach((id) => {
+    const output = document.getElementById(id);
+    if (output) output.textContent = shownValue;
+  });
+}
+
+function setRainDensity(value, notifyServer = false) {
+  const parsedValue = Number(value);
+  rainDensity = Math.min(100, Math.max(0, Number.isFinite(parsedValue) ? parsedValue : 0));
+  if (rainDensity > 0) lastRainDensity = rainDensity;
+  updateRainParticles(Math.round(rainDensity * 3.8));
+  applyRainState(rainDensity > 0, notifyServer);
+}
+
 function toggleRain(notifyServer = true) {
-  applyRainState(!isRainActive, notifyServer);
+  setRainDensity(isRainActive ? 0 : (lastRainDensity || 85), notifyServer);
   showToast(
     isRainActive ? '🌧' : '☀️',
     isRainActive
@@ -4761,6 +4815,13 @@ function toggleRain(notifyServer = true) {
 document.getElementById('touch-restart')?.addEventListener('click', restartCurrentMode);
 document.getElementById('touch-rain')?.addEventListener('click', () => toggleRain(true));
 document.getElementById('touch-time')?.addEventListener('click', () => toggleSunset(true));
+['rain-intensity', 'touch-rain-intensity'].forEach((id) => {
+  const slider = document.getElementById(id);
+  if (!slider) return;
+  slider.addEventListener('input', () => setRainDensity(slider.value, false));
+  slider.addEventListener('change', () => setRainDensity(slider.value, true));
+});
+updateRainControls();
 
 function updateAutoDriveButtons() {
   const label = autoDriveEnabled ? '🤖 AUTO DRIVE: ON' : '🤖 AUTO DRIVE: OFF';
@@ -4886,11 +4947,10 @@ function restartCar(notifyServer = true) {
         duration: 0,
         distanceKm: 0,
         inMud: false,
-        sunsetEnabled: isSunsetActive,
-        rainEnabled: isRainActive,
+        ...(localServerSync ? { sunsetEnabled: isSunsetActive, rainEnabled: isRainActive } : {}),
         surface: currentSurfaceName,
         roadside: "Lush Touge Pine Forest All Around Road",
-        restarted: true
+        ...(localServerSync ? { restarted: true } : {})
       })
     }).catch(() => {});
   }
@@ -4924,48 +4984,52 @@ setInterval(() => {
       duration: elapsed,
       distanceKm: parseFloat(totalDistanceKm.toFixed(2)),
       inMud: isCarInMud,
-      sunsetEnabled: isSunsetActive,
-      rainEnabled: isRainActive,
+      ...(localServerSync ? { sunsetEnabled: isSunsetActive, rainEnabled: isRainActive } : {}),
       surface: currentSurfaceName,
       roadside: "Lush Touge Pine Forest All Around Road"
     })
   }).catch(() => {});
 }, 1200);
 
-let lastAppliedResetId = 0;
-setInterval(() => {
-  fetch('/api/state')
-    .then(r => r.json())
-    .then(data => {
-      if (data.resetId && data.resetId !== lastAppliedResetId) {
-        lastAppliedResetId = data.resetId;
-        restartCar(false);
-      }
-      if ((landscapeMode === 'sunset' || landscapeMode === 'night') &&
-          typeof data.sunsetEnabled === 'boolean' &&
-          data.sunsetEnabled !== isSunsetActive) {
-        applySunsetState(data.sunsetEnabled, false);
-      }
-      if (typeof data.rainEnabled === 'boolean' && data.rainEnabled !== isRainActive) {
-        applyRainState(data.rainEnabled, false);
-      }
-      if (data.weatherPreset) document.getElementById('amb-weather').textContent = data.weatherPreset;
-      if (data.soundtrack) document.getElementById('amb-music').textContent = data.soundtrack;
-      if (data.forest) document.getElementById('amb-trees').textContent = data.forest;
-      if (typeof data.curveMultiplier === 'number' && data.curveMultiplier !== curveMultiplier) {
-        curveMultiplier = data.curveMultiplier;
-      }
-      if (typeof data.rainDensity === 'number' && data.rainDensity !== rainDensity) {
-        rainDensity = data.rainDensity;
-        updateRainParticles(Math.floor(rainDensity * 3.8));
-        if (isRainActive) {
-          car.lateralGrip = Math.max(0.58, 0.94 - (rainDensity * 0.0035));
-          if (rainGain && audioCtx) rainGain.gain.value = (rainDensity / 100) * 0.45;
+if (localServerSync) {
+  let lastAppliedResetId = 0;
+  setInterval(() => {
+    fetch('/api/state')
+      .then(r => r.json())
+      .then(data => {
+        if (data.resetId && data.resetId !== lastAppliedResetId) {
+          lastAppliedResetId = data.resetId;
+          restartCar(false);
         }
-      }
-    })
-    .catch(() => {});
-}, 1200);
+        if ((landscapeMode === 'sunset' || landscapeMode === 'night') &&
+            typeof data.sunsetEnabled === 'boolean' &&
+            data.sunsetEnabled !== isSunsetActive) {
+          applySunsetState(data.sunsetEnabled, false);
+        }
+        if (data.weatherPreset) document.getElementById('amb-weather').textContent = data.weatherPreset;
+        if (data.soundtrack) document.getElementById('amb-music').textContent = data.soundtrack;
+        if (data.forest) document.getElementById('amb-trees').textContent = data.forest;
+        if (typeof data.curveMultiplier === 'number' && data.curveMultiplier !== curveMultiplier) {
+          curveMultiplier = data.curveMultiplier;
+        }
+        if (typeof data.rainDensity === 'number' && data.rainDensity !== rainDensity) {
+          rainDensity = data.rainDensity;
+          if (rainDensity > 0) lastRainDensity = rainDensity;
+          updateRainParticles(Math.floor(rainDensity * 3.8));
+          updateRainControls();
+          if (isRainActive) {
+            car.lateralGrip = Math.max(0.58, 0.94 - (rainDensity * 0.0035));
+            if (rainGain && audioCtx) rainGain.gain.value = (rainDensity / 100) * 0.45;
+            if (rainFilter && audioCtx) rainFilter.frequency.value = 700 + rainDensity * 9;
+          }
+        }
+        if (typeof data.rainEnabled === 'boolean' && data.rainEnabled !== isRainActive) {
+          applyRainState(data.rainEnabled, false);
+        }
+      })
+      .catch(() => {});
+  }, 1200);
+}
 
 function drawLushTree(c, tree, inHeadlights, distToCar, beamDiff) {
   const swayIntensity = tree.tier === 0 ? 2.2 : (tree.tier === 1 ? 1.6 : 0.9);
@@ -6190,8 +6254,11 @@ function loop() {
 
   // Falling Rain overlay
   if (isRainActive) {
-    ctx.strokeStyle = isSunsetActive ? 'rgba(255, 215, 175, 0.42)' : 'rgba(162, 196, 232, 0.35)';
-    ctx.lineWidth = 1.2;
+    const rainAlpha = rainDensity / 100;
+    ctx.strokeStyle = isSunsetActive
+      ? `rgba(255, 215, 175, ${0.42 * rainAlpha})`
+      : `rgba(162, 196, 232, ${0.35 * rainAlpha})`;
+    ctx.lineWidth = 0.6 + rainAlpha * 0.6;
     ctx.beginPath();
     rainParticles.forEach((p) => {
       p.y += p.speed;

@@ -219,9 +219,16 @@ export function startHttpServer(): Promise<{ server: http.Server; port: number }
           const data = JSON.parse(body);
           if (typeof data.rainEnabled === "boolean") {
             currentAmbiance.rainEnabled = data.rainEnabled;
-            currentAmbiance.roadFriction = data.rainEnabled ? 82 : 93;
-            if (!data.rainEnabled) currentAmbiance.rainDensity = 0;
-            else if (currentAmbiance.rainDensity === 0) currentAmbiance.rainDensity = 85;
+            if (!data.rainEnabled) {
+              currentAmbiance.rainDensity = 0;
+            } else if (typeof data.rainDensity === "number" && Number.isFinite(data.rainDensity)) {
+              currentAmbiance.rainDensity = Math.min(100, Math.max(1, data.rainDensity));
+            } else if (currentAmbiance.rainDensity === 0) {
+              currentAmbiance.rainDensity = 85;
+            }
+            currentAmbiance.roadFriction = data.rainEnabled
+              ? Math.max(50, Math.round(100 - currentAmbiance.rainDensity * 0.22))
+              : 93;
 
             if (currentAmbiance.sunsetEnabled) {
               currentAmbiance.weatherPreset = data.rainEnabled
@@ -242,6 +249,8 @@ export function startHttpServer(): Promise<{ server: http.Server; port: number }
           JSON.stringify({
             ok: true,
             rainEnabled: currentAmbiance.rainEnabled,
+            rainDensity: currentAmbiance.rainDensity,
+            roadFriction: currentAmbiance.roadFriction,
             weatherPreset: currentAmbiance.weatherPreset,
           }),
         );
@@ -272,7 +281,11 @@ export function startHttpServer(): Promise<{ server: http.Server; port: number }
           }
           if (typeof data.rainEnabled === "boolean") {
             currentAmbiance.rainEnabled = data.rainEnabled;
-            currentAmbiance.roadFriction = data.rainEnabled ? 82 : 93;
+            if (!data.rainEnabled) currentAmbiance.rainDensity = 0;
+            else if (currentAmbiance.rainDensity === 0) currentAmbiance.rainDensity = 85;
+            currentAmbiance.roadFriction = data.rainEnabled
+              ? Math.max(50, Math.round(100 - currentAmbiance.rainDensity * 0.22))
+              : 93;
           }
           if (typeof data.surface === "string") lastTelemetry.surface = data.surface;
           if (typeof data.roadside === "string") lastTelemetry.roadside = data.roadside;
