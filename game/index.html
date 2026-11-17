@@ -1945,6 +1945,7 @@
 #garage-preview-type { color: #fb923c; }
 
 #menu-garage-page .garage-options {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
   margin: 15px 0 18px;
 }
@@ -2065,7 +2066,7 @@
   .garage-stage { min-height: 132px; }
   .garage-stage-ring { width: 160px; height: 82px; }
   .garage-showroom-bottom { font-size: 7px; letter-spacing: .7px; }
-  #menu-garage-page .garage-options { gap: 8px; margin: 12px 0 15px; }
+  #menu-garage-page .garage-options { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 12px 0 15px; }
   #menu-garage-page .garage-car-option { min-height: 86px; padding: 10px 5px; font-size: 10px; }
   #menu-garage-page .garage-car-option.selected::after { font-size: 6px; top: 6px; right: 6px; }
   #menu-garage-page .garage-colors { gap: 13px; }
@@ -3213,8 +3214,13 @@ body {
       <div class="garage-options">
         <button class="garage-car-option selected" data-car-select="drift" type="button">
           <span class="garage-car-icon">🚗</span>
-          <span>DRIFT CAR</span>
+          <span>DRIFT GT</span>
           <small>ZEN GT COUPE</small>
+        </button>
+        <button class="garage-car-option" data-car-select="drift-chunky" type="button">
+          <span class="garage-car-icon">🏁</span>
+          <span>WIDEBODY GT</span>
+          <small>CHUNKY SPEC</small>
         </button>
         <button class="garage-car-option" data-car-select="f1" type="button">
           <span class="garage-car-icon">🏎️</span>
@@ -3827,7 +3833,11 @@ updatePlayerNameDisplay();
 
 // Garage vehicle selection and per-car paint presets.
 let selectedCarType = 'drift';
-const garageCarColors = { drift: '#f8fafc', f1: '#f97316' };
+const garageCarColors = {
+  drift: '#f8fafc',
+  'drift-chunky': '#f8fafc',
+  f1: '#f97316'
+};
 let selectedCarColor = garageCarColors.drift;
 
 const garageColorNames = {
@@ -3859,7 +3869,9 @@ function updateGarageSelection() {
 
   if (label) {
     label.textContent =
-      (selectedCarType === 'f1' ? 'F1 CAR' : 'DRIFT CAR') +
+      (selectedCarType === 'f1'
+        ? 'F1 CAR'
+        : selectedCarType === 'drift-chunky' ? 'WIDEBODY GT' : 'DRIFT GT') +
       ' • ' + garageColorNames[selectedCarColor];
   }
 
@@ -3873,10 +3885,14 @@ function updateGarageSelection() {
     showroom.classList.toggle('is-f1', selectedCarType === 'f1');
   }
   if (previewName) {
-    previewName.textContent = selectedCarType === 'f1' ? 'VORTEX SPRINTER' : 'ZEN GT COUPE';
+    previewName.textContent = selectedCarType === 'f1'
+      ? 'VORTEX SPRINTER'
+      : selectedCarType === 'drift-chunky' ? 'ZEN WIDEBODY' : 'ZEN GT COUPE';
   }
   if (previewType) {
-    previewType.textContent = selectedCarType === 'f1' ? 'FORMULA AERO' : 'GT DRIFT SPEC';
+    previewType.textContent = selectedCarType === 'f1'
+      ? 'FORMULA AERO'
+      : selectedCarType === 'drift-chunky' ? 'WIDEBODY SPEC' : 'GT DRIFT SPEC';
   }
 }
 
@@ -3924,7 +3940,10 @@ updateGarageSelection();
 if (new URLSearchParams(location.search).has('garagePreview')) {
   window.addEventListener('load', () => {
     const previewParams = new URLSearchParams(location.search);
-    selectedCarType = previewParams.get('car') === 'f1' ? 'f1' : 'drift';
+    const previewCar = previewParams.get('car');
+    selectedCarType = previewCar === 'f1'
+      ? 'f1'
+      : previewCar === 'drift-chunky' ? 'drift-chunky' : 'drift';
     const previewPaint = previewParams.get('paint');
     if (/^#[0-9a-f]{6}$/i.test(previewPaint || '')) {
       selectedCarColor = previewPaint;
@@ -5847,6 +5866,122 @@ function loop() {
     ctx.stroke();
     ctx.fillStyle = 'rgba(255,255,255,.7)';
     ctx.fillRect(24, -15, 3, 30);
+  } else if (selectedCarType === 'drift-chunky') {
+    // Chunky alternative: a boxier, extra-wide street drift build.
+    drawTyre(7, -18, 17, 10);
+    drawTyre(7, 8, 17, 10);
+    drawTyre(-24, -18, 17, 10);
+    drawTyre(-24, 8, 17, 10);
+
+    // Oversized bumpers, diffuser and a tall deck wing.
+    ctx.fillStyle = '#0c1017';
+    ctx.fillRect(-31, -13, 8, 26);
+    ctx.fillRect(-35, -19, 9, 3);
+    ctx.fillRect(-35, 16, 9, 3);
+    ctx.fillRect(28, -18, 5, 36);
+    ctx.fillStyle = '#fb923c';
+    ctx.fillRect(-35, -19, 9, 1.5);
+    ctx.fillRect(-35, 17.5, 9, 1.5);
+    ctx.fillRect(31, -15, 2, 30);
+
+    // Flared, squared widebody shell.
+    ctx.fillStyle = paintColor;
+    ctx.strokeStyle = paintOutline;
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.moveTo(34, 0);
+    ctx.lineTo(29, -8);
+    ctx.lineTo(22, -13);
+    ctx.lineTo(-20, -13);
+    ctx.lineTo(-28, -10);
+    ctx.lineTo(-32, -6);
+    ctx.lineTo(-32, 6);
+    ctx.lineTo(-28, 10);
+    ctx.lineTo(-20, 13);
+    ctx.lineTo(22, 13);
+    ctx.lineTo(29, 8);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Dark canopy and separated windshield/rear glass.
+    ctx.fillStyle = '#101722';
+    ctx.beginPath();
+    ctx.moveTo(17, -7);
+    ctx.lineTo(10, -10);
+    ctx.lineTo(-14, -10);
+    ctx.lineTo(-20, -6);
+    ctx.lineTo(-20, 6);
+    ctx.lineTo(-14, 10);
+    ctx.lineTo(10, 10);
+    ctx.lineTo(17, 7);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(190,210,230,.58)';
+    ctx.lineWidth = .8;
+    ctx.beginPath();
+    ctx.moveTo(3, -9);
+    ctx.lineTo(3, 9);
+    ctx.moveTo(-19, 0);
+    ctx.lineTo(16, 0);
+    ctx.stroke();
+
+    // Carbon hood, roof stripe and a bold orange side slash.
+    ctx.fillStyle = '#151a22';
+    ctx.beginPath();
+    ctx.moveTo(20, -9);
+    ctx.lineTo(29, -4);
+    ctx.lineTo(29, 4);
+    ctx.lineTo(20, 9);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = '#fb923c';
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    ctx.moveTo(23, -5);
+    ctx.lineTo(31, -2);
+    ctx.moveTo(23, 5);
+    ctx.lineTo(31, 2);
+    ctx.stroke();
+    ctx.fillStyle = '#ef4444';
+    ctx.beginPath();
+    ctx.moveTo(-9, -12);
+    ctx.lineTo(5, -12);
+    ctx.lineTo(13, -10);
+    ctx.lineTo(-1, -10);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(-9, 12);
+    ctx.lineTo(5, 12);
+    ctx.lineTo(13, 10);
+    ctx.lineTo(-1, 10);
+    ctx.closePath();
+    ctx.fill();
+
+    // Heavy overfenders, side skirts and bright wheel bolts.
+    ctx.strokeStyle = '#11151d';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(17, -12);
+    ctx.quadraticCurveTo(10, -19, 3, -12);
+    ctx.moveTo(-15, -12);
+    ctx.quadraticCurveTo(-23, -20, -30, -10);
+    ctx.moveTo(17, 12);
+    ctx.quadraticCurveTo(10, 19, 3, 12);
+    ctx.moveTo(-15, 12);
+    ctx.quadraticCurveTo(-23, 20, -30, 10);
+    ctx.stroke();
+    ctx.fillStyle = '#fb923c';
+    [[13, -14], [13, 14], [-23, -14], [-23, 14]].forEach(([x, y]) => {
+      ctx.beginPath();
+      ctx.arc(x, y, 1.7, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.fillStyle = '#0b0e14';
+    ctx.fillRect(-13, -14, 28, 2);
+    ctx.fillRect(-13, 12, 28, 2);
+
   } else {
     // Wide drift coupe on stretched tyres with a planted tuner stance.
     drawTyre(8, -15, 15, 7);
@@ -5990,15 +6125,20 @@ function loop() {
 
   // Headlight lamps.
   ctx.fillStyle = '#fff4d2';
-  ctx.fillRect(selectedCarType === 'f1' ? 28 : 23, -7, 2.5, 4);
-  ctx.fillRect(selectedCarType === 'f1' ? 28 : 23, 3, 2.5, 4);
+  const frontLampX = selectedCarType === 'f1' ? 28 :
+    selectedCarType === 'drift-chunky' ? 31 : 23;
+  ctx.fillRect(frontLampX, -7, 2.5, 4);
+  ctx.fillRect(frontLampX, 3, 2.5, 4);
 
   // Rear lights.
   ctx.fillStyle = '#ff3048';
-  ctx.fillRect(selectedCarType === 'f1' ? -27 : -24, -7, 2, 5);
-  ctx.fillRect(selectedCarType === 'f1' ? -27 : -24, 2, 2, 5);
+  const rearLampX = selectedCarType === 'f1' ? -27 :
+    selectedCarType === 'drift-chunky' ? -31 : -24;
+  ctx.fillRect(rearLampX, -7, 2, 5);
+  ctx.fillRect(rearLampX, 2, 2, 5);
   ctx.fillStyle = '#ff2233';
-  ctx.fillRect(selectedCarType === 'f1' ? -25 : -22, -9, 2, 18);
+  ctx.fillRect(selectedCarType === 'f1' ? -25 :
+    selectedCarType === 'drift-chunky' ? -29 : -22, -9, 2, 18);
 
 
   ctx.restore();
