@@ -3026,8 +3026,7 @@ body {
     "eyebrow"
     "copy"
     "chips"
-    "nav"
-    "website" !important;
+    "nav" !important;
   gap: 18px;
   width: 100%;
   text-align: center;
@@ -3082,14 +3081,17 @@ body {
 }
 
 #menu-home .menu-website-link {
-  grid-area: website !important;
+  position: fixed;
+  top: max(16px, env(safe-area-inset-top, 0px));
+  left: max(16px, env(safe-area-inset-left, 0px));
+  z-index: 220;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: min(440px, 100%);
-  min-height: 46px;
-  margin: 0 auto;
-  padding: 10px 18px;
+  width: auto;
+  min-height: 42px;
+  margin: 0;
+  padding: 9px 14px;
   border: 1px solid rgba(255,255,255,0.2);
   border-radius: 10px;
   background: rgba(255,255,255,0.055);
