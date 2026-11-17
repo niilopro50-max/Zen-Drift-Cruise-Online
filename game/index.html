@@ -4251,6 +4251,51 @@ let isAudioActive = false;
 let rainGain = null;
 let rainFilter = null;
 let mudGain = null;
+let nextThunderAt = null;
+let lightningFlashStartedAt = 0;
+let pendingThunderTimeout = null;
+// Real field recording by Mysid, released into the public domain on Wikimedia Commons.
+const naturalThunderSound = new Audio('https://upload.wikimedia.org/wikipedia/commons/c/c8/Tonitrus.ogg');
+naturalThunderSound.preload = 'auto';
+naturalThunderSound.volume = 0.58;
+
+function playThunderSound() {
+  if (!isRainActive || rainDensity <= 80) return;
+  if (!naturalThunderSound.paused) return;
+  naturalThunderSound.currentTime = 0;
+  naturalThunderSound.play().catch((error) => {
+    console.warn('Thunder recording could not play:', error);
+  });
+}
+
+function updateThunder(now) {
+  if (!isRainActive || rainDensity <= 80) {
+    nextThunderAt = null;
+    lightningFlashStartedAt = 0;
+    if (pendingThunderTimeout !== null) {
+      window.clearTimeout(pendingThunderTimeout);
+      pendingThunderTimeout = null;
+    }
+    if (!naturalThunderSound.paused) {
+      naturalThunderSound.pause();
+      naturalThunderSound.currentTime = 0;
+    }
+    return;
+  }
+
+  if (nextThunderAt === null || now >= nextThunderAt) {
+    if (nextThunderAt !== null) {
+      lightningFlashStartedAt = now;
+      pendingThunderTimeout = window.setTimeout(() => {
+        pendingThunderTimeout = null;
+        playThunderSound();
+      }, 250 + Math.random() * 650);
+    }
+    const intensity = rainDensity - 80;
+    const eventsPerMinute = 1.8 * Math.exp(intensity * 0.075);
+    nextThunderAt = now - Math.log(1 - Math.random()) * 60000 / eventsPerMinute;
+  }
+}
 
 function initAudio() {
   if (isAudioActive) return;
@@ -4728,7 +4773,15 @@ function applyRainState(enabled, notifyServer = false) {
     mobileRainBtn.textContent = isRainActive ? `🌧 RAIN: ${Math.round(rainDensity)}%` : '☀️ DRY: ON';
   }
   if (!isRainActive) {
+    nextThunderAt = null;
+    if (pendingThunderTimeout !== null) {
+      window.clearTimeout(pendingThunderTimeout);
+      pendingThunderTimeout = null;
+    }
+    naturalThunderSound.pause();
+    naturalThunderSound.currentTime = 0;
     if (rainGain && audioCtx) {
+      rainGain.gain.cancelScheduledValues(audioCtx.currentTime);
       rainGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.12);
     }
     if (rainFilter && audioCtx) {
@@ -5242,6 +5295,8 @@ function loop() {
   }
   if (gamePaused) return;
 
+  updateThunder(Date.now());
+
   if (gameMode === 'timeAttack') {
     if (timeAttackState === 'countdown') {
       const remaining = timeAttackStartAt - Date.now();
@@ -5339,66 +5394,48 @@ function loop() {
   let autoRecoveryStrength = 0;
 
   if (autoDriveEnabled && roadNodes.length > closestIdx + 12) {
-    // Dynamic look-ahead: longer at higher speeds.
-    const lookAheadDistance = Math.max(
-      58,
-      Math.min(120, 58 + car.speed * 4.2)
-    );
+    // Follow a virtual lead car farther along the road. This gives the
+    // steering time to choose a smooth path through the next bend.
+    const lookAheadDistance = Math.max(105, Math.min(190, 105 + car.speed * 5.2));
     const targetIndex = Math.min(
       roadNodes.length - 1,
       closestIdx + Math.max(2, Math.ceil(lookAheadDistance / ROAD_NODE_DIST))
     );
 
     const targetPoint = roadNodes[targetIndex];
-    const desiredAngle = Math.atan2(
-      targetPoint.y - car.y,
-      targetPoint.x - car.x
-    );
+
+    // Read the road's upcoming direction and curvature, while aiming at its
+    // centerline like a lead car the auto-drive is following.
+    const a = roadNodes[closestIdx + 2];
+    const b = roadNodes[closestIdx + 4];
+    const c = roadNodes[closestIdx + 8];
+    const d = roadNodes[closestIdx + 10];
+    const angleA = Math.atan2(b.y - a.y, b.x - a.x);
+    const angleB = Math.atan2(d.y - c.y, d.x - c.x);
+    let curveDelta = angleB - angleA;
+    while (curveDelta > Math.PI) curveDelta -= Math.PI * 2;
+    while (curveDelta < -Math.PI) curveDelta += Math.PI * 2;
+    const curvature = Math.abs(curveDelta) / (6 * ROAD_NODE_DIST);
+    const curveDirection = Math.sign(curveDelta);
+    const desiredAngle = Math.atan2(targetPoint.y - car.y, targetPoint.x - car.x);
 
     let headingError = desiredAngle - car.angle;
     while (headingError > Math.PI) headingError -= Math.PI * 2;
     while (headingError < -Math.PI) headingError += Math.PI * 2;
 
-    const steeringGain = mobileDrivingMode ? 0.84 : 0.86;
+    const steeringGain = mobileDrivingMode ? 1.05 : 1.12;
     targetSteer = Math.max(
       -steerLimit,
       Math.min(steerLimit, headingError * steeringGain)
     );
 
-    // Estimate upcoming road curvature from two road segments.
-    const a = roadNodes[closestIdx + 2];
-    const b = roadNodes[closestIdx + 4];
-    const c = roadNodes[closestIdx + 8];
-    const d = roadNodes[closestIdx + 10];
-
-    const angleA = Math.atan2(b.y - a.y, b.x - a.x);
-    const angleB = Math.atan2(d.y - c.y, d.x - c.x);
-
-    let curveDelta = angleB - angleA;
-    while (curveDelta > Math.PI) curveDelta -= Math.PI * 2;
-    while (curveDelta < -Math.PI) curveDelta += Math.PI * 2;
-
-    const curvature = Math.abs(curveDelta) / (6 * ROAD_NODE_DIST);
     const safeCurvature = Math.max(curvature, 0.0001);
-    const curveDirection = Math.sign(curveDelta);
     const roadPosition = Math.abs(signedRoadOffset) / ROAD_HALF_WIDTH;
     autoRecoveryStrength = Math.max(0, Math.min(1, (roadPosition - 0.18) / 0.42));
     const driftRoom = Math.max(0, Math.min(1, 1 - roadPosition / 0.40));
     autoDriftStrength = curveDirection === 0
       ? 0
       : Math.max(0, Math.min(1, curvature * 220)) * driftRoom * (1 - autoRecoveryStrength);
-
-    // Nudge the nose into the bend, then pull it back toward the road center
-    // as the car approaches either edge.
-    const driftSteer = curveDirection * steerLimit * 0.18 * autoDriftStrength;
-    const centerCorrection = Math.max(
-      -steerLimit,
-      Math.min(steerLimit, -signedRoadOffset / ROAD_HALF_WIDTH * steerLimit * 1.35)
-    );
-    targetSteer = Math.max(
-      -steerLimit,
-      Math.min(steerLimit, targetSteer + driftSteer + centerCorrection)
-    );
 
     let targetSpeed = Math.sqrt(0.62 / safeCurvature);
     targetSpeed = Math.max(
@@ -5435,7 +5472,7 @@ function loop() {
     ? (autoDriveEnabled ? 0.08 + autoDriftStrength * 0.06 : 0.08)
     : (keys.handbrake ? 0.96 : (isCarInMud
       ? 0.68
-      : Math.max(car.lateralGrip, 0.82 + autoDriftStrength * 0.11) * (1 - autoRecoveryStrength * 0.45)));
+      : Math.max(0.70, car.lateralGrip - autoDriftStrength * 0.10) * (1 - autoRecoveryStrength * 0.45)));
   lateralVel *= currentGrip;
 
   car.vx = (fwdX * forwardVel * car.friction) + (rightX * lateralVel);
@@ -6359,6 +6396,12 @@ function loop() {
       ctx.fillStyle = mist;
       ctx.fillRect(0, y - 35, w, 80);
     }
+  }
+
+  const lightningAge = Date.now() - lightningFlashStartedAt;
+  if (lightningFlashStartedAt && lightningAge < 380) {
+    ctx.fillStyle = `rgba(225, 235, 255, ${0.38 * (1 - lightningAge / 380)})`;
+    ctx.fillRect(0, 0, w, h);
   }
 }
 
