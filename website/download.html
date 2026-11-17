@@ -42,9 +42,16 @@ p { color: #aaa6a1; line-height: 1.8; }
 .panel h2 { text-transform: uppercase; font-size: 18px; }
 .status { color: #f26a21; font-size: 12px; font-weight: 800; letter-spacing: 1px; }
 a { display: inline-block; margin-top: 25px; padding: 15px 23px; background: #f26a21; color: #090909; text-decoration: none; font-size: 12px; font-weight: 900; border-radius: 4px; }
+.back-link {
+  position: fixed; top: 20px; left: 20px; z-index: 2;
+  margin: 0; padding: 11px 15px; background: #090909cc;
+  color: #f5f3ef; border: 1px solid #ffffff55; border-radius: 4px;
+}
+.back-link:hover { border-color: #f26a21; color: #f26a21; }
 </style>
 </head>
 <body>
+<a class="back-link" href="/">← BACK TO HOME</a>
 <main>
   <div class="label">ZEN DRIFT CRUISE</div>
   <h1>Take it<br>with you.</h1>
@@ -74,7 +81,6 @@ a { display: inline-block; margin-top: 25px; padding: 15px 23px; background: #f2
     <a href="https://github.com/niilopro50-max/Zen-Drift-Cruise-Online/releases/download/v1.0.2/Zen.Drift.Cruise.Setup.1.0.2.exe">DOWNLOAD FOR WINDOWS — EXE</a>
     <p style="font-size:12px;margin-top:20px">The installer is not digitally signed yet, so Windows may show a security warning.</p>
   </div>
-  <a href="/" style="background:transparent;color:#f5f3ef;border:1px solid #ffffff55">← BACK TO HOME</a>
 </main>
 </body>
 </html>
