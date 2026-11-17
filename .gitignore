@@ -16,3 +16,12 @@ desktop-server-test.mjs
 *.backup-*
 *.before-*
 *.nickname-backup
+
+# Android build outputs and private release signing key
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/*.jks
+android/signing.local.env
+*.idsig

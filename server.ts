@@ -139,6 +139,23 @@ export function startHttpServer(): Promise<{ server: http.Server; port: number }
       return;
     }
 
+    if (req.method === "GET" && url.pathname === "/downloads/zen-drift-cruise-android.apk") {
+      const apkPath = new URL("./downloads/zen-drift-cruise-android.apk", import.meta.url);
+      if (!existsSync(apkPath)) {
+        res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
+        res.end("Android download not found.");
+        return;
+      }
+      const apk = readFileSync(apkPath);
+      res.writeHead(200, {
+        "Content-Type": "application/vnd.android.package-archive",
+        "Content-Disposition": 'attachment; filename="zen-drift-cruise-android.apk"',
+        "Content-Length": apk.length,
+      });
+      res.end(apk);
+      return;
+    }
+
 
     if (req.method === "GET" && url.pathname === "/api/state") {
       res.writeHead(200, {

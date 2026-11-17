@@ -1,0 +1,16 @@
+plugins {
+    id "com.android.application"
+}
+
+android {
+    namespace "com.zendriftcruise.app"
+    compileSdk 37
+
+    defaultConfig {
+        applicationId "com.zendriftcruise.app"
+        minSdk 23
+        targetSdk 35
+        versionCode 3
+        versionName "1.0.2"
+    }
+}

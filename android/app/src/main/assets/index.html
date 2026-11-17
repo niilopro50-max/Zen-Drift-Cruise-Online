@@ -1,0 +1,6271 @@
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<title>Zen Cruise • Golden Sunset & Rain Drift Touge</title>
+<script>if (new URLSearchParams(location.search).has('garagePreview')) document.documentElement.classList.add('garage-preview-mode');</script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0c0810; color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; overflow: hidden; user-select: none; width: 100%; height: 100%; position: relative; }
+  canvas { display: block; width: 100%; height: 100%; }
+  #hud { position: absolute; inset: 0; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; padding: 22px 26px; }
+  .hud-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .hud-brand { display: flex; flex-direction: column; gap: 4px; }
+  .hud-tag { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #ea580c; }
+  .hud-title { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; color: #f8fafc; display: flex; align-items: center; gap: 10px; }
+  .hud-badge { font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 999px; background: rgba(234,88,12,0.2); border: 1px solid rgba(234,88,12,0.45); color: #fb923c; transition: all 0.3s ease; }
+  .hud-badge.sunset-dry { background: rgba(245,158,11,0.2); border-color: rgba(245,158,11,0.45); color: #fcd34d; }
+  .hud-badge.night-rain { background: rgba(56,189,248,0.2); border-color: rgba(56,189,248,0.45); color: #38bdf8; }
+  .hud-badge.night-dry { background: rgba(52,211,153,0.18); border-color: rgba(52,211,153,0.4); color: #34d399; }
+  .hud-stats { display: flex; gap: 18px; text-align: right; }
+  .stat-box { display: flex; flex-direction: column; }
+  .stat-val { font-size: 21px; font-weight: 700; font-variant-numeric: tabular-nums; color: #f8fafc; }
+  .stat-val.stat-km { color: #fb923c; }
+  .stat-lbl { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: #94a3b8; }
+  .hud-surface-val { font-size: 15px; font-weight: 700; letter-spacing: 0.02em; transition: color 0.2s ease; }
+  .hud-surface-val.on-asphalt { color: #fb923c; }
+  .hud-surface-val.in-mud { color: #f97316; text-shadow: 0 0 10px rgba(249,115,22,0.6); }
+  .hud-bottom { display: flex; justify-content: space-between; align-items: flex-end; }
+  .hud-ctrls { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #cbd5e1; background: rgba(18,14,24,0.85); backdrop-filter: blur(14px); padding: 8px 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.12); }
+  .key { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 4px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.22); font-size: 11px; font-weight: 600; color: #f8fafc; }
+  .key.sunset-key { color: #fb923c; border-color: rgba(251,146,60,0.5); background: rgba(234,88,12,0.18); font-weight: 700; }
+  .key.rain-key { color: #38bdf8; border-color: rgba(56,189,248,0.5); background: rgba(56,189,248,0.15); font-weight: 700; }
+  .key.rst-key { color: #f43f5e; border-color: rgba(244,63,94,0.5); background: rgba(244,63,94,0.15); font-weight: 700; }
+  .hud-ambiance { display: flex; align-items: center; gap: 10px; background: rgba(18,14,24,0.85); backdrop-filter: blur(14px); padding: 8px 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.12); }
+  .amb-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #e2e8f0; }
+  .amb-dot { width: 6px; height: 6px; border-radius: 50%; background: #ea580c; box-shadow: 0 0 8px #ea580c; transition: all 0.3s ease; }
+  .amb-dot.night-dot { background: #38bdf8; box-shadow: 0 0 8px #38bdf8; }
+  .amb-dot.mud-alert { background: #f97316; box-shadow: 0 0 8px #f97316; }
+  .hud-pill-btn { pointer-events: auto; cursor: pointer; border: none; font: inherit; display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; transition: all 0.2s ease; }
+  .hud-pill-btn.sunset-mode { background: rgba(234,88,12,0.22); border: 1px solid rgba(234,88,12,0.5); color: #fed7aa; }
+  .hud-pill-btn.night-mode { background: rgba(56,189,248,0.2); border: 1px solid rgba(56,189,248,0.45); color: #bae6fd; }
+  .hud-pill-btn.rain-mode { background: rgba(56,189,248,0.2); border: 1px solid rgba(56,189,248,0.45); color: #bae6fd; }
+  .hud-pill-btn.dry-mode { background: rgba(245,158,11,0.2); border: 1px solid rgba(245,158,11,0.45); color: #fde68a; }
+  .hud-pill-btn.music-mode { background: rgba(168,85,247,0.2); border: 1px solid rgba(168,85,247,0.45); color: #e9d5ff; }
+  .hud-pill-btn:hover { transform: scale(1.04); }
+  .hud-toast { position: absolute; top: 76px; left: 50%; transform: translateX(-50%) translateY(0); background: rgba(18,14,24,0.94); border: 1px solid rgba(234,88,12,0.5); box-shadow: 0 8px 24px rgba(0,0,0,0.6), 0 0 16px rgba(234,88,12,0.25); backdrop-filter: blur(14px); color: #f8fafc; padding: 7px 18px; border-radius: 999px; font-size: 12.5px; font-weight: 600; display: flex; align-items: center; gap: 8px; opacity: 1; transition: opacity 0.25s ease, transform 0.25s ease; pointer-events: none; z-index: 50; }
+  .hud-toast.hide { opacity: 0; transform: translateX(-50%) translateY(-8px); }
+  .hud-toast-icon { font-size: 15px; color: #fb923c; }
+
+  #race-status {
+  display: none;
+  position: fixed;
+  top: 43%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 140;
+  pointer-events: none;
+  text-align: center;
+  white-space: nowrap;
+  font-family: inherit;
+}
+
+#race-status.race-countdown-number {
+  color: #fb923c;
+  font-size: clamp(100px, 22vw, 190px);
+  line-height: 1;
+  font-weight: 1000;
+  font-style: italic;
+  letter-spacing: -8px;
+  -webkit-text-stroke: 3px #fff;
+  text-shadow:
+    5px 7px 0 #9a3412,
+    0 0 22px rgba(249,115,22,0.9),
+    0 0 55px rgba(249,115,22,0.55);
+  animation: zen-countdown-pop 0.72s cubic-bezier(.16,1,.3,1) both;
+}
+
+#race-status.race-countdown-go {
+  color: #4ade80;
+  font-size: clamp(76px, 18vw, 150px);
+  line-height: 1;
+  font-weight: 1000;
+  font-style: italic;
+  letter-spacing: -4px;
+  -webkit-text-stroke: 3px #fff;
+  text-shadow:
+    5px 7px 0 #166534,
+    0 0 24px rgba(74,222,128,0.95),
+    0 0 65px rgba(34,197,94,0.7);
+  animation: zen-go-flash 1s ease-out both;
+}
+
+#race-status.race-checkpoint {
+  top: 112px;
+  padding: 10px 20px;
+  border: 1px solid rgba(251,146,60,0.65);
+  border-radius: 12px;
+  background: rgba(12,16,26,0.9);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.4);
+}
+
+@keyframes zen-countdown-pop {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(2.2) rotate(-10deg); }
+  55% { opacity: 1; transform: translate(-50%, -50%) scale(0.88) rotate(2deg); }
+  75% { transform: translate(-50%, -50%) scale(1.08) rotate(0); }
+  100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+@keyframes zen-go-flash {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(2.5); }
+  25% { opacity: 1; transform: translate(-50%, -50%) scale(0.9); }
+  45% { transform: translate(-50%, -50%) scale(1.12); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.35); }
+}
+
+#time-attack-hud {
+  display: none;
+  position: relative;
+  top: auto;
+  left: auto;
+  transform: none;
+  z-index: 135;
+  flex: 0 1 340px;
+  width: min(340px, 30vw);
+  min-width: 0;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid rgba(56,189,248,0.32);
+  border-radius: 10px;
+  background: rgba(8,14,25,0.88);
+  box-shadow: 0 8px 28px rgba(0,0,0,0.34);
+  backdrop-filter: blur(12px);
+  pointer-events: none;
+}
+
+#time-attack-hud .race-hud-cell {
+  min-width: 0;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  background: rgba(15,23,42,0.72);
+  text-align: center;
+}
+
+#time-attack-hud .race-hud-label {
+  color: #94a3b8;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  white-space: nowrap;
+}
+
+#time-attack-hud .race-hud-value {
+  color: #f8fafc;
+  font-size: 16px;
+  line-height: 1.2;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+#race-hud-checkpoints { color: #7dd3fc !important; }
+#race-hud-best { color: #fcd34d !important; }
+#race-hud-delta.ahead { color: #4ade80 !important; }
+#race-hud-delta.behind { color: #fb923c !important; }
+
+@media (max-width: 600px) {
+  #time-attack-hud {
+    flex: 0 1 220px;
+    width: min(220px, 28vw);
+    margin: 0 5px;
+  }
+  #time-attack-hud .race-hud-cell {
+    padding: 8px 4px;
+  }
+  #time-attack-hud .race-hud-label {
+    font-size: 8px;
+    letter-spacing: 0.06em;
+  }
+  #time-attack-hud .race-hud-value {
+    font-size: 13px;
+  }
+}
+
+
+  #overlay {
+    position: fixed;
+    inset: 0;
+    padding: 24px;
+    overflow-y: auto;
+    background: linear-gradient(135deg, rgba(5,8,15,0.94), rgba(20,12,24,0.88));
+    backdrop-filter: blur(14px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    transition: opacity 0.4s ease;
+    cursor: default;
+  }
+  #overlay.hide {
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
+  }
+  .ov-box {
+    width: min(100%, 560px);
+    text-align: center;
+    padding: 38px;
+    border-radius: 22px;
+    background: linear-gradient(145deg, rgba(25,29,42,0.97), rgba(13,16,26,0.98));
+    border: 1px solid rgba(255,255,255,0.13);
+    box-shadow: 0 28px 90px rgba(0,0,0,0.65);
+  }
+  .menu-eyebrow {
+    color: #fb923c;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 5px;
+    margin-bottom: 18px;
+  }
+  .ov-title {
+    font-size: clamp(38px, 8vw, 64px);
+    line-height: 0.98;
+    font-weight: 900;
+    letter-spacing: -2px;
+    color: #fff;
+    margin-bottom: 12px;
+  }
+  .ov-title span { color: #fb923c; }
+  .ov-sub {
+    color: #aab4c5;
+    font-size: 14px;
+    line-height: 1.6;
+    margin: 0 auto 25px;
+    max-width: 410px;
+  }
+  .menu-chip-row {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 25px;
+  }
+  .menu-chip {
+    padding: 7px 11px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.05);
+    color: #cbd5e1;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+  .ov-btn {
+    width: 100%;
+    min-height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 13px 24px;
+    border-radius: 12px;
+    background: linear-gradient(110deg, #ea580c, #f97316);
+    color: white;
+    font-size: 15px;
+    font-weight: 900;
+    letter-spacing: 2px;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 8px 28px rgba(234,88,12,0.28);
+    transition: transform 0.2s, filter 0.2s;
+  }
+  .ov-btn:hover { transform: translateY(-2px); filter: brightness(1.12); }
+  .menu-nav {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 9px;
+    margin-top: 12px;
+  }
+  .menu-nav button, .menu-back {
+    min-height: 45px;
+    border: 1px solid rgba(255,255,255,0.13);
+    border-radius: 10px;
+    background: rgba(255,255,255,0.055);
+    color: #e2e8f0;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+  }
+  .menu-nav button:hover, .menu-back:hover {
+    background: rgba(234,88,12,0.16);
+    border-color: rgba(251,146,60,0.6);
+  }
+  .ov-page[hidden] { display: none !important; }
+  .ov-page-title {
+    color: white;
+    font-size: 30px;
+    font-weight: 900;
+    margin: 8px 0 12px;
+  }
+  .ov-page-copy {
+    color: #aab4c5;
+    font-size: 14px;
+    line-height: 1.6;
+    margin: 0 auto 22px;
+  }
+  .menu-mode-card {
+    padding: 17px;
+    margin: 12px 0;
+    border-radius: 12px;
+    text-align: left;
+    border: 1px solid rgba(251,146,60,0.45);
+    background: rgba(234,88,12,0.09);
+    color: white;
+  }
+  .menu-mode-card small {
+    display: block;
+    color: #fb923c;
+    margin-top: 6px;
+    font-size: 10px;
+    letter-spacing: 1px;
+  }
+  .menu-back { width: 100%; margin-top: 12px; }
+  @media (max-width: 560px) {
+    #overlay { padding: 15px; }
+    .ov-box { padding: 27px 20px; }
+    .menu-nav { grid-template-columns: 1fr; }
+    .ov-title { letter-spacing: -1px; }
+  }
+
+
+  .garage-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 18px 0;
+  }
+  .garage-car-option {
+    min-height: 112px;
+    padding: 13px 8px;
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 13px;
+    background: rgba(255,255,255,0.045);
+    color: white;
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    cursor: pointer;
+  }
+  .garage-car-option.selected {
+    border: 2px solid #fb923c;
+    background: rgba(234,88,12,0.16);
+  }
+  .garage-car-icon {
+    display: block;
+    font-size: 30px;
+    margin-bottom: 7px;
+  }
+  .garage-car-option small {
+    display: block;
+    color: #fb923c;
+    font-size: 9px;
+    margin-top: 6px;
+    letter-spacing: 1px;
+  }
+  .garage-section-label {
+    color: #aab4c5;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    margin: 18px 0 12px;
+  }
+  .garage-colors {
+    display: flex;
+    justify-content: center;
+    gap: 13px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+  }
+  .garage-color {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--paint);
+    border: 3px solid rgba(255,255,255,0.22);
+    outline: 2px solid transparent;
+    outline-offset: 3px;
+    cursor: pointer;
+  }
+  .garage-color.selected {
+    outline-color: #fb923c;
+  }
+  .garage-current {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    color: #cbd5e1;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    margin: 12px 0 18px;
+  }
+  .garage-current-dot {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: #ef4444;
+    border: 1px solid rgba(255,255,255,0.5);
+  }
+  @media (max-width: 560px) {
+    .garage-options { gap: 8px; }
+    .garage-car-option { min-height: 100px; }
+    .garage-color { width: 31px; height: 31px; }
+  }
+
+#pause-btn {
+  position: absolute;
+  top: 72px;
+  right: 26px;
+  z-index: 120;
+  pointer-events: auto;
+  padding: 10px 16px;
+  border: 1px solid rgba(255,255,255,0.35);
+  border-radius: 10px;
+  background: rgba(15,23,42,0.78);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+}
+#pause-btn:hover {
+  background: rgba(234,88,12,0.9);
+  border-color: #fb923c;
+}
+
+#auto-drive-btn {
+  position: absolute;
+  top: 108px;
+  right: 26px;
+  left: auto;
+  z-index: 120;
+  pointer-events: auto;
+  padding: 10px 15px;
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 10px;
+  background: rgba(15,23,42,0.9);
+  color: white;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+}
+
+#auto-drive-btn.active,
+.touch-auto-drive.active {
+  background: rgba(22,101,52,0.95);
+  border-color: #4ade80;
+  color: #dcfce7;
+}
+#touch-utility-buttons { display: none; }
+
+/* Mobile touch driving controls */
+#touch-controls {
+  display: none;
+}
+
+@media (pointer: coarse), (max-width: 700px) {
+  #hud {
+    padding: 12px;
+  }
+  #pause-btn {
+    top: 62px;
+    right: 12px;
+    padding: 9px 12px;
+    font-size: 10px;
+  }
+
+  .hud-title {
+    font-size: 17px;
+  }
+
+  .hud-tag {
+    font-size: 9px;
+  }
+
+  .hud-stats {
+    gap: 9px;
+  }
+
+  .stat-val {
+    font-size: 15px;
+  }
+
+  .stat-lbl {
+    font-size: 8px;
+  }
+
+  .hud-bottom {
+    display: none;
+  }
+
+  #touch-controls {
+    position: fixed;
+    inset: 0;
+    z-index: 110;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding: 0 22px calc(24px + env(safe-area-inset-bottom, 0px));
+    pointer-events: none;
+    touch-action: none;
+  }
+
+  #joystick-base {
+    width: 124px;
+    height: 124px;
+    border-radius: 50%;
+    position: relative;
+    background: rgba(255,255,255,0.13);
+    border: 2px solid rgba(255,255,255,0.35);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.35);
+    pointer-events: auto;
+    touch-action: none;
+  }
+
+  #joystick-knob {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: rgba(234,88,12,0.9);
+    border: 2px solid rgba(255,255,255,0.8);
+    box-shadow: 0 0 18px rgba(234,88,12,0.5);
+    pointer-events: none;
+  }
+
+  #touch-buttons {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    pointer-events: auto;
+  }
+
+  .touch-drive-btn {
+    border: 2px solid rgba(255,255,255,0.55);
+    border-radius: 22px;
+    color: white;
+    font-size: 13px;
+    font-weight: 800;
+    text-shadow: 0 1px 4px #000;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.4);
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  #touch-accelerate {
+    width: 76px;
+    height: 112px;
+    background: rgba(22,163,74,0.78);
+  }
+
+  #touch-brake {
+    width: 68px;
+    height: 82px;
+    background: rgba(37,99,235,0.8);
+  }
+
+  .touch-drive-btn:active {
+    filter: brightness(1.3);
+    transform: scale(0.96);
+  }
+}
+
+
+@media (pointer: coarse), (max-width: 700px) {
+  #joystick-base, #joystick-knob {
+    display: none !important;
+  }
+
+  #touch-controls {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  #touch-steering-buttons {
+    display: flex;
+    align-items: flex-end;
+    gap: 7px;
+    pointer-events: auto;
+  }
+
+  .touch-steer-btn {
+    width: clamp(52px, 17vw, 70px);
+    height: 76px;
+    background: rgba(71,85,105,0.88);
+  }
+
+  #touch-buttons {
+    gap: 7px;
+  }
+
+  #touch-accelerate {
+    width: clamp(55px, 18vw, 72px);
+    height: 105px;
+  }
+
+  #touch-brake {
+    width: clamp(52px, 17vw, 68px);
+    height: 78px;
+  }
+}
+
+
+@media (pointer: coarse), (max-width: 700px) {
+  .touch-utility-toggle {
+    display: inline-flex;
+    position: fixed;
+    top: 108px;
+    right: 12px;
+    z-index: 125;
+    padding: 9px 13px;
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 10px;
+    background: rgba(15,23,42,0.9);
+    color: white;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+
+  #touch-utility-buttons {
+    position: fixed;
+    top: 150px;
+    right: 12px;
+    left: auto;
+    transform: none;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+    width: max-content;
+    max-width: calc(100vw - 24px);
+    pointer-events: auto;
+    z-index: 90;
+  }
+
+  #touch-utility-buttons.collapsed {
+    display: none;
+  }
+
+  .touch-utility-btn {
+    padding: 9px 11px;
+    border: 1px solid rgba(255,255,255,0.24);
+    border-radius: 12px;
+    background: rgba(18,14,24,0.88);
+    color: white;
+    font-size: 10px;
+    font-weight: 800;
+    touch-action: manipulation;
+  }
+
+  #touch-restart { border-color: rgba(244,63,94,0.65); }
+}
+
+@media (pointer: coarse), (max-width: 700px) {
+  #auto-drive-btn { display: none; }
+}
+
+
+/* ===== VORTEX SPRINTER MAIN MENU ===== */
+#overlay:has(#menu-home:not([hidden])) {
+  padding: clamp(16px, 4vw, 54px);
+  background:
+    radial-gradient(ellipse at 76% 48%, rgba(234,88,12,.19), transparent 42%),
+    radial-gradient(ellipse at 15% 10%, rgba(255,255,255,.045), transparent 35%),
+    repeating-linear-gradient(132deg, transparent 0 118px, rgba(255,105,0,.13) 119px 121px, transparent 122px 225px),
+    repeating-linear-gradient(132deg, transparent 0 205px, rgba(255,125,35,.055) 206px 214px, transparent 215px 330px),
+    linear-gradient(125deg, #080b12 0%, #11131b 54%, #1c100d 100%);
+}
+
+#overlay:has(#menu-home:not([hidden])) .ov-box {
+  width: min(1120px, 100%);
+  max-width: 1120px;
+  padding: clamp(25px, 4vw, 58px);
+  text-align: left;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 25px;
+  background:
+    repeating-linear-gradient(132deg, transparent 0 145px, rgba(255,105,0,.075) 146px 148px, transparent 149px 260px),
+    linear-gradient(115deg, rgba(18,22,31,.98), rgba(12,14,21,.97));
+}
+
+#overlay:has(#menu-home:not([hidden])) .ov-box::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 5px;
+  height: 100%;
+  background: linear-gradient(#fb923c, #c2410c, transparent);
+}
+
+#menu-home {
+  display: grid;
+  grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);
+  grid-template-areas:
+    "eyebrow visual"
+    "copy visual"
+    "chips visual"
+    "play visual"
+    "nav visual";
+  column-gap: clamp(20px, 4vw, 58px);
+  align-items: center;
+}
+
+#menu-home > .menu-eyebrow {
+  grid-area: eyebrow;
+  margin: 0 0 18px;
+  letter-spacing: 4px;
+}
+
+#menu-home .menu-hero-copy {
+  grid-area: copy;
+}
+
+#menu-home .ov-title {
+  font-size: clamp(48px, 6vw, 76px);
+  line-height: .94;
+  letter-spacing: -3px;
+  margin-bottom: 17px;
+}
+
+#menu-home .ov-sub {
+  max-width: 390px;
+  margin: 0 0 23px;
+  font-size: 14px;
+}
+
+#menu-home .menu-hero-visual {
+  grid-area: visual;
+  grid-row: 1 / 6;
+  min-width: 0;
+  min-height: 350px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  border-radius: 20px;
+  background:
+    radial-gradient(ellipse at 52% 68%, rgba(249,115,22,.12), transparent 54%),
+    repeating-linear-gradient(135deg, transparent 0 38px, rgba(255,255,255,.018) 39px 40px);
+}
+
+#menu-home .hero-car-label,
+#menu-home .hero-car-caption {
+  color: #fb923c;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 3px;
+  text-align: center;
+}
+
+#menu-home .hero-car-label {
+  align-self: flex-end;
+  margin: 8px 14px 0;
+}
+
+#menu-home .hero-car-image {
+  display: block;
+  width: 112%;
+  max-width: 690px;
+  height: 340px;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 12px;
+  filter: drop-shadow(0 22px 28px rgba(0,0,0,.55));
+}
+
+#menu-home .hero-car-caption {
+  margin: -4px 0 12px;
+  color: #9ca3af;
+  letter-spacing: 2.5px;
+}
+
+#menu-home .menu-chip-row {
+  grid-area: chips;
+  justify-content: flex-start;
+  margin: 0 0 22px;
+  gap: 7px;
+}
+
+#menu-home .menu-chip {
+  font-size: 9px;
+  padding: 7px 9px;
+}
+
+#menu-home #start-btn {
+  grid-area: play;
+  width: min(100%, 350px);
+  min-height: 58px;
+  border-radius: 10px;
+  justify-self: start;
+  font-size: 15px;
+  box-shadow: 0 9px 30px rgba(234,88,12,.3);
+}
+
+#menu-home .menu-nav {
+  grid-area: nav;
+  width: min(100%, 430px);
+  margin-top: 12px;
+  gap: 8px;
+}
+
+#menu-home .menu-nav button {
+  min-height: 43px;
+  font-size: 10px;
+  background: rgba(255,255,255,.035);
+}
+
+@media (max-width: 700px) {
+  #overlay:has(#menu-home:not([hidden])) {
+    align-items: flex-start;
+    padding: 12px;
+  }
+
+  #overlay:has(#menu-home:not([hidden])) .ov-box {
+    padding: 24px 18px;
+    border-radius: 19px;
+  }
+
+  #menu-home {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "eyebrow"
+      "copy"
+      "visual"
+      "chips"
+      "play"
+      "nav";
+    column-gap: 0;
+  }
+
+  #menu-home > .menu-eyebrow {
+    font-size: 9px;
+    letter-spacing: 3px;
+    margin-bottom: 13px;
+  }
+
+  #menu-home .ov-title {
+    font-size: clamp(43px, 12vw, 64px);
+    letter-spacing: -2px;
+    margin-bottom: 10px;
+  }
+
+  #menu-home .ov-sub {
+    font-size: 13px;
+    line-height: 1.5;
+    margin-bottom: 5px;
+  }
+
+  #menu-home .menu-hero-visual {
+    grid-row: auto;
+    min-height: 0;
+    margin: 2px 0 8px;
+    padding: 5px 0 0;
+  }
+
+  #menu-home .hero-car-image {
+    width: 108%;
+    max-width: 540px;
+  }
+
+  #menu-home .hero-car-label {
+    font-size: 8px;
+  }
+
+  #menu-home .hero-car-caption {
+    font-size: 8px;
+    margin-top: -2px;
+  }
+
+  #menu-home .menu-chip-row {
+    justify-content: center;
+    margin-bottom: 15px;
+  }
+
+  #menu-home .menu-chip {
+    font-size: 8px;
+    padding: 6px 8px;
+  }
+
+  #menu-home #start-btn {
+    width: 100%;
+    min-height: 54px;
+    justify-self: stretch;
+  }
+
+  #menu-home .menu-nav {
+    width: 100%;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  #menu-home .menu-nav button {
+    min-height: 42px;
+    padding: 5px 2px;
+    font-size: 9px;
+    letter-spacing: .5px;
+  }
+}
+
+@media (max-width: 380px) {
+  #overlay:has(#menu-home:not([hidden])) .ov-box {
+    padding: 20px 13px;
+  }
+
+  #menu-home .menu-chip-row {
+    gap: 5px;
+  }
+
+  #menu-home .menu-chip {
+    font-size: 7px;
+    letter-spacing: .5px;
+  }
+}
+
+@media (max-height: 520px) and (min-width: 701px) {
+  #overlay:has(#menu-home:not([hidden])) {
+    align-items: flex-start;
+  }
+
+  #overlay:has(#menu-home:not([hidden])) .ov-box {
+    padding-top: 22px;
+    padding-bottom: 22px;
+  }
+
+  #menu-home .menu-hero-visual {
+    min-height: 240px;
+  }
+
+  #menu-home .hero-car-image {
+    max-height: 245px;
+  }
+}
+/* ===== END VORTEX SPRINTER MAIN MENU ===== */
+
+
+  .race-time-line {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  #hud-time {
+    font-size: 25px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  #hud-time-checkpoints {
+    display: none;
+    align-items: center;
+    padding: 5px 9px;
+    border-radius: 7px;
+    background: rgba(234, 88, 12, 0.18);
+    border: 1px solid rgba(251, 146, 60, 0.55);
+    color: #fb923c;
+    font-size: 12px;
+    font-weight: 800;
+    white-space: nowrap;
+  }
+
+  @media (max-width: 600px) {
+    .race-time-line { gap: 6px; }
+    #hud-time { font-size: 19px; }
+    #hud-time-checkpoints { font-size: 10px; padding: 4px 6px; }
+  }
+
+
+
+/* ===== ZEN DRIFT — PREMIUM SUNSET HOME ===== */
+
+#overlay:has(#menu-home:not([hidden])) {
+  background:
+    radial-gradient(ellipse at 50% 72%, rgba(249,115,22,.23), transparent 38%),
+    radial-gradient(ellipse at 82% 18%, rgba(194,65,12,.13), transparent 36%),
+    linear-gradient(180deg, #07090f 0%, #11121b 48%, #21120e 100%);
+}
+
+#overlay:has(#menu-home:not([hidden])) .ov-box {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255,184,125,.19);
+  border-radius: 25px;
+  background:
+    radial-gradient(ellipse at 78% 85%, rgba(234,88,12,.12), transparent 45%),
+    linear-gradient(125deg, rgba(17,20,29,.97), rgba(10,12,19,.98));
+  box-shadow:
+    0 30px 90px rgba(0,0,0,.55),
+    0 0 55px rgba(234,88,12,.09),
+    inset 0 1px 0 rgba(255,255,255,.06);
+}
+
+#overlay:has(#menu-home:not([hidden])) .ov-box::before {
+  width: 2px;
+  opacity: .8;
+  background: linear-gradient(180deg, #fff0d9, #fb923c 45%, transparent);
+}
+
+#menu-home > .menu-eyebrow {
+  color: #f7a66b;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 4px;
+  text-shadow: 0 0 18px rgba(249,115,22,.25);
+}
+
+#menu-home .ov-title {
+  color: #fff;
+  font-weight: 950;
+  text-shadow: 0 8px 35px rgba(0,0,0,.45);
+}
+
+#menu-home .ov-title span {
+  color: #fb923c;
+  text-shadow: 0 0 30px rgba(249,115,22,.25);
+}
+
+#menu-home .ov-sub {
+  color: rgba(235,238,245,.72);
+  line-height: 1.7;
+}
+
+#menu-home .menu-hero-visual {
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.07);
+  background:
+    linear-gradient(180deg, rgba(9,12,20,.05) 0%, rgba(12,13,20,.1) 48%, rgba(8,10,16,.88) 100%),
+    linear-gradient(180deg, #171522 0%, #48251f 48%, #e16a2d 49%, #25130f 72%, #0b0d13 100%);
+  box-shadow:
+    inset 0 0 55px rgba(0,0,0,.38),
+    0 18px 45px rgba(0,0,0,.2);
+}
+
+#menu-home .menu-hero-visual::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  width: clamp(130px, 24vw, 245px);
+  aspect-ratio: 1;
+  left: 50%;
+  top: 12%;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff0c7 0%, #ffc078 34%, #fa813c 62%, rgba(234,88,12,.08) 72%, transparent 73%);
+  filter: blur(.4px);
+  opacity: .92;
+  box-shadow: 0 0 65px rgba(249,115,22,.3);
+}
+
+#menu-home .menu-hero-visual::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  left: -10%;
+  right: -10%;
+  bottom: 12%;
+  height: 25%;
+  background:
+    linear-gradient(174deg, transparent 0 43%, rgba(255,190,125,.16) 44%, transparent 45%),
+    linear-gradient(186deg, transparent 0 55%, rgba(255,255,255,.07) 56%, transparent 57%),
+    linear-gradient(180deg, transparent, rgba(4,6,11,.78));
+  pointer-events: none;
+}
+
+#menu-home .hero-car-image {
+  position: relative;
+  z-index: 1;
+  filter:
+    drop-shadow(0 22px 25px rgba(0,0,0,.65))
+    drop-shadow(0 0 18px rgba(249,115,22,.13));
+}
+
+#menu-home .hero-car-label,
+#menu-home .hero-car-caption {
+  position: relative;
+  z-index: 2;
+}
+
+#menu-home .hero-car-label {
+  color: #ffd1a8;
+}
+
+#menu-home .hero-car-caption {
+  color: rgba(255,235,220,.7);
+}
+
+#menu-home .menu-chip {
+  border: 1px solid rgba(255,173,112,.2);
+  border-radius: 999px;
+  background: rgba(255,255,255,.035);
+  color: rgba(255,240,227,.78);
+  letter-spacing: 1px;
+  backdrop-filter: blur(8px);
+}
+
+#menu-home #start-btn {
+  min-height: 60px;
+  border: 1px solid rgba(255,211,170,.48);
+  border-radius: 12px;
+  background: linear-gradient(110deg, #f97316, #ea580c 55%, #c2410c);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 950;
+  letter-spacing: 2px;
+  box-shadow:
+    0 10px 30px rgba(234,88,12,.28),
+    inset 0 1px 0 rgba(255,255,255,.25);
+  transition: transform .2s ease, box-shadow .2s ease, filter .2s ease;
+}
+
+#menu-home #start-btn:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+  box-shadow:
+    0 14px 38px rgba(234,88,12,.4),
+    inset 0 1px 0 rgba(255,255,255,.3);
+}
+
+#menu-home #start-btn:active {
+  transform: scale(.98);
+}
+
+#menu-home .menu-nav button {
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 10px;
+  background: rgba(255,255,255,.035);
+  color: rgba(255,255,255,.78);
+  transition: background .2s ease, border-color .2s ease, color .2s ease;
+}
+
+#menu-home .menu-nav button:hover {
+  border-color: rgba(249,115,22,.45);
+  background: rgba(249,115,22,.09);
+  color: #fff;
+}
+
+@media (max-width: 700px) {
+  #overlay:has(#menu-home:not([hidden])) {
+    background:
+      radial-gradient(ellipse at 50% 58%, rgba(249,115,22,.2), transparent 42%),
+      linear-gradient(180deg, #080a11, #15121a 62%, #24130e);
+  }
+
+  #overlay:has(#menu-home:not([hidden])) .ov-box {
+    border-radius: 20px;
+    padding: 22px 16px;
+  }
+
+  #menu-home .menu-hero-visual {
+    min-height: 0;
+    border-radius: 15px;
+  }
+
+  #menu-home .menu-hero-visual::before {
+    width: clamp(120px, 42vw, 190px);
+    top: 8%;
+  }
+
+  #menu-home .hero-car-image {
+    max-height: 290px;
+  }
+
+  #menu-home #start-btn {
+    min-height: 56px;
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #menu-home #start-btn,
+  #menu-home .menu-nav button {
+    transition: none;
+  }
+}
+
+/* ===== END PREMIUM SUNSET HOME ===== */
+
+
+
+
+/* ===== HOME WITHOUT CAR IMAGE ===== */
+
+#menu-home {
+  grid-template-columns: minmax(0, 1fr) !important;
+  grid-template-areas:
+    "eyebrow"
+    "copy"
+    "chips"
+    "play"
+    "nav" !important;
+  text-align: center;
+  justify-items: center;
+}
+
+#menu-home .menu-hero-visual {
+  display: none !important;
+}
+
+#menu-home .menu-hero-copy {
+  text-align: center;
+}
+
+#menu-home .ov-sub {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#menu-home .menu-chip-row {
+  justify-content: center;
+}
+
+#menu-home #start-btn {
+  justify-self: center;
+}
+
+#menu-home .menu-nav {
+  justify-self: center;
+}
+
+@media (max-width: 700px) {
+  #menu-home {
+    grid-template-areas:
+      "eyebrow"
+      "copy"
+      "chips"
+      "play"
+      "nav" !important;
+  }
+
+  #menu-home #start-btn,
+  #menu-home .menu-nav {
+    width: 100%;
+  }
+}
+
+/* ===== END HOME WITHOUT CAR IMAGE ===== */
+
+
+
+
+/* ===== PREMIUM THREE-BUTTON MAIN NAVIGATION ===== */
+
+#menu-home {
+  grid-template-areas:
+    "eyebrow"
+    "copy"
+    "chips"
+    "nav" !important;
+}
+
+#menu-home #start-btn {
+  display: none !important;
+}
+
+#menu-home .menu-nav {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  width: 100%;
+  max-width: 760px;
+  gap: 14px;
+  margin-top: 25px;
+}
+
+#menu-home .menu-nav button {
+  min-height: 66px;
+  padding: 12px 16px;
+  border: 1px solid rgba(255,255,255,.15);
+  border-radius: 12px;
+  background: linear-gradient(145deg, rgba(255,255,255,.09), rgba(255,255,255,.025));
+  color: #fff;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  box-shadow: 0 8px 22px rgba(0,0,0,.2);
+  transition: transform .2s ease, background .2s ease, box-shadow .2s ease;
+}
+
+/* GAME MODES becomes the main action */
+#menu-home #menu-modes {
+  border: 1px solid rgba(255,211,170,.48);
+  background: linear-gradient(110deg, #f97316, #ea580c 55%, #c2410c);
+  color: #fff;
+  box-shadow:
+    0 10px 30px rgba(234,88,12,.3),
+    inset 0 1px 0 rgba(255,255,255,.25);
+  font-size: 14px;
+  letter-spacing: 2px;
+}
+
+#menu-home #menu-modes:hover {
+  background: linear-gradient(110deg, #fb923c, #f97316 55%, #ea580c);
+  box-shadow: 0 14px 38px rgba(234,88,12,.4);
+}
+
+#menu-home .menu-nav button:hover {
+  transform: translateY(-2px);
+  border-color: rgba(249,115,22,.45);
+  background-color: rgba(249,115,22,.1);
+}
+
+#menu-home .menu-nav button:active {
+  transform: scale(.98);
+}
+
+@media (max-width: 700px) {
+  #menu-home {
+    grid-template-areas:
+      "eyebrow"
+      "copy"
+      "chips"
+      "nav" !important;
+  }
+
+  #menu-home .menu-nav {
+    grid-template-columns: 1fr;
+    width: 100%;
+    max-width: none;
+    gap: 10px;
+    margin-top: 18px;
+  }
+
+  #menu-home .menu-nav button {
+    min-height: 58px;
+    font-size: 12px;
+  }
+
+  #menu-home #menu-modes {
+    min-height: 64px;
+    font-size: 14px;
+  }
+}
+
+/* ===== END PREMIUM THREE-BUTTON NAVIGATION ===== */
+
+
+
+
+/* ===== CLEAN CLICKABLE GAME MODE OPTIONS ===== */
+
+#menu-modes-page .menu-mode-card {
+  appearance: none;
+  -webkit-appearance: none;
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 82px;
+  margin: 12px 0;
+  padding: 17px 20px;
+  text-align: left;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 950;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+  transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
+}
+
+#menu-modes-page .menu-mode-card span {
+  display: block;
+}
+
+#menu-modes-page .menu-mode-card small {
+  margin-top: 8px;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+#menu-modes-page .mode-endless-option {
+  border: 1px solid rgba(255,255,255,.17);
+  background: linear-gradient(145deg, rgba(255,255,255,.10), rgba(255,255,255,.035));
+  color: white;
+}
+
+#menu-modes-page .mode-time-attack-option {
+  border: 1px solid rgba(255,211,170,.48);
+  background: linear-gradient(110deg, #f97316, #ea580c 55%, #c2410c);
+  color: white;
+  box-shadow:
+    0 10px 30px rgba(234,88,12,.3),
+    inset 0 1px 0 rgba(255,255,255,.25);
+}
+
+#menu-modes-page .mode-time-attack-option small {
+  color: rgba(255,255,255,.85);
+}
+
+#menu-modes-page .mode-endless-option:hover,
+#menu-modes-page .mode-time-attack-option:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+}
+
+#menu-modes-page .mode-endless-option:hover {
+  border-color: rgba(249,115,22,.55);
+}
+
+#menu-modes-page .mode-time-attack-option:hover {
+  box-shadow: 0 14px 38px rgba(234,88,12,.4);
+}
+
+#menu-modes-page .menu-mode-card:active:not(:disabled) {
+  transform: scale(.99);
+}
+
+#menu-modes-page .mode-coming-soon {
+  opacity: .42;
+  border-color: rgba(255,255,255,.12);
+  background: rgba(255,255,255,.025);
+  cursor: not-allowed;
+}
+
+#menu-modes-page .mode-coming-soon small {
+  color: #aab4c5;
+}
+
+@media (max-width: 560px) {
+  #menu-modes-page .menu-mode-card {
+    min-height: 76px;
+    padding: 15px;
+    font-size: 13px;
+  }
+
+  #menu-modes-page .menu-mode-card small {
+    font-size: 9px;
+  }
+}
+
+/* ===== END CLEAN CLICKABLE GAME MODE OPTIONS ===== */
+
+
+
+/* ZEN CRUISE — unified orange game mode buttons */
+#menu-modes-page .mode-endless-option,
+#menu-modes-page .mode-time-attack-option {
+  background: linear-gradient(
+    90deg,
+    rgba(249, 115, 22, 0.62) 0%,
+    rgba(234, 88, 12, 0.34) 48%,
+    rgba(194, 65, 12, 0.10) 100%
+  ) !important;
+  border: 1px solid rgba(249, 115, 22, 0.55) !important;
+  color: #fff !important;
+  box-shadow: 0 6px 22px rgba(234, 88, 12, 0.12);
+  transition: background .2s ease, box-shadow .2s ease, transform .2s ease;
+}
+
+#menu-modes-page .mode-endless-option:hover,
+#menu-modes-page .mode-time-attack-option:hover,
+#menu-modes-page .mode-endless-option:focus-visible,
+#menu-modes-page .mode-time-attack-option:focus-visible,
+#menu-modes-page .mode-endless-option:active,
+#menu-modes-page .mode-time-attack-option:active {
+  background: #f97316 !important;
+  border-color: #fb923c !important;
+  color: #fff !important;
+  box-shadow: 0 0 28px rgba(249, 115, 22, 0.42);
+  outline: none;
+}
+
+#menu-modes-page .mode-endless-option:hover small,
+#menu-modes-page .mode-time-attack-option:hover small,
+#menu-modes-page .mode-endless-option:focus-visible small,
+#menu-modes-page .mode-time-attack-option:focus-visible small,
+#menu-modes-page .mode-endless-option:active small,
+#menu-modes-page .mode-time-attack-option:active small {
+  color: #fff !important;
+}
+\n
+/* ===== ZEN CRUISE — PREMIUM MODE SELECT ===== */
+
+#menu-modes-page .mode-endless-option,
+#menu-modes-page .mode-time-attack-option {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  min-height: 100px;
+  padding: 22px 26px !important;
+  border: 1px solid rgba(255, 137, 55, .58) !important;
+  border-radius: 15px;
+  text-align: left;
+  background:
+    linear-gradient(105deg,
+      rgba(255, 106, 25, .76) 0%,
+      rgba(225, 75, 12, .43) 38%,
+      rgba(30, 20, 17, .72) 100%) !important;
+  color: #fff !important;
+  box-shadow:
+    0 8px 26px rgba(0, 0, 0, .24),
+    0 0 20px rgba(249, 115, 22, .13),
+    inset 0 1px 0 rgba(255, 255, 255, .18);
+  transition:
+    background .28s ease,
+    border-color .28s ease,
+    box-shadow .28s ease,
+    transform .28s cubic-bezier(.2,.8,.2,1);
+}
+
+/* Subtle moving light streak */
+#menu-modes-page .mode-endless-option::before,
+#menu-modes-page .mode-time-attack-option::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: -50%;
+  left: -75%;
+  width: 42%;
+  height: 200%;
+  transform: skewX(-22deg);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255,255,255,.16),
+    transparent
+  );
+  transition: left .65s ease;
+  pointer-events: none;
+}
+
+#menu-modes-page .mode-endless-option span,
+#menu-modes-page .mode-time-attack-option span {
+  display: block;
+  position: relative;
+  font-size: 17px;
+  font-weight: 950;
+  letter-spacing: 2px;
+  text-shadow: 0 2px 12px rgba(0,0,0,.22);
+}
+
+#menu-modes-page .mode-endless-option small,
+#menu-modes-page .mode-time-attack-option small {
+  display: block;
+  position: relative;
+  margin-top: 9px;
+  color: rgba(255,255,255,.82) !important;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+}
+
+/* Full orange when hovered, focused or pressed */
+#menu-modes-page .mode-endless-option:hover,
+#menu-modes-page .mode-time-attack-option:hover,
+#menu-modes-page .mode-endless-option:focus-visible,
+#menu-modes-page .mode-time-attack-option:focus-visible,
+#menu-modes-page .mode-endless-option:active,
+#menu-modes-page .mode-time-attack-option:active {
+  background: linear-gradient(105deg, #ff9a42 0%, #ff741c 48%, #f45b0b 100%) !important;
+  border-color: #ffbd82 !important;
+  box-shadow:
+    0 12px 34px rgba(249, 115, 22, .34),
+    0 0 34px rgba(249, 115, 22, .28),
+    inset 0 1px 0 rgba(255,255,255,.3);
+  transform: translateY(-3px);
+  outline: none;
+}
+
+#menu-modes-page .mode-endless-option:hover::before,
+#menu-modes-page .mode-time-attack-option:hover::before,
+#menu-modes-page .mode-endless-option:focus-visible::before,
+#menu-modes-page .mode-time-attack-option:focus-visible::before {
+  left: 140%;
+}
+
+#menu-modes-page .mode-endless-option:active,
+#menu-modes-page .mode-time-attack-option:active {
+  transform: scale(.985);
+}
+
+/* Keep the coming-soon mode visually separate */
+#menu-modes-page .mode-coming-soon {
+  border-radius: 15px;
+}
+
+@media (max-width: 560px) {
+  #menu-modes-page .mode-endless-option,
+  #menu-modes-page .mode-time-attack-option {
+    min-height: 88px;
+    padding: 19px 18px !important;
+    border-radius: 13px;
+  }
+
+  #menu-modes-page .mode-endless-option span,
+  #menu-modes-page .mode-time-attack-option span {
+    font-size: 15px;
+  }
+}
+
+
+/* Light streak only on the currently interacted-with mode */
+#menu-modes-page .mode-endless-option::before,
+#menu-modes-page .mode-time-attack-option::before {
+  left: -75%;
+  opacity: 0;
+}
+
+#menu-modes-page .mode-endless-option:hover::before,
+#menu-modes-page .mode-time-attack-option:hover::before,
+#menu-modes-page .mode-endless-option:focus-visible::before,
+#menu-modes-page .mode-time-attack-option:focus-visible::before,
+#menu-modes-page .mode-endless-option:active::before,
+#menu-modes-page .mode-time-attack-option:active::before {
+  left: 140%;
+  opacity: 1;
+}
+\n
+/* FIX: visible independent light streak on BOTH game mode buttons */
+#menu-modes-page .mode-endless-option::before,
+#menu-modes-page .mode-time-attack-option::before {
+  z-index: 1 !important;
+  left: -75%;
+  opacity: 0;
+  pointer-events: none;
+  transition: left .65s ease, opacity .15s ease;
+}
+
+#menu-modes-page .mode-endless-option span,
+#menu-modes-page .mode-endless-option small,
+#menu-modes-page .mode-time-attack-option span,
+#menu-modes-page .mode-time-attack-option small {
+  position: relative;
+  z-index: 2;
+}
+
+#menu-modes-page .mode-endless-option:hover::before,
+#menu-modes-page .mode-time-attack-option:hover::before,
+#menu-modes-page .mode-endless-option:focus-visible::before,
+#menu-modes-page .mode-time-attack-option:focus-visible::before,
+#menu-modes-page .mode-endless-option:active::before,
+#menu-modes-page .mode-time-attack-option:active::before {
+  left: 140%;
+  opacity: 1;
+}
+\n
+/* FINAL OVERRIDE — identical effects on both playable modes */
+#menu-modes-page button.menu-mode-card.mode-endless-option,
+#menu-modes-page button.menu-mode-card.mode-time-attack-option {
+  position: relative !important;
+  isolation: isolate !important;
+  overflow: hidden !important;
+  background: linear-gradient(100deg,
+    #f97316 0%,
+    rgba(234, 88, 12, .65) 42%,
+    rgba(194, 65, 12, .16) 100%
+  ) !important;
+  border: 1px solid rgba(255, 160, 95, .65) !important;
+  color: white !important;
+}
+
+#menu-modes-page button.menu-mode-card.mode-endless-option::before,
+#menu-modes-page button.menu-mode-card.mode-time-attack-option::before {
+  content: "" !important;
+  position: absolute !important;
+  z-index: 1 !important;
+  top: -50% !important;
+  left: -80% !important;
+  width: 45% !important;
+  height: 200% !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  background: linear-gradient(90deg,
+    transparent,
+    rgba(255,255,255,.48),
+    transparent
+  ) !important;
+  transform: skewX(-22deg) !important;
+  transition: left .65s ease, opacity .15s ease !important;
+}
+
+#menu-modes-page button.menu-mode-card.mode-endless-option span,
+#menu-modes-page button.menu-mode-card.mode-endless-option small,
+#menu-modes-page button.menu-mode-card.mode-time-attack-option span,
+#menu-modes-page button.menu-mode-card.mode-time-attack-option small {
+  position: relative !important;
+  z-index: 2 !important;
+}
+
+#menu-modes-page button.menu-mode-card.mode-endless-option:hover,
+#menu-modes-page button.menu-mode-card.mode-time-attack-option:hover,
+#menu-modes-page button.menu-mode-card.mode-endless-option:focus-visible,
+#menu-modes-page button.menu-mode-card.mode-time-attack-option:focus-visible,
+#menu-modes-page button.menu-mode-card.mode-endless-option:active,
+#menu-modes-page button.menu-mode-card.mode-time-attack-option:active {
+  background: #f97316 !important;
+  border-color: #ffbd82 !important;
+  box-shadow: 0 0 32px rgba(249,115,22,.5) !important;
+  color: white !important;
+}
+
+#menu-modes-page button.menu-mode-card.mode-endless-option:hover::before,
+#menu-modes-page button.menu-mode-card.mode-time-attack-option:hover::before,
+#menu-modes-page button.menu-mode-card.mode-endless-option:focus-visible::before,
+#menu-modes-page button.menu-mode-card.mode-time-attack-option:focus-visible::before {
+  left: 145% !important;
+  opacity: 1 !important;
+}
+
+
+/* Keep the light streak strictly inside each button */
+#menu-modes-page button.mode-endless-option,
+#menu-modes-page button.mode-time-attack-option {
+  overflow: hidden !important;
+  clip-path: inset(0 round 15px) !important;
+  contain: paint;
+}
+
+#menu-modes-page button.mode-endless-option::before,
+#menu-modes-page button.mode-time-attack-option::before {
+  z-index: 0 !important;
+  top: 0 !important;
+  bottom: 0 !important;
+  height: 100% !important;
+  width: 35% !important;
+  left: -40% !important;
+  opacity: 0 !important;
+  transform: skewX(-18deg) !important;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255,255,255,.55) 50%,
+    transparent 100%
+  ) !important;
+  transition: left .65s ease, opacity .18s ease !important;
+}
+
+#menu-modes-page button.mode-endless-option:hover::before,
+#menu-modes-page button.mode-time-attack-option:hover::before,
+#menu-modes-page button.mode-endless-option:focus-visible::before,
+#menu-modes-page button.mode-time-attack-option:focus-visible::before,
+#menu-modes-page button.mode-endless-option:active::before,
+#menu-modes-page button.mode-time-attack-option:active::before {
+  left: 110% !important;
+  opacity: 1 !important;
+}
+
+#menu-modes-page button.mode-endless-option span,
+#menu-modes-page button.mode-endless-option small,
+#menu-modes-page button.mode-time-attack-option span,
+#menu-modes-page button.mode-time-attack-option small {
+  z-index: 2 !important;
+  position: relative !important;
+}
+
+@media (max-width: 560px) {
+  #menu-modes-page button.mode-endless-option,
+  #menu-modes-page button.mode-time-attack-option {
+    clip-path: inset(0 round 13px) !important;
+  }
+}
+
+
+/* ===== ZEN DRIFT CRUISE — PREMIUM GARAGE SHOWROOM ===== */
+#menu-garage-page {
+  width: min(100%, 660px);
+}
+
+#menu-garage-page .ov-page-title {
+  font-size: clamp(32px, 5vw, 43px);
+  letter-spacing: -.055em;
+  margin-bottom: 5px;
+  text-shadow: 0 5px 25px rgba(0,0,0,.35);
+}
+
+#menu-garage-page .ov-page-copy {
+  margin-bottom: 16px;
+  color: #9ca3af;
+}
+
+.garage-showroom {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  margin: 0 auto 18px;
+  padding: 13px 15px 11px;
+  border: 1px solid rgba(251,146,60,.28);
+  border-radius: 18px;
+  background:
+    radial-gradient(ellipse at 50% 52%, rgba(234,88,12,.15), transparent 58%),
+    linear-gradient(145deg, rgba(31,25,26,.98), rgba(8,10,16,.98) 68%);
+  box-shadow: 0 18px 45px rgba(0,0,0,.32), inset 0 1px rgba(255,255,255,.055);
+  isolation: isolate;
+}
+
+.garage-showroom::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: .22;
+  background-image: linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: linear-gradient(to bottom, transparent, black 35%, black 75%, transparent);
+}
+
+.garage-showroom-top,
+.garage-showroom-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.garage-showroom-kicker,
+.garage-showroom-live,
+.garage-showroom-bottom {
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 1.7px;
+}
+
+.garage-showroom-kicker { color: #fb923c; }
+
+.garage-showroom-live {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #cbd5e1;
+}
+
+.garage-showroom-live i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #fb923c;
+  box-shadow: 0 0 10px #f97316;
+}
+
+.garage-stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 172px;
+  margin: 4px 0;
+  overflow: hidden;
+}
+
+.garage-stage-glow {
+  position: absolute;
+  width: 64%;
+  height: 60%;
+  border-radius: 50%;
+  background: rgba(249,115,22,.16);
+  filter: blur(32px);
+}
+
+.garage-stage-ring {
+  position: absolute;
+  width: 210px;
+  height: 110px;
+  border: 1px solid rgba(251,146,60,.17);
+  border-radius: 50%;
+  transform: rotate(-9deg);
+  box-shadow: 0 0 28px rgba(249,115,22,.08), inset 0 0 24px rgba(249,115,22,.05);
+}
+
+.garage-car-art {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: min(100%, 490px);
+  height: auto;
+  overflow: visible;
+  filter: drop-shadow(0 12px 12px rgba(0,0,0,.6));
+  animation: garage-car-arrive .55s cubic-bezier(.2,.8,.2,1) both;
+}
+
+.garage-car-paint {
+  fill: var(--garage-paint, #ef4444);
+  transition: fill .25s ease;
+}
+
+#garage-showroom.is-f1 .garage-svg-drift { display: none; }
+#garage-showroom:not(.is-f1) .garage-svg-f1 { display: none; }
+
+.garage-stage-caption {
+  position: absolute;
+  z-index: 2;
+  left: 0;
+  right: 0;
+  bottom: 2px;
+  display: flex;
+  justify-content: space-between;
+  color: #94a3b8;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 1.4px;
+}
+
+.garage-stage-caption span:first-child { color: #f8fafc; }
+.garage-stage-caption b { color: #fb923c; }
+
+.garage-showroom-bottom {
+  padding-top: 10px;
+  border-top: 1px solid rgba(255,255,255,.08);
+  color: #7c8798;
+  font-size: 8px;
+  letter-spacing: 1.1px;
+}
+
+.garage-showroom-bottom > span:first-child {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.garage-accent-line {
+  display: inline-block;
+  width: 15px;
+  height: 2px;
+  background: #f97316;
+  box-shadow: 0 0 8px #f97316;
+}
+
+#garage-preview-type { color: #fb923c; }
+
+#menu-garage-page .garage-options {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 15px 0 18px;
+}
+
+#menu-garage-page .garage-car-option {
+  position: relative;
+  min-height: 94px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 14px;
+  background: linear-gradient(145deg, rgba(255,255,255,.075), rgba(255,255,255,.018));
+  transition: border-color .2s ease, background .2s ease, transform .2s ease, box-shadow .2s ease;
+}
+
+#menu-garage-page .garage-car-option:hover {
+  transform: translateY(-2px);
+  border-color: rgba(251,146,60,.55);
+}
+
+#menu-garage-page .garage-car-option.selected {
+  border: 1px solid rgba(251,146,60,.95);
+  background: linear-gradient(115deg, rgba(249,115,22,.27), rgba(234,88,12,.07) 75%);
+  box-shadow: inset 0 0 22px rgba(249,115,22,.08), 0 0 18px rgba(249,115,22,.10);
+}
+
+#menu-garage-page .garage-car-option.selected::after {
+  content: "SELECTED";
+  position: absolute;
+  top: 8px;
+  right: 9px;
+  color: #fdba74;
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+
+#menu-garage-page .garage-car-icon {
+  font-size: 25px;
+  filter: drop-shadow(0 3px 8px rgba(249,115,22,.22));
+}
+
+#menu-garage-page .garage-section-label {
+  margin: 17px 0 12px;
+  color: #cbd5e1;
+  font-size: 9px;
+  letter-spacing: 2px;
+}
+
+#menu-garage-page .garage-colors {
+  gap: 16px;
+  margin-bottom: 15px;
+}
+
+#menu-garage-page .garage-color {
+  position: relative;
+  width: 31px;
+  height: 31px;
+  border: 2px solid rgba(255,255,255,.28);
+  box-shadow: 0 3px 9px rgba(0,0,0,.3);
+  transition: transform .18s ease, outline-color .18s ease;
+}
+
+#menu-garage-page .garage-color:hover { transform: scale(1.13); }
+
+#menu-garage-page .garage-color.selected {
+  outline: 2px solid #fb923c;
+  outline-offset: 4px;
+  transform: scale(1.08);
+}
+
+#menu-garage-page .garage-current {
+  margin: 13px 0 16px;
+  padding: 10px 13px;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 10px;
+  background: rgba(255,255,255,.035);
+  font-size: 9px;
+  letter-spacing: 1.5px;
+}
+
+.garage-skin-selector[hidden] { display: none; }
+.garage-skin-selector { margin: -4px 0 15px; }
+.garage-skin-label {
+  margin-bottom: 8px;
+  color: #cbd5e1;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 1.8px;
+}
+.garage-skin-options { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.garage-skin-option {
+  min-height: 38px;
+  border: 1px solid rgba(255,255,255,.11);
+  border-radius: 9px;
+  background: rgba(255,255,255,.035);
+  color: #aeb8c5;
+  font: inherit;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  cursor: pointer;
+}
+.garage-skin-option.selected {
+  border-color: rgba(251,146,60,.82);
+  background: rgba(249,115,22,.13);
+  color: #fed7aa;
+  box-shadow: inset 0 0 14px rgba(249,115,22,.08);
+}
+
+#menu-garage-page .garage-current-dot {
+  width: 10px;
+  height: 10px;
+  box-shadow: 0 0 12px var(--garage-paint, #ef4444);
+}
+
+#menu-garage-page #garage-drive {
+  min-height: 52px;
+  border: 1px solid rgba(255,190,130,.65);
+  border-radius: 12px;
+  background: linear-gradient(105deg, #c2410c, #f97316 52%, #fb923c);
+  box-shadow: 0 8px 24px rgba(234,88,12,.24), inset 0 1px rgba(255,255,255,.24);
+  color: white;
+  font-size: 13px;
+  font-weight: 1000;
+  letter-spacing: 1.5px;
+  transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
+}
+
+#menu-garage-page #garage-drive:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.08);
+  box-shadow: 0 12px 30px rgba(234,88,12,.36), inset 0 1px rgba(255,255,255,.3);
+}
+
+#menu-garage-page #garage-drive:active { transform: scale(.985); }
+
+@keyframes garage-car-arrive {
+  from { opacity: 0; transform: translateY(8px) scale(.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (max-width: 560px) {
+  #menu-garage-page { width: 100%; }
+  #menu-garage-page .ov-page-title { font-size: 31px; }
+  #menu-garage-page .ov-page-copy { font-size: 12px; margin-bottom: 12px; }
+  .garage-showroom { padding: 11px 11px 9px; margin-bottom: 14px; border-radius: 15px; }
+  .garage-stage { min-height: 132px; }
+  .garage-stage-ring { width: 160px; height: 82px; }
+  .garage-showroom-bottom { font-size: 7px; letter-spacing: .7px; }
+  #menu-garage-page .garage-options { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 12px 0 15px; }
+  #menu-garage-page .garage-car-option { min-height: 86px; padding: 10px 5px; font-size: 10px; }
+  #menu-garage-page .garage-car-option.selected::after { font-size: 6px; top: 6px; right: 6px; }
+  #menu-garage-page .garage-colors { gap: 13px; }
+  #menu-garage-page .garage-color { width: 28px; height: 28px; }
+  #menu-garage-page .garage-current { margin: 10px 0 13px; padding: 8px; }
+  #menu-garage-page #garage-drive { min-height: 48px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .garage-car-art { animation: none; }
+  #menu-garage-page .garage-car-option,
+  #menu-garage-page .garage-color,
+  #menu-garage-page #garage-drive { transition: none; }
+}
+
+
+/* ===== ZEN MOTORSPORT — CLEAN GARAGE REFINEMENT ===== */
+#menu-garage-page {
+  width: min(100%, 620px);
+  padding-bottom: 12px;
+}
+#menu-garage-page .ov-page-title {
+  letter-spacing: -.065em;
+  font-weight: 1000;
+}
+#menu-garage-page .ov-page-copy {
+  color: #9ca3af;
+  margin-bottom: 18px;
+}
+.garage-showroom {
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 15px;
+  padding: 15px 18px 12px;
+  background:
+    radial-gradient(ellipse at 50% 62%, rgba(249,115,22,.12), transparent 56%),
+    linear-gradient(145deg, #17191e, #0c0e12 72%);
+  box-shadow: 0 18px 42px rgba(0,0,0,.28);
+  transition: border-color .25s ease, background .25s ease, box-shadow .25s ease;
+}
+.garage-showroom::after {
+  opacity: .08;
+  background-size: 38px 38px;
+}
+.garage-showroom-kicker {
+  color: #f97316;
+  letter-spacing: 2px;
+}
+.garage-showroom-live {
+  color: #77808d;
+  font-size: 8px;
+  letter-spacing: 1.2px;
+}
+.garage-showroom-live i {
+  width: 5px;
+  height: 5px;
+  box-shadow: none;
+}
+.garage-stage {
+  min-height: 260px;
+  margin: 2px 0 7px;
+}
+.garage-stage-glow {
+  width: 56%;
+  height: 55%;
+  background: rgba(249,115,22,.18);
+  filter: blur(42px);
+  transition: background .25s ease;
+}
+.garage-stage-ring {
+  display: block;
+  width: min(74%, 390px);
+  height: 75%;
+  border-color: rgba(255,255,255,.12);
+  box-shadow: 0 0 24px rgba(255,255,255,.035), inset 0 0 22px rgba(255,255,255,.025);
+  transition: border-color .25s ease, box-shadow .25s ease;
+}
+.garage-stage-ring::before,
+.garage-stage-ring::after {
+  content: "";
+  position: absolute;
+  inset: -9px 16px;
+  border: 1px dashed rgba(255,255,255,.13);
+  border-radius: 50%;
+  transform: rotate(18deg);
+}
+.garage-stage-ring::after {
+  inset: 12px -18px;
+  border-style: solid;
+  border-color: rgba(255,255,255,.06);
+  transform: rotate(-14deg);
+}
+.garage-car-art {
+  width: min(100%, 610px);
+  filter: drop-shadow(0 18px 15px rgba(0,0,0,.68));
+  animation: none;
+}
+#garage-showroom.is-f1 {
+  border-color: rgba(255,126,24,.48);
+  background:
+    radial-gradient(ellipse at 50% 62%, rgba(255,105,0,.2), transparent 59%),
+    linear-gradient(145deg, #201812, #0c0d12 72%);
+  box-shadow: 0 18px 48px rgba(0,0,0,.38), 0 0 28px rgba(255,105,0,.09);
+}
+#garage-showroom.is-f1 .garage-stage-glow {
+  background: rgba(255,102,0,.28);
+}
+#garage-showroom.is-f1 .garage-stage-ring {
+  border-color: rgba(255,126,24,.68);
+  box-shadow: 0 0 40px rgba(255,101,0,.28), inset 0 0 34px rgba(255,101,0,.13);
+}
+#garage-showroom.is-f1 .garage-stage-ring::before {
+  border-color: rgba(255,126,24,.34);
+}
+#garage-showroom.is-f1 .garage-stage-ring::after {
+  border-color: rgba(255,126,24,.16);
+}
+#garage-showroom.is-f1 .garage-showroom-kicker,
+#garage-showroom.is-f1 .garage-showroom-live i,
+#garage-showroom.is-f1 #garage-preview-type,
+#garage-showroom.is-f1 .garage-stage-caption b {
+  color: #ff9a31;
+}
+#garage-showroom.is-f1 .garage-showroom-live i {
+  background: #ff8a1c;
+  box-shadow: 0 0 12px #ff6800;
+}
+.garage-showroom-bottom {
+  border-top-color: rgba(255,255,255,.07);
+  color: #697381;
+  font-size: 8px;
+  letter-spacing: 1px;
+}
+#garage-preview-type {
+  color: #f97316;
+}
+.garage-stage-caption {
+  color: #737d8a;
+  font-size: 8px;
+}
+.garage-options {
+  gap: 11px;
+  margin: 13px 0 18px;
+}
+#menu-garage-page .garage-car-option {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 5px;
+  min-height: 76px;
+  padding: 13px 16px;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 11px;
+  background: #14171c;
+  color: #e5e7eb;
+  text-align: left;
+  box-shadow: none;
+  transition: border-color .18s ease, background .18s ease;
+}
+#menu-garage-page .garage-car-option:hover {
+  border-color: rgba(249,115,22,.5);
+  background: #1a1c21;
+  transform: none;
+}
+#menu-garage-page .garage-car-option.selected {
+  border-color: #f97316;
+  background: linear-gradient(110deg, rgba(249,115,22,.13), #17191e 65%);
+  box-shadow: inset 3px 0 #f97316;
+}
+#menu-garage-page .garage-car-icon {
+  display: none;
+}
+#menu-garage-page .garage-car-option > span:not(.garage-car-icon) {
+  font-size: 11px;
+  font-weight: 950;
+  letter-spacing: 1.2px;
+}
+#menu-garage-page .garage-car-option small {
+  color: #7d8795;
+  font-size: 8px;
+  letter-spacing: 1.1px;
+}
+#menu-garage-page .garage-car-option.selected::after {
+  content: "SELECTED";
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  color: #fb923c;
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+#menu-garage-page .garage-section-label {
+  color: #9ca3af;
+  font-size: 9px;
+  letter-spacing: 1.6px;
+}
+#menu-garage-page .garage-colors {
+  gap: 14px;
+  margin-top: 12px;
+}
+#menu-garage-page .garage-color {
+  border: 2px solid rgba(255,255,255,.13);
+  box-shadow: none;
+  transition: transform .16s ease, border-color .16s ease;
+}
+#menu-garage-page .garage-color:hover {
+  transform: scale(1.1);
+}
+#menu-garage-page .garage-color.selected {
+  outline: 2px solid #f97316;
+  outline-offset: 3px;
+  border-color: #fff;
+  box-shadow: none;
+}
+#menu-garage-page .garage-current {
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 9px;
+  background: #12151a;
+}
+#menu-garage-page #garage-drive {
+  border-radius: 10px;
+  box-shadow: 0 7px 20px rgba(234,88,12,.17);
+}
+#overlay:has(#menu-garage-page:not([hidden])) {
+  align-items: flex-start;
+}
+@media (max-width: 560px) {
+  #menu-garage-page { width: 100%; }
+  .garage-showroom { padding: 11px 11px 9px; }
+  .garage-stage { min-height: 185px; }
+  .garage-options { gap: 8px; }
+  #menu-garage-page .garage-car-option {
+    min-height: 70px;
+    padding: 11px 10px;
+  }
+
+  #menu-garage-page .garage-car-option.selected::after {
+    top: 8px;
+    right: 8px;
+    font-size: 6px;
+  }
+  #menu-garage-page .garage-colors { gap: 12px; }
+}
+
+.garage-live-preview {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: 10px;
+  background: #080a0f;
+}
+
+.garage-preview-label {
+  position: absolute;
+  z-index: 3;
+  top: 8px;
+  right: 8px;
+  border: 1px solid rgba(251,146,60,.35);
+  border-radius: 999px;
+  padding: 4px 7px;
+  background: rgba(8,10,15,.78);
+  color: #fdba74;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  pointer-events: none;
+}
+
+html.garage-preview-mode,
+html.garage-preview-mode body { width: 100%; height: 100%; overflow: hidden; background: #080a0f; }
+html.garage-preview-mode body > :not(#c) { display: none !important; }
+html.garage-preview-mode #c { position: fixed; inset: 0; width: 100%; height: 100%; }
+
+@media (prefers-reduced-motion: reduce) {
+  #menu-garage-page .garage-car-option,
+  #menu-garage-page .garage-color,
+  #menu-garage-page #garage-drive { transition: none; }
+}
+
+/* ZEN DRIFT PREMIUM HOME REFRESH */
+#overlay:has(#menu-home:not([hidden])) .ov-box {
+  border: 1px solid rgba(251,146,60,.28);
+  box-shadow: 0 30px 100px rgba(0,0,0,.65),
+              0 0 55px rgba(234,88,12,.10);
+  backdrop-filter: blur(18px);
+}
+
+#menu-home .menu-eyebrow {
+  color: #fb923c;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 5px;
+}
+
+#menu-home .ov-title {
+  font-weight: 950;
+  text-shadow: 0 8px 35px rgba(0,0,0,.45);
+}
+
+#menu-home .ov-title span {
+  color: #fb923c;
+  text-shadow: 0 0 30px rgba(251,146,60,.22);
+}
+
+#menu-home .menu-hero-visual {
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 22px;
+  background:
+    radial-gradient(ellipse at 55% 65%, rgba(249,115,22,.20), transparent 52%),
+    linear-gradient(145deg, rgba(255,255,255,.055), rgba(255,255,255,.008));
+  overflow: hidden;
+}
+
+#menu-home .hero-car-image {
+  filter: drop-shadow(0 28px 35px rgba(0,0,0,.7));
+  transition: transform .45s ease, filter .45s ease;
+}
+
+#menu-home .menu-hero-visual:hover .hero-car-image {
+  transform: translateY(-5px) scale(1.025);
+  filter: drop-shadow(0 32px 40px rgba(234,88,12,.24));
+}
+
+#menu-home .menu-chip {
+  border: 1px solid rgba(251,146,60,.2);
+  border-radius: 6px;
+  background: rgba(251,146,60,.07);
+  color: #e5e7eb;
+  letter-spacing: 1px;
+}
+
+#menu-home #start-btn {
+  border: 1px solid rgba(255,255,255,.25);
+  border-radius: 10px;
+  background: linear-gradient(110deg, #f97316, #c2410c);
+  box-shadow: 0 12px 35px rgba(234,88,12,.28);
+  font-weight: 900;
+  letter-spacing: 2px;
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+
+#menu-home #start-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 42px rgba(234,88,12,.4);
+}
+
+#menu-home .menu-nav button {
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: 8px;
+  transition: background .2s ease, border-color .2s ease;
+}
+
+#menu-home .menu-nav button:hover {
+  background: rgba(251,146,60,.12);
+  border-color: rgba(251,146,60,.5);
+}
+
+@media (max-width: 700px) {
+  #menu-home .menu-hero-visual {
+    border-radius: 15px;
+  }
+
+  #menu-home .menu-nav button {
+    min-height: 46px;
+  }
+}
+
+
+/* ZEN DRIFT CINEMATIC HOME DESIGN */
+#menu-home .ov-title {
+  font-size: clamp(48px, 7vw, 88px) !important;
+  font-weight: 950 !important;
+  letter-spacing: -4px !important;
+  line-height: .95 !important;
+  text-shadow: 0 8px 35px rgba(0,0,0,.7), 0 0 45px rgba(249,115,22,.16) !important;
+}
+
+#menu-home .ov-title span {
+  color: #ff7a1a !important;
+}
+
+#menu-home .menu-eyebrow {
+  color: #ff9a45 !important;
+  letter-spacing: 6px !important;
+  font-size: 10px !important;
+}
+
+#menu-home .menu-hero-visual {
+  position: relative !important;
+  border: 1px solid rgba(255,130,40,.35) !important;
+  border-radius: 20px !important;
+  background:
+    radial-gradient(ellipse at 50% 85%, rgba(255,104,20,.28), transparent 58%),
+    linear-gradient(145deg, #25201d, #101114 72%) !important;
+  box-shadow: 0 20px 55px rgba(0,0,0,.45),
+              inset 0 0 35px rgba(255,120,30,.06) !important;
+  overflow: hidden !important;
+}
+
+#menu-home .hero-car-image {
+  filter: drop-shadow(0 22px 24px rgba(0,0,0,.8)) !important;
+  transition: transform .4s ease, filter .4s ease !important;
+}
+
+#menu-home .menu-hero-visual:hover .hero-car-image {
+  transform: scale(1.045) translateY(-4px) !important;
+  filter: drop-shadow(0 25px 30px rgba(255,100,20,.3)) !important;
+}
+
+#menu-home .hero-car-label,
+#menu-home .hero-car-caption {
+  color: #ffad70 !important;
+  letter-spacing: 3px !important;
+}
+
+#menu-home .menu-chip {
+  border: 1px solid rgba(255,140,65,.3) !important;
+  background: rgba(255,120,35,.09) !important;
+  border-radius: 5px !important;
+  color: #f5e9df !important;
+  letter-spacing: 1.5px !important;
+}
+
+#menu-home #start-btn {
+  background: linear-gradient(110deg, #ff8a24, #e34c0b) !important;
+  border: 1px solid rgba(255,205,160,.5) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 8px 30px rgba(234,88,12,.35) !important;
+  font-weight: 950 !important;
+  letter-spacing: 3px !important;
+  transition: transform .2s ease, box-shadow .2s ease !important;
+}
+
+#menu-home #start-btn:hover {
+  transform: translateY(-3px) scale(1.02) !important;
+  box-shadow: 0 12px 38px rgba(255,105,20,.5) !important;
+}
+
+#menu-home .menu-nav button {
+  border: 1px solid rgba(255,255,255,.13) !important;
+  background: rgba(255,255,255,.035) !important;
+  border-radius: 7px !important;
+  letter-spacing: 1.5px !important;
+  transition: all .2s ease !important;
+}
+
+#menu-home .menu-nav button:hover {
+  background: rgba(255,115,30,.13) !important;
+  border-color: rgba(255,140,65,.65) !important;
+  transform: translateY(-2px) !important;
+}
+
+@media (max-width: 700px) {
+  #menu-home .ov-title {
+    font-size: clamp(42px, 13vw, 64px) !important;
+    letter-spacing: -2px !important;
+  }
+
+  #menu-home .menu-hero-visual {
+    border-radius: 14px !important;
+  }
+}
+/* END ZEN DRIFT CINEMATIC HOME DESIGN */
+
+
+
+/* ZEN DRIFT ORANGE LIGHTNING */
+#menu-home::before,
+#menu-home::after {
+  display: none !important;
+}
+
+#overlay:has(#menu-home:not([hidden])) {
+  background-image:
+    url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%201600%20900%22%3E%0A%3Cdefs%3E%0A%3Cfilter%20id%3D%22g%22%20x%3D%22-100%25%22%20y%3D%22-100%25%22%20width%3D%22300%25%22%20height%3D%22300%25%22%3E%0A%3CfeGaussianBlur%20stdDeviation%3D%229%22%2F%3E%0A%3C%2Ffilter%3E%0A%3C%2Fdefs%3E%0A%3Cg%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%0A%3Cg%20stroke%3D%22%23ff650d%22%20stroke-width%3D%2213%22%20opacity%3D%22.85%22%20filter%3D%22url%28%23g%29%22%3E%0A%3Cpath%20d%3D%22M70%20-30%20L105%2095%20L65%20155%20L130%20210%20L85%20275%20L155%20330%20L115%20405%20L185%20470%22%2F%3E%0A%3Cpath%20d%3D%22M105%2095%20L35%20145%20L15%20215%20M130%20210%20L195%20245%20L220%20305%20M85%20275%20L30%20325%20L10%20395%22%2F%3E%0A%3Cpath%20d%3D%22M1530%20-30%20L1490%2090%20L1535%20150%20L1470%20215%20L1515%20280%20L1440%20350%20L1480%20420%20L1405%20490%22%2F%3E%0A%3Cpath%20d%3D%22M1490%2090%20L1560%20130%20L1585%20200%20M1470%20215%20L1405%20255%20L1380%20320%20M1515%20280%20L1570%20330%22%2F%3E%0A%3C%2Fg%3E%0A%3Cg%20stroke%3D%22%23ff8a24%22%20stroke-width%3D%225%22%3E%0A%3Cpath%20d%3D%22M70%20-30%20L105%2095%20L65%20155%20L130%20210%20L85%20275%20L155%20330%20L115%20405%20L185%20470%22%2F%3E%0A%3Cpath%20d%3D%22M105%2095%20L35%20145%20L15%20215%20M130%20210%20L195%20245%20L220%20305%20M85%20275%20L30%20325%20L10%20395%22%2F%3E%0A%3Cpath%20d%3D%22M1530%20-30%20L1490%2090%20L1535%20150%20L1470%20215%20L1515%20280%20L1440%20350%20L1480%20420%20L1405%20490%22%2F%3E%0A%3Cpath%20d%3D%22M1490%2090%20L1560%20130%20L1585%20200%20M1470%20215%20L1405%20255%20L1380%20320%20M1515%20280%20L1570%20330%22%2F%3E%0A%3C%2Fg%3E%0A%3Cg%20stroke%3D%22%23fff1d8%22%20stroke-width%3D%222.5%22%3E%0A%3Cpath%20d%3D%22M70%20-30%20L105%2095%20L65%20155%20L130%20210%20L85%20275%20L155%20330%20L115%20405%20L185%20470%22%2F%3E%0A%3Cpath%20d%3D%22M1530%20-30%20L1490%2090%20L1535%20150%20L1470%20215%20L1515%20280%20L1440%20350%20L1480%20420%20L1405%20490%22%2F%3E%0A%3C%2Fg%3E%0A%3C%2Fg%3E%0A%3C%2Fsvg%3E'),
+    radial-gradient(ellipse at 76% 48%, rgba(234,88,12,.19), transparent 42%),
+    radial-gradient(ellipse at 15% 10%, rgba(255,255,255,.045), transparent 35%),
+    repeating-linear-gradient(132deg, transparent 0 118px, rgba(255,105,0,.13) 119px 121px, transparent 122px 225px),
+    repeating-linear-gradient(132deg, transparent 0 205px, rgba(255,125,35,.055) 206px 214px, transparent 215px 330px),
+    linear-gradient(125deg, #080b12 0%, #11131b 54%, #1c100d 100%) !important;
+  background-size: 100% 100%, auto, auto, auto, auto, auto;
+  background-position: center;
+  background-repeat: no-repeat, repeat, repeat, repeat, repeat, repeat;
+  animation: zenStormFlash 5.8s infinite;
+}
+
+@keyframes zenStormFlash {
+  0%, 8%, 11%, 42%, 46%, 100% { background-blend-mode: normal; }
+  9%, 10%, 44% { background-blend-mode: screen; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #overlay:has(#menu-home:not([hidden])) { animation: none; }
+}
+/* END ZEN DRIFT ORANGE LIGHTNING */
+
+
+
+/* PLAYER IDENTITY — ZEN MOTORSPORT */
+.player-name-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin: 0 0 16px;
+  text-align: left;
+}
+
+.player-name-panel label {
+  color: #fb923c;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 2px;
+}
+
+#player-name-input {
+  width: 100%;
+  min-height: 46px;
+  box-sizing: border-box;
+  padding: 0 13px;
+  border: 1px solid rgba(249,115,22,.38);
+  border-radius: 9px;
+  outline: none;
+  background: #101216;
+  color: #fff;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: .5px;
+}
+
+#player-name-input:focus {
+  border-color: #f97316;
+  box-shadow: 0 0 0 3px rgba(249,115,22,.12);
+}
+
+#player-name-input::placeholder {
+  color: #737985;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.player-name-hint {
+  color: #737985;
+  font-size: 8px;
+  letter-spacing: 1.1px;
+}
+
+.hud-player-name {
+  display: inline-block;
+  width: fit-content;
+  max-width: 190px;
+  overflow: hidden;
+  color: #fb923c;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 700px) {
+  .player-name-panel { margin-bottom: 13px; }
+  #player-name-input { min-height: 44px; font-size: 16px; }
+  .hud-player-name { max-width: 125px; font-size: 8px; }
+}
+
+
+
+/* ===== ZEN DRIFT GAME MENU FINAL RESPONSIVE ===== */
+
+html, body {
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  overflow: hidden;
+}
+
+body {
+  overscroll-behavior: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+#overlay {
+  padding: max(18px, env(safe-area-inset-top))
+           max(18px, env(safe-area-inset-right))
+           max(18px, env(safe-area-inset-bottom))
+           max(18px, env(safe-area-inset-left));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+#overlay:has(#menu-home:not([hidden])) {
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(ellipse at 78% 50%, rgba(234,88,12,.22), transparent 43%),
+    radial-gradient(ellipse at 15% 15%, rgba(255,255,255,.055), transparent 34%),
+    linear-gradient(135deg, #070a10 0%, #11141d 58%, #211108 100%);
+}
+
+#overlay:has(#menu-home:not([hidden])) .ov-box {
+  position: relative;
+  width: min(1120px, 100%);
+  max-width: 1120px;
+  padding: clamp(24px, 4vw, 54px);
+  text-align: left;
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 24px;
+  background:
+    linear-gradient(115deg, rgba(18,22,31,.98), rgba(12,14,21,.97));
+  box-shadow: 0 30px 100px rgba(0,0,0,.65);
+}
+
+#menu-home {
+  display: grid !important;
+  grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr) !important;
+  grid-template-areas:
+    "eyebrow visual"
+    "copy visual"
+    "chips visual"
+    "play visual"
+    "nav visual" !important;
+  align-items: center;
+  justify-items: stretch;
+  column-gap: clamp(22px, 4vw, 56px);
+  row-gap: 0;
+  text-align: left;
+}
+
+#menu-home > .menu-eyebrow {
+  grid-area: eyebrow;
+  margin-bottom: 18px;
+}
+
+#menu-home .menu-hero-copy {
+  grid-area: copy;
+  text-align: left;
+}
+
+#menu-home .ov-title {
+  font-size: clamp(52px, 6vw, 82px);
+  line-height: .92;
+  letter-spacing: -3px;
+  margin-bottom: 18px;
+}
+
+#menu-home .ov-sub {
+  max-width: 410px;
+  margin: 0 0 22px;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+#menu-home .menu-hero-visual {
+  display: flex !important;
+  grid-area: visual;
+  grid-row: 1 / 6;
+  min-width: 0;
+  min-height: clamp(300px, 43vw, 470px);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 18px;
+  background:
+    radial-gradient(ellipse at 50% 65%, rgba(249,115,22,.19), transparent 58%),
+    linear-gradient(145deg, rgba(255,255,255,.045), rgba(0,0,0,.12));
+}
+
+#menu-home .hero-car-image {
+  display: block;
+  width: 112%;
+  max-width: 690px;
+  height: clamp(240px, 34vw, 390px);
+  object-fit: contain;
+  filter: drop-shadow(0 24px 30px rgba(0,0,0,.65));
+}
+
+#menu-home .hero-car-label,
+#menu-home .hero-car-caption {
+  position: relative;
+  z-index: 1;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 2.5px;
+  text-align: center;
+}
+
+#menu-home .hero-car-label {
+  align-self: flex-end;
+  margin: 12px 16px 0;
+  color: #fb923c;
+}
+
+#menu-home .hero-car-caption {
+  margin: -2px 0 16px;
+  color: #aab4c5;
+}
+
+#menu-home .menu-chip-row {
+  grid-area: chips;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 22px;
+}
+
+#menu-home #start-btn {
+  display: flex !important;
+  grid-area: play;
+  width: min(100%, 360px);
+  min-height: 58px;
+  justify-self: start;
+  align-items: center;
+  justify-content: center;
+  border-radius: 11px;
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  box-shadow: 0 10px 30px rgba(234,88,12,.32);
+}
+
+#menu-home .menu-nav {
+  display: grid !important;
+  grid-area: nav;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  width: 100%;
+  max-width: 500px;
+  gap: 9px;
+  margin-top: 18px;
+}
+
+#menu-home .menu-nav button {
+  min-width: 0;
+  min-height: 52px;
+  padding: 10px 8px;
+  border: 1px solid rgba(255,255,255,.15);
+  border-radius: 10px;
+  background: rgba(255,255,255,.045);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: .8px;
+  touch-action: manipulation;
+}
+
+#menu-home #menu-modes {
+  border-color: rgba(255,180,120,.55);
+  background: linear-gradient(110deg, #f97316, #c2410c);
+  box-shadow: 0 8px 24px rgba(234,88,12,.25);
+}
+
+#menu-home .menu-nav button:active,
+#menu-home #start-btn:active {
+  transform: scale(.98);
+}
+
+@media (max-width: 700px) {
+  #overlay {
+    align-items: flex-start;
+    justify-content: center;
+    padding: max(12px, env(safe-area-inset-top))
+             max(12px, env(safe-area-inset-right))
+             max(12px, env(safe-area-inset-bottom))
+             max(12px, env(safe-area-inset-left));
+  }
+
+  #overlay:has(#menu-home:not([hidden])) {
+    align-items: flex-start;
+  }
+
+  #overlay:has(#menu-home:not([hidden])) .ov-box {
+    width: 100%;
+    max-width: 540px;
+    margin: auto 0;
+    padding: 22px 18px;
+    border-radius: 18px;
+  }
+
+  #menu-home {
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-areas:
+      "eyebrow"
+      "copy"
+      "visual"
+      "chips"
+      "play"
+      "nav" !important;
+    column-gap: 0;
+  }
+
+  #menu-home > .menu-eyebrow {
+    margin-bottom: 12px;
+    font-size: 9px;
+    letter-spacing: 3px;
+  }
+
+  #menu-home .menu-hero-copy {
+    text-align: center;
+  }
+
+  #menu-home .ov-title {
+    font-size: clamp(43px, 12vw, 64px);
+    letter-spacing: -2px;
+    margin-bottom: 10px;
+  }
+
+  #menu-home .ov-sub {
+    max-width: 390px;
+    margin: 0 auto 15px;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  #menu-home .menu-hero-visual {
+    grid-row: auto;
+    min-height: 0;
+    margin: 0 0 14px;
+    padding: 5px 0 0;
+  }
+
+  #menu-home .hero-car-image {
+    width: 100%;
+    max-width: 480px;
+    height: clamp(170px, 48vw, 245px);
+  }
+
+  #menu-home .hero-car-label {
+    margin-top: 8px;
+    font-size: 8px;
+  }
+
+  #menu-home .hero-car-caption {
+    margin-bottom: 10px;
+    font-size: 8px;
+  }
+
+  #menu-home .menu-chip-row {
+    justify-content: center;
+    margin-bottom: 15px;
+    gap: 6px;
+  }
+
+  #menu-home .menu-chip {
+    font-size: 8px;
+    padding: 6px 8px;
+  }
+
+  #menu-home #start-btn {
+    width: 100%;
+    min-height: 54px;
+    justify-self: stretch;
+  }
+
+  #menu-home .menu-nav {
+    grid-template-columns: 1fr;
+    max-width: none;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  #menu-home .menu-nav button {
+    min-height: 48px;
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 380px) {
+  #overlay:has(#menu-home:not([hidden])) .ov-box {
+    padding: 18px 14px;
+  }
+
+  #menu-home .hero-car-image {
+    height: 160px;
+  }
+
+  #menu-home .menu-nav button {
+    min-height: 45px;
+  }
+}
+
+/* ===== END ZEN DRIFT GAME MENU FINAL RESPONSIVE ===== */
+
+
+
+/* ===== ZEN DRIFT HOME AND MENU NAVIGATION FIX ===== */
+
+/* Las secciones ocultas nunca deben aparecer */
+#overlay .ov-page[hidden] {
+  display: none !important;
+}
+
+/* Home: diseño centrado sin coche ni botón PLAY */
+#menu-home:not([hidden]) {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  grid-template-areas:
+    "eyebrow"
+    "copy"
+    "chips"
+    "nav" !important;
+  gap: 18px;
+  width: 100%;
+  text-align: center;
+  justify-items: center;
+}
+
+#menu-home > .menu-eyebrow {
+  grid-area: eyebrow !important;
+  margin: 0;
+}
+
+#menu-home .menu-hero-copy {
+  grid-area: copy !important;
+  width: 100%;
+  text-align: center;
+}
+
+#menu-home .ov-title {
+  font-size: clamp(48px, 8vw, 82px);
+  margin-bottom: 14px;
+}
+
+#menu-home .ov-sub {
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+#menu-home .menu-hero-visual,
+#menu-home #start-btn {
+  display: none !important;
+}
+
+#menu-home .menu-chip-row {
+  grid-area: chips !important;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 0;
+}
+
+#menu-home .menu-nav {
+  grid-area: nav !important;
+  display: flex !important;
+  flex-direction: column;
+  width: min(440px, 100%);
+  gap: 13px;
+  margin: 12px auto 0;
+}
+
+#menu-home .menu-nav button {
+  width: 100%;
+  min-height: 58px;
+}
+
+@media (max-width: 700px) {
+  #menu-home:not([hidden]) {
+    gap: 14px;
+  }
+
+  #menu-home .ov-title {
+    font-size: clamp(44px, 13vw, 66px);
+    letter-spacing: -2px;
+  }
+
+  #menu-home .menu-nav {
+    width: 100%;
+    gap: 11px;
+  }
+
+  #menu-home .menu-nav button {
+    min-height: 52px;
+  }
+}
+
+/* ===== END ZEN DRIFT HOME AND MENU NAVIGATION FIX ===== */
+
+
+</style>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#ea580c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Zen Cruise">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="hud">
+  <div class="hud-top">
+    <div class="hud-brand">
+      <span class="hud-tag">VoiceOS Experience</span>
+      <div class="hud-title">Zen Cruise <span class="hud-badge" id="hud-weather-badge">GOLDEN SUNSET • RAIN DRIFT</span></div>
+      <span id="hud-player-name" class="hud-player-name">DRIVER</span>
+    </div>
+    <div id="time-attack-hud" aria-label="Time Attack race information">
+      <div class="race-hud-cell">
+        <span class="race-hud-label">CHECKPOINTS</span>
+        <strong class="race-hud-value" id="race-hud-checkpoints">0/3</strong>
+      </div>
+      <div class="race-hud-cell">
+        <span class="race-hud-label">PERSONAL BEST</span>
+        <strong class="race-hud-value" id="race-hud-best">--:--.--</strong>
+      </div>
+      <div class="race-hud-cell">
+        <span class="race-hud-label">GHOST DELTA</span>
+        <strong class="race-hud-value" id="race-hud-delta">--</strong>
+      </div>
+    </div>
+    <div class="hud-stats">
+      <div class="stat-box">
+        <span class="stat-val hud-surface-val on-asphalt" id="hud-surface">ASPHALT</span>
+        <span class="stat-lbl">Road Surface</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-val" id="hud-speed">0</span>
+        <span class="stat-lbl">Speed (mph)</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-val stat-km" id="hud-dist">0.00 km</span>
+        <span class="stat-lbl">Odometer (km)</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-val" id="hud-drift">0°</span>
+        <span class="stat-lbl">Drift Angle</span>
+      </div>
+      <div class="stat-box">
+        <div class="race-time-line">
+          <span class="stat-val" id="hud-time">00:00</span>
+          <strong id="hud-time-checkpoints">CP 0/3</strong>
+        </div>
+        <span class="stat-lbl">Cruise Time</span>
+      </div>
+    </div>
+  </div>
+  <button id="pause-btn" type="button" aria-label="Pause game">Ⅱ PAUSE</button>
+  <button id="auto-drive-btn" type="button" aria-pressed="false">🤖 AUTO DRIVE: OFF</button>
+  <div id="hud-toast" class="hud-toast hide">
+    <span class="hud-toast-icon">🌅</span>
+    <span id="hud-toast-text">Golden Sunset Active • Rain on wet asphalt</span>
+  </div>
+  <div id="race-status" aria-live="polite"></div>
+  <div class="hud-bottom">
+    <div class="hud-ctrls">
+      <span>Steer:</span>
+      <span class="key">W</span><span class="key">A</span><span class="key">S</span><span class="key">D</span>
+      <span style="opacity:0.4; margin:0 2px;">/</span>
+      <span class="key">←</span><span class="key">↑</span><span class="key">↓</span><span class="key">→</span>
+      <span style="margin-left: 6px;">Brake:</span>
+      <span class="key" style="min-width: 40px;">Space</span>
+      <span style="margin-left: 8px;">Sunset:</span>
+      <span class="key sunset-key">P</span>
+      <span style="margin-left: 6px;">Rain:</span>
+      <span class="key rain-key">T</span>
+      <span style="margin-left: 6px;">Restart:</span>
+      <span class="key rst-key">R</span>
+    </div>
+    <div class="hud-ambiance">
+      <div class="amb-item">
+        <button id="sunset-toggle-btn" class="hud-pill-btn sunset-mode">🌅 Sunset: ON [P]</button>
+      </div>
+      <div class="amb-item">
+        <button id="rain-toggle-btn" class="hud-pill-btn rain-mode">🌧 Rain: ON [T]</button>
+      </div>
+      <div class="amb-item">
+        <button id="music-toggle-btn" class="hud-pill-btn music-mode" type="button">🎵 Music: Lo-fi [M]</button>
+      </div>
+      <div class="amb-item" style="opacity: 0.5;">•</div>
+      <div class="amb-item"><span class="amb-dot" id="amb-indicator"></span><span id="amb-weather">Golden Sunset Rain & Wet Asphalt</span></div>
+      <div class="amb-item" style="opacity: 0.5;">•</div>
+      <div class="amb-item"><span id="amb-trees">Pine Forest All Around</span></div>
+      <div class="amb-item" style="opacity: 0.5;">•</div>
+      <div class="amb-item"><span id="amb-music">Chill Lo-fi Beat Loop</span></div>
+    </div>
+  </div>
+</div>
+
+<div id="overlay" role="dialog" aria-label="Zen Drift main menu">
+  <div class="ov-box">
+
+
+<section id="menu-home" class="ov-page">
+  <div class="menu-eyebrow">ZEN DRIFT • CRUISE ONLINE</div>
+
+  <div class="menu-hero-copy">
+    <div class="ov-title">ZEN <span>DRIFT</span></div>
+    <p class="ov-sub">
+      Find your flow. Take the mountain road.
+      Relax, cruise and drift through the sunset.
+    </p>
+  </div>
+
+  <div class="menu-chip-row">
+    <span class="menu-chip">ENDLESS TOUGE</span>
+    <span class="menu-chip">GOLDEN SUNSET</span>
+    <span class="menu-chip">RAIN EXPERIENCE</span>
+  </div>
+
+  <button class="ov-btn" id="start-btn" type="button">▶ &nbsp; PLAY</button>
+
+  <div class="menu-nav">
+    <button id="menu-garage" type="button">GARAGE</button>
+    <button id="menu-modes" type="button">GAME MODES</button>
+    <button id="menu-settings" type="button">SETTINGS</button>
+  </div>
+</section>
+
+
+
+    <section id="menu-garage-page" class="ov-page" hidden>
+      <div class="menu-eyebrow">YOUR COLLECTION</div>
+      <div class="ov-page-title">GARAGE</div>
+      <p class="ov-page-copy">Choose your car and customise its paint.</p>
+      <div class="garage-showroom" id="garage-showroom">
+        <div class="garage-showroom-top">
+          <span class="garage-showroom-kicker">ZEN MOTORSPORT</span>
+          <span class="garage-showroom-live"><i></i> SHOWROOM</span>
+        </div>
+        <div class="garage-stage">
+          <div class="garage-stage-glow"></div>
+          <div class="garage-stage-ring"></div>
+
+<iframe id="garage-live-preview" class="garage-live-preview" title="Live auto-drive gameplay preview" loading="lazy"></iframe>
+          <span class="garage-preview-label">● LIVE AUTO DRIVE</span>
+
+          <div class="garage-stage-caption">
+            <span id="garage-preview-name">DRIFT CAR</span>
+            <span>VEHICLE PREVIEW <b>•</b> ZDC</span>
+          </div>
+        </div>
+        <div class="garage-showroom-bottom">
+          <span><b class="garage-accent-line"></b> YOUR NEXT DRIVE STARTS HERE</span>
+          <span id="garage-preview-type">ZEN ORIGINAL</span>
+        </div>
+      </div>
+
+
+      <div class="garage-options">
+        <button class="garage-car-option selected" data-car-select="drift" type="button">
+          <span class="garage-car-icon">🚗</span>
+          <span>DRIFT GT</span>
+          <small>ZEN GT COUPE</small>
+        </button>
+        <button class="garage-car-option" data-car-select="f1" type="button">
+          <span class="garage-car-icon">🏎️</span>
+          <span>F1 CAR</span>
+          <small>VORTEX SPRINTER</small>
+        </button>
+      </div>
+
+      <div class="garage-skin-selector" id="garage-drift-skins">
+        <div class="garage-skin-label">DRIFT GT BODY KIT</div>
+        <div class="garage-skin-options">
+          <button class="garage-skin-option selected" data-drift-skin="classic" type="button">ZEN ORIGINAL</button>
+          <button class="garage-skin-option" data-drift-skin="widebody" type="button">WIDEBODY KIT</button>
+        </div>
+      </div>
+
+      <div class="garage-section-label">SELECT PAINT</div>
+      <div class="garage-colors">
+        <button class="garage-color" data-car-color="#ef4444" style="--paint:#ef4444" aria-label="Red" title="Red" type="button"></button>
+        <button class="garage-color" data-car-color="#2563eb" style="--paint:#2563eb" aria-label="Blue" title="Blue" type="button"></button>
+        <button class="garage-color" data-car-color="#171717" style="--paint:#171717" aria-label="Black" title="Black" type="button"></button>
+        <button class="garage-color selected" data-car-color="#f8fafc" style="--paint:#f8fafc" aria-label="White" title="White" type="button"></button>
+        <button class="garage-color" data-car-color="#16a34a" style="--paint:#16a34a" aria-label="Green" title="Green" type="button"></button>
+        <button class="garage-color" data-car-color="#f97316" style="--paint:#f97316" aria-label="Orange" title="Orange" type="button"></button>
+      </div>
+
+      <div class="garage-current">
+        <span class="garage-current-dot"></span>
+        <span id="garage-current-label">DRIFT CAR • RED</span>
+      </div>
+
+      <div class="player-name-panel">
+        <label for="player-name-input">YOUR DRIVER NAME</label>
+        <input
+          id="player-name-input"
+          type="text"
+          maxlength="16"
+          minlength="3"
+          autocomplete="nickname"
+          autocapitalize="words"
+          spellcheck="false"
+          placeholder="Enter nickname (3–16 characters)"
+        >
+        <span class="player-name-hint">YOUR NAME WILL APPEAR IN THE GAME</span>
+      </div>
+
+      <button class="ov-btn" id="garage-drive" type="button">▶ &nbsp; SELECT CAR</button>
+      <button class="menu-back" data-menu-back type="button">← BACK TO MENU</button>
+    </section>
+
+
+    <section id="menu-modes-page" class="ov-page" hidden>
+      <div class="menu-eyebrow">CHOOSE YOUR EXPERIENCE</div>
+      <div class="ov-page-title">GAME MODES</div>
+      <button class="menu-mode-card mode-endless-option" id="mode-endless" type="button">
+        <span>ENDLESS TOUGE</span>
+        <small>AVAILABLE NOW • FREE DRIVE</small>
+      </button>
+
+      <button class="menu-mode-card mode-time-attack-option" id="mode-time-attack" type="button">
+        <span>TIME ATTACK</span>
+        <small>3 CHECKPOINTS • 1 FINISH LINE • PERSONAL BEST</small>
+      </button>
+
+      <button class="menu-mode-card mode-coming-soon" type="button" disabled>
+        <span>DRIFT CHALLENGE</span>
+        <small>COMING SOON</small>
+      </button>
+
+      <button class="menu-back" data-menu-back type="button">← BACK TO MENU</button>
+    </section>
+
+    <section id="menu-settings-page" class="ov-page" hidden>
+      <div class="menu-eyebrow">PERSONALISE YOUR DRIVE</div>
+      <div class="ov-page-title">SETTINGS</div>
+      <p class="ov-page-copy">
+        Sound, graphics and control settings will be available here
+        in a future update.
+      </p>
+      <div class="menu-mode-card">
+        GAME SETTINGS
+        <small>MORE OPTIONS COMING SOON</small>
+      </div>
+      <button class="menu-back" data-menu-back type="button">← BACK TO MENU</button>
+    </section>
+
+    <section id="menu-pause-page" class="ov-page" hidden>
+      <div class="menu-eyebrow">TAKE A BREATHER</div>
+      <div class="ov-title">GAME <span>PAUSED</span></div>
+      <div class="ov-sub">Your game is paused. The race clock stops too.</div>
+      <button class="ov-btn" id="resume-btn" type="button">▶ &nbsp; RESUME</button>
+      <button class="menu-back" id="pause-home-btn" type="button">⌂ &nbsp; BACK TO HOME</button>
+    </section>
+
+    <section id="menu-time-attack-results-page" class="ov-page" hidden>
+      <div class="menu-eyebrow">TOUGE TIME ATTACK</div>
+      <div class="ov-title">RACE <span>COMPLETE</span></div>
+      <p class="ov-page-copy" id="race-result-message">Course complete.</p>
+      <div class="menu-mode-card">
+        YOUR TIME
+        <div id="race-result-time" style="font-size:34px;font-weight:900;margin-top:8px;">00:00.00</div>
+      </div>
+      <div class="menu-mode-card">
+        PERSONAL BEST
+        <div id="race-result-best" style="font-size:25px;font-weight:900;margin-top:8px;">--:--.--</div>
+      </div>
+      <button class="ov-btn" id="race-retry-btn" type="button">↻ &nbsp; RACE AGAIN</button>
+      <button class="menu-back" id="race-home-btn" type="button">⌂ &nbsp; BACK TO HOME</button>
+    </section>
+
+  </div>
+</div>
+
+
+<div id="touch-controls">
+
+  <div id="touch-steering-buttons">
+    <button id="touch-left" class="touch-drive-btn touch-steer-btn" type="button">◀<br>LEFT</button>
+    <button id="touch-right" class="touch-drive-btn touch-steer-btn" type="button">▶<br>RIGHT</button>
+  </div>
+  <div id="touch-buttons">
+    <button id="touch-brake" class="touch-drive-btn" type="button">BRAKE</button>
+    <button id="touch-accelerate" class="touch-drive-btn" type="button">GAS</button>
+  </div>
+</div>
+
+  <button id="touch-tools-toggle" class="touch-utility-toggle" type="button"
+    aria-expanded="false" aria-controls="touch-utility-buttons">☰ TOOLS</button>
+  <div id="touch-utility-buttons" class="collapsed">
+    <button id="touch-restart" class="touch-utility-btn" type="button">↻ RESTART</button>
+    <button id="touch-rain" class="touch-utility-btn" type="button">🌧 RAIN: ON</button>
+    <button id="touch-music" class="touch-utility-btn" type="button">🎵 MUSIC: LO-FI</button>
+    <button id="touch-time" class="touch-utility-btn" type="button">🌅 SUNSET: ON</button>
+    <button id="touch-auto-drive" class="touch-utility-btn touch-auto-drive" type="button" aria-pressed="false">🤖 AUTO DRIVE: OFF</button>
+  </div>
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+let w = canvas.width = window.innerWidth;
+let h = canvas.height = window.innerHeight;
+
+window.addEventListener('resize', () => {
+  w = canvas.width = window.innerWidth;
+  h = canvas.height = window.innerHeight;
+  initStars();
+});
+
+// Controls
+let gameStarted = false;
+let gamePaused = false;
+const keys = { up: false, down: false, left: false, right: false, handbrake: false };
+let autoDriveEnabled = false;
+window.addEventListener('keydown', (e) => {
+  if (e.code === 'Escape' && !e.repeat && gameStarted) {
+    e.preventDefault();
+    togglePause();
+    return;
+  }
+  if (!gameStarted || gamePaused) return;
+
+  if (autoDriveEnabled && [
+    'ArrowUp', 'KeyW', 'ArrowDown', 'KeyS',
+    'ArrowLeft', 'KeyA', 'ArrowRight', 'KeyD', 'Space'
+  ].includes(e.code)) {
+    setAutoDrive(false);
+  }
+
+  if (['ArrowUp', 'KeyW'].includes(e.code)) keys.up = true;
+  if (['ArrowDown', 'KeyS'].includes(e.code)) keys.down = true;
+  if (['ArrowLeft', 'KeyA'].includes(e.code)) keys.left = true;
+  if (['ArrowRight', 'KeyD'].includes(e.code)) keys.right = true;
+  if (e.code === 'Space') keys.handbrake = true;
+  if ((e.code === 'KeyP' || e.key === 'p' || e.key === 'P') && !e.repeat) {
+    toggleSunset(true);
+  }
+  if ((e.code === 'KeyT' || e.key === 't' || e.key === 'T') && !e.repeat) {
+    toggleRain(true);
+  }
+  if ((e.code === 'KeyM' || e.key === 'm' || e.key === 'M') && !e.repeat) {
+    cycleMusic();
+  }
+  if ((e.code === 'KeyR' || e.key === 'r' || e.key === 'R') && !e.repeat) {
+    restartCurrentMode();
+  }
+
+});
+window.addEventListener('keyup', (e) => {
+  if (['ArrowUp', 'KeyW'].includes(e.code)) keys.up = false;
+  if (['ArrowDown', 'KeyS'].includes(e.code)) keys.down = false;
+  if (['ArrowLeft', 'KeyA'].includes(e.code)) keys.left = false;
+  if (['ArrowRight', 'KeyD'].includes(e.code)) keys.right = false;
+  if (e.code === 'Space') keys.handbrake = false;
+});
+
+
+// Mobile touch driving controls with independent buttons
+function setupTouchButton(id, key) {
+  const button = document.getElementById(id);
+  const activePointers = new Set();
+
+  button.addEventListener('pointerdown', (event) => {
+    event.preventDefault();
+    activePointers.add(event.pointerId);
+    keys[key] = true;
+    button.setPointerCapture(event.pointerId);
+  });
+
+  function release(event) {
+    if (activePointers.has(event.pointerId)) {
+      activePointers.delete(event.pointerId);
+      keys[key] = activePointers.size > 0;
+    }
+  }
+
+  button.addEventListener('pointerup', release);
+  button.addEventListener('pointercancel', release);
+  button.addEventListener('lostpointercapture', release);
+}
+
+setupTouchButton('touch-left', 'left');
+setupTouchButton('touch-right', 'right');
+setupTouchButton('touch-accelerate', 'up');
+setupTouchButton('touch-brake', 'down');
+
+const overlay = document.getElementById('overlay');
+
+function showMenuPage(page) {
+  [
+    'home',
+    'garage-page',
+    'modes-page',
+    'settings-page',
+    'pause-page',
+    'time-attack-results-page'
+  ].forEach((name) => {
+    const element = document.getElementById('menu-' + name);
+    if (element) element.hidden = name !== page;
+  });
+  syncGarageLivePreview(page === 'garage-page');
+}
+
+function clearDrivingKeys() {
+  Object.keys(keys).forEach((key) => {
+    keys[key] = false;
+  });
+}
+
+function togglePause() {
+  if (!gameStarted) return;
+
+  gamePaused = !gamePaused;
+
+  if (gamePaused) {
+    pausedAt = Date.now();
+  } else if (pausedAt !== null) {
+    const pauseDuration = Date.now() - pausedAt;
+    totalPausedMs += pauseDuration;
+
+    if (gameMode === 'timeAttack') {
+      if (timeAttackState === 'countdown') {
+        timeAttackStartAt += pauseDuration;
+      } else if (timeAttackState === 'racing') {
+        timeAttackPausedMs += pauseDuration;
+      }
+    }
+
+    pausedAt = null;
+  }
+
+  clearDrivingKeys();
+
+  if (gamePaused) {
+    showMenuPage('pause-page');
+    overlay.classList.remove('hide');
+  } else {
+    overlay.classList.add('hide');
+    initAudio();
+  }
+}
+
+function returnToHome() {
+  gamePaused = false;
+  gameStarted = false;
+  gameMode = 'endless';
+  timeAttackState = 'idle';
+  updateRaceHUDMode();
+  updateRaceStatus('', false);
+  clearDrivingKeys();
+  restartCar(false);
+  showMenuPage('home');
+  overlay.classList.remove('hide');
+}
+
+function formatRaceTime(milliseconds) {
+  const safe = Math.max(0, milliseconds);
+  const minutes = Math.floor(safe / 60000);
+  const seconds = Math.floor((safe % 60000) / 1000);
+  const centiseconds = Math.floor((safe % 1000) / 10);
+  return String(minutes).padStart(2, '0') + ':' +
+    String(seconds).padStart(2, '0') + '.' +
+    String(centiseconds).padStart(2, '0');
+}
+
+let raceStatusHideTimer = null;
+
+function updateRaceStatus(message, visible = true) {
+  const element = document.getElementById('race-status');
+  if (!element) return;
+
+  clearTimeout(raceStatusHideTimer);
+
+  const countdownMatch = message.match(/^GET READY • ([321])$/);
+  const isGo = message.startsWith('GO!');
+  const isCheckpoint = message.startsWith('CHECKPOINT');
+
+  element.className = '';
+  element.textContent = message;
+
+  if (countdownMatch) {
+    element.textContent = countdownMatch[1];
+    element.classList.add('race-countdown-number');
+  } else if (isGo) {
+    element.textContent = 'GO!';
+    element.classList.add('race-countdown-go');
+  } else if (isCheckpoint) {
+    element.classList.add('race-checkpoint');
+  }
+
+  element.style.display = visible ? 'block' : 'none';
+
+  if (visible && isGo) {
+    raceStatusHideTimer = setTimeout(() => {
+      if (element.classList.contains('race-countdown-go')) {
+        element.style.display = 'none';
+      }
+    }, 1000);
+  }
+}
+
+function updateRaceHUDMode() {
+  const isTimeAttack = gameMode === 'timeAttack';
+  const label = document.querySelector('#hud-time').parentElement.nextElementSibling;
+  const panel = document.getElementById('time-attack-hud');
+  const checkpointBadge = document.getElementById('hud-time-checkpoints');
+
+  if (label) label.textContent = isTimeAttack ? 'Race Time' : 'Cruise Time';
+  if (checkpointBadge) {
+    checkpointBadge.style.display = isTimeAttack ? 'inline-flex' : 'none';
+  }
+  if (panel) {
+    panel.style.display = isTimeAttack && timeAttackState !== 'finished'
+      ? 'grid'
+      : 'none';
+  }
+
+  updateTimeAttackHUD(true);
+}
+
+let timeAttackHudLastUpdate = 0;
+
+function updateTimeAttackHUD(force = false) {
+  if (gameMode !== 'timeAttack') return;
+
+  const now = Date.now();
+  if (!force && now - timeAttackHudLastUpdate < 120) return;
+  timeAttackHudLastUpdate = now;
+
+  const checkpointEl = document.getElementById('race-hud-checkpoints');
+  const bestEl = document.getElementById('race-hud-best');
+  const deltaEl = document.getElementById('race-hud-delta');
+
+  const checkpointCount = Math.min(3, timeAttackCheckpoint);
+  if (checkpointEl) {
+    checkpointEl.textContent = checkpointCount + '/3';
+  }
+
+  const timerCheckpointEl = document.getElementById('hud-time-checkpoints');
+  if (timerCheckpointEl) {
+    timerCheckpointEl.textContent = 'CP ' + checkpointCount + '/3';
+  }
+
+  const best = getTimeAttackBest();
+  if (bestEl) {
+    bestEl.textContent = best === null ? '--:--.--' : formatRaceTime(best);
+  }
+
+  if (!deltaEl) return;
+
+  deltaEl.classList.remove('ahead', 'behind');
+  const samples = timeAttackGhost && timeAttackGhost.samples;
+
+  if (!samples || !samples.length || timeAttackState !== 'racing') {
+    deltaEl.textContent = '--';
+    return;
+  }
+
+  // Busca la muestra del fantasma registrada en el nodo más cercano.
+  let closestSample = null;
+  let closestNodeDistance = Infinity;
+
+  for (const sample of samples) {
+    if (!Number.isFinite(sample.n) || !Number.isFinite(sample.t)) continue;
+
+    const distance = Math.abs(sample.n - lastClosestNode);
+    if (distance < closestNodeDistance) {
+      closestNodeDistance = distance;
+      closestSample = sample;
+    }
+  }
+
+  // Evita mostrar una diferencia engañosa si el fantasma está lejos
+  // o si el registro antiguo todavía no contiene progreso por nodos.
+  if (!closestSample || closestNodeDistance > 8) {
+    deltaEl.textContent = '--';
+    return;
+  }
+
+  const delta = getRaceElapsedMs() - closestSample.t;
+
+  if (Math.abs(delta) < 10) {
+    deltaEl.textContent = 'EVEN';
+  } else if (delta > 0) {
+    deltaEl.textContent = '+' + (delta / 1000).toFixed(2) + 's';
+    deltaEl.classList.add('behind');
+  } else {
+    deltaEl.textContent = '−' + (Math.abs(delta) / 1000).toFixed(2) + 's';
+    deltaEl.classList.add('ahead');
+  }
+}
+
+function getRaceElapsedMs() {
+  if (timeAttackState === 'finished') return timeAttackFinishMs;
+  if (timeAttackState !== 'racing') return 0;
+
+  const currentPauseMs = gamePaused && pausedAt !== null
+    ? Date.now() - pausedAt
+    : 0;
+
+  return Math.max(
+    0,
+    Date.now() - timeAttackStartAt - timeAttackPausedMs - currentPauseMs
+  );
+}
+
+function getTimeAttackBest() {
+  try {
+    const value = Number(localStorage.getItem('zen-drift-time-attack-best'));
+    return Number.isFinite(value) && value > 0 ? value : null;
+  } catch (_) {
+    return null;
+  }
+}
+
+function finishTimeAttack() {
+  recordTimeAttackGhostSample();
+  timeAttackFinishMs = getRaceElapsedMs();
+  timeAttackState = 'finished';
+  gameStarted = false;
+  gamePaused = true;
+  pausedAt = null;
+  clearDrivingKeys();
+  setAutoDrive(false);
+  updateRaceStatus('', false);
+
+  const previousBest = getTimeAttackBest();
+  const isNewBest = previousBest === null || timeAttackFinishMs < previousBest;
+  const best = isNewBest ? timeAttackFinishMs : previousBest;
+
+  if (isNewBest) {
+    try {
+      localStorage.setItem('zen-drift-time-attack-best', String(timeAttackFinishMs));
+          if (timeAttackRecording.length > 1) {
+        localStorage.setItem('zen-drift-time-attack-ghost', JSON.stringify({
+          v: 1,
+          duration: timeAttackFinishMs,
+          samples: timeAttackRecording
+        }));
+      }
+} catch (_) {}
+  }
+
+  document.getElementById('race-result-time').textContent =
+    formatRaceTime(timeAttackFinishMs);
+  document.getElementById('race-result-best').textContent =
+    formatRaceTime(best);
+  document.getElementById('race-result-message').textContent =
+    isNewBest ? 'NEW PERSONAL BEST! All checkpoints cleared.' :
+      'All checkpoints cleared. Can you beat your best time?';
+
+  showMenuPage('time-attack-results-page');
+  overlay.classList.remove('hide');
+}
+
+function startTimeAttack() {
+  gameMode = 'timeAttack';
+  restartCar(false);
+
+  gameStarted = true;
+  gamePaused = false;
+  timeAttackState = 'countdown';
+  timeAttackStartAt = Date.now() + 3000;
+  timeAttackPausedMs = 0;
+  timeAttackFinishMs = 0;
+  timeAttackCheckpoint = 0;
+
+  timeAttackRecording = [];
+  timeAttackLastSampleAt = 0;
+  timeAttackHudLastUpdate = 0;
+  timeAttackGhost = loadTimeAttackGhost();
+  updateRaceHUDMode();
+  updateTimeAttackHUD(true);
+  updateRaceStatus('GET READY • 3', true);
+  clearDrivingKeys();
+  overlay.classList.add('hide');
+  initAudio();
+}
+
+function restartCurrentMode() {
+  if (gameMode === 'timeAttack') {
+    startTimeAttack();
+  } else {
+    restartCar(true);
+  }
+}
+
+function startGame() {
+  if (gameStarted) return;
+  gameMode = 'endless';
+  timeAttackState = 'idle';
+  updateRaceHUDMode();
+  updateRaceStatus('', false);
+  gameStarted = true;
+  gamePaused = false;
+  clearDrivingKeys();
+  overlay.classList.add('hide');
+  initAudio();
+}
+
+document.getElementById('pause-btn').addEventListener('click', togglePause);
+document.getElementById('resume-btn').addEventListener('click', togglePause);
+document.getElementById('pause-home-btn').addEventListener('click', returnToHome);
+
+document.getElementById('start-btn').addEventListener('click', startGame);
+document.getElementById('mode-endless').addEventListener('click', startGame);
+document.getElementById('mode-time-attack').addEventListener('click', startTimeAttack);
+document.getElementById('race-retry-btn').addEventListener('click', startTimeAttack);
+document.getElementById('race-home-btn').addEventListener('click', returnToHome);
+
+document.getElementById('menu-garage').addEventListener('click', () => showMenuPage('garage-page'));
+document.getElementById('menu-modes').addEventListener('click', () => showMenuPage('modes-page'));
+document.getElementById('menu-settings').addEventListener('click', () => showMenuPage('settings-page'));
+
+document.querySelectorAll('[data-menu-back]').forEach((button) => {
+  button.addEventListener('click', () => showMenuPage('home'));
+});
+
+
+// Local player identity — foundation for future online multiplayer
+const PLAYER_NAME_KEY = 'zen-drift-player-name';
+const PLAYER_ID_KEY = 'zen-drift-player-id';
+
+function createLocalPlayerId() {
+  if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+    return window.crypto.randomUUID();
+  }
+  return 'player-' + Date.now().toString(36) + '-' +
+    Math.random().toString(36).slice(2, 12);
+}
+
+let localPlayerId = localStorage.getItem(PLAYER_ID_KEY);
+if (!localPlayerId) {
+  localPlayerId = createLocalPlayerId();
+  localStorage.setItem(PLAYER_ID_KEY, localPlayerId);
+}
+
+function cleanPlayerName(value) {
+  return value
+    .replace(/[^a-zA-Z0-9 _-]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 16);
+}
+
+const playerNameInput = document.getElementById('player-name-input');
+const hudPlayerName = document.getElementById('hud-player-name');
+let playerName = cleanPlayerName(localStorage.getItem(PLAYER_NAME_KEY) || 'Driver');
+
+if (playerName.length < 3) playerName = 'Driver';
+
+function updatePlayerNameDisplay() {
+  hudPlayerName.textContent = playerName.toUpperCase();
+  playerNameInput.value = playerName;
+}
+
+playerNameInput.addEventListener('input', () => {
+  const cleaned = cleanPlayerName(playerNameInput.value);
+  if (playerNameInput.value !== cleaned) {
+    playerNameInput.value = cleaned;
+  }
+});
+
+playerNameInput.addEventListener('change', () => {
+  const cleaned = cleanPlayerName(playerNameInput.value);
+  if (cleaned.length >= 3) {
+    playerName = cleaned;
+    localStorage.setItem(PLAYER_NAME_KEY, playerName);
+  }
+  updatePlayerNameDisplay();
+});
+
+playerNameInput.addEventListener('keydown', (event) => {
+  if (event.key === 'Enter') {
+    playerNameInput.blur();
+  }
+});
+
+updatePlayerNameDisplay();
+
+// Garage vehicle selection and per-car paint presets.
+let selectedCarType = 'drift';
+let selectedDriftSkin = 'classic';
+const garageCarColors = { drift: '#f8fafc', f1: '#f97316' };
+let selectedCarColor = garageCarColors.drift;
+
+const garageColorNames = {
+  '#ef4444': 'RED',
+  '#2563eb': 'BLUE',
+  '#171717': 'BLACK',
+  '#f8fafc': 'WHITE',
+  '#16a34a': 'GREEN',
+  '#f97316': 'ORANGE'
+};
+
+function updateGarageSelection() {
+  document.querySelectorAll('[data-car-select]').forEach((button) => {
+    button.classList.toggle(
+      'selected',
+      button.dataset.carSelect === selectedCarType
+    );
+  });
+
+  document.querySelectorAll('[data-car-color]').forEach((button) => {
+    button.classList.toggle(
+      'selected',
+      button.dataset.carColor === selectedCarColor
+    );
+  });
+
+  document.querySelectorAll('[data-drift-skin]').forEach((button) => {
+    button.classList.toggle('selected', button.dataset.driftSkin === selectedDriftSkin);
+  });
+  const skinSelector = document.getElementById('garage-drift-skins');
+  if (skinSelector) skinSelector.hidden = selectedCarType !== 'drift';
+
+  const label = document.getElementById('garage-current-label');
+  const dot = document.querySelector('.garage-current-dot');
+
+  if (label) {
+    label.textContent =
+      (selectedCarType === 'f1'
+        ? 'F1 CAR'
+        : 'DRIFT GT' + (selectedDriftSkin === 'widebody' ? ' • WIDEBODY' : '')) +
+      ' • ' + garageColorNames[selectedCarColor];
+  }
+
+  if (dot) dot.style.background = selectedCarColor;
+
+  const showroom = document.getElementById('garage-showroom');
+  const previewName = document.getElementById('garage-preview-name');
+  const previewType = document.getElementById('garage-preview-type');
+  if (showroom) {
+    showroom.style.setProperty('--garage-paint', selectedCarColor);
+    showroom.classList.toggle('is-f1', selectedCarType === 'f1');
+    showroom.classList.toggle('is-widebody', selectedCarType === 'drift' && selectedDriftSkin === 'widebody');
+  }
+  if (previewName) {
+    previewName.textContent = selectedCarType === 'f1'
+      ? 'VORTEX SPRINTER'
+      : 'ZEN GT COUPE' + (selectedDriftSkin === 'widebody' ? ' WIDEBODY' : '');
+  }
+  if (previewType) {
+    previewType.textContent = selectedCarType === 'f1'
+      ? 'FORMULA AERO'
+      : selectedDriftSkin === 'widebody' ? 'WIDEBODY KIT' : 'GT DRIFT SPEC';
+  }
+}
+
+function syncGarageLivePreview(enabled = true) {
+  if (new URLSearchParams(location.search).has('garagePreview')) return;
+  const frame = document.getElementById('garage-live-preview');
+  if (!frame) return;
+  if (!enabled) {
+    if (frame.getAttribute('src') !== 'about:blank') frame.src = 'about:blank';
+    return;
+  }
+  const previewUrl = new URL('/play', location.origin);
+  previewUrl.searchParams.set('garagePreview', '1');
+  previewUrl.searchParams.set('car', selectedCarType);
+  previewUrl.searchParams.set('paint', selectedCarColor);
+  previewUrl.searchParams.set('skin', selectedDriftSkin);
+  if (frame.src !== previewUrl.href) frame.src = previewUrl.href;
+}
+
+document.querySelectorAll('[data-car-select]').forEach((button) => {
+  button.addEventListener('click', () => {
+    selectedCarType = button.dataset.carSelect;
+    selectedCarColor = garageCarColors[selectedCarType];
+    updateGarageSelection();
+    syncGarageLivePreview();
+    updateCarPerformance();
+  });
+});
+
+document.querySelectorAll('[data-car-color]').forEach((button) => {
+  button.addEventListener('click', () => {
+    selectedCarColor = button.dataset.carColor;
+    garageCarColors[selectedCarType] = selectedCarColor;
+    updateGarageSelection();
+    syncGarageLivePreview();
+  });
+});
+
+document.querySelectorAll('[data-drift-skin]').forEach((button) => {
+  button.addEventListener('click', () => {
+    selectedDriftSkin = button.dataset.driftSkin === 'widebody' ? 'widebody' : 'classic';
+    updateGarageSelection();
+    syncGarageLivePreview();
+  });
+});
+
+document.getElementById('garage-drive').addEventListener('click', () => {
+  showMenuPage('modes-page');
+});
+
+updateGarageSelection();
+
+// The garage preview runs the same game canvas in a quiet, UI-free auto-drive mode.
+if (new URLSearchParams(location.search).has('garagePreview')) {
+  window.addEventListener('load', () => {
+    const previewParams = new URLSearchParams(location.search);
+    const previewCar = previewParams.get('car');
+    selectedCarType = previewCar === 'f1' ? 'f1' : 'drift';
+    selectedDriftSkin = previewParams.get('skin') === 'widebody' ? 'widebody' : 'classic';
+    const previewPaint = previewParams.get('paint');
+    if (/^#[0-9a-f]{6}$/i.test(previewPaint || '')) {
+      selectedCarColor = previewPaint;
+      garageCarColors[selectedCarType] = previewPaint;
+    }
+    updateCarPerformance();
+    gameStarted = true;
+    gamePaused = false;
+    isRainActive = false;
+    document.getElementById('overlay').classList.add('hide');
+    setAutoDrive(true);
+  }, { once: true });
+}
+
+// Weather & Environment state
+let isSunsetActive = true;
+let landscapeMode = 'sunset';
+const LANDSCAPES = [
+  { id: 'sunset', label: '🌅 Sunset', mobile: '🌅 SUNSET' },
+  { id: 'day', label: '☀️ Day', mobile: '☀️ DAY' },
+  { id: 'snow', label: '❄️ Snow', mobile: '❄️ SNOW' },
+  { id: 'fog', label: '🌫️ Fog', mobile: '🌫️ FOG' },
+  { id: 'night', label: '🌙 Night', mobile: '🌙 NIGHT' },
+  { id: 'desert', label: '🏜️ Desert', mobile: '🏜️ DESERT' }
+];
+let snowParticles = [];
+let isRainActive = true;
+let rainDensity = 85;
+
+// Distance tracking in kilometers (km)
+let totalDistanceKm = 0;
+
+const desktopMode = new URLSearchParams(window.location.search).get('desktop') === '1';
+// Car physics state
+const car = {
+  x: 0,
+  y: 0,
+  vx: 0,
+  vy: 0,
+  angle: -Math.PI / 2,
+  speed: 0,
+  driftAngle: 0,
+  steer: 0,
+  maxSpeed: 15.0,
+  accel: 0.33,
+  friction: 0.972,
+  lateralGrip: 0.82
+};
+
+// Slower and smoother driving on mobile devices
+const mobileDrivingMode =
+  window.matchMedia('(pointer: coarse)').matches || window.innerWidth <= 700;
+
+if (mobileDrivingMode) {
+  car.maxSpeed = 4.375;
+  car.accel = 0.20;
+}
+
+if (desktopMode) {
+  car.accel = 0.18;
+}
+
+function updateCarPerformance() {
+  const standardMaxSpeed = desktopMode ? 8 : (mobileDrivingMode ? 4.375 : 15.0);
+  car.maxSpeed = standardMaxSpeed * (selectedCarType === 'f1' ? 1.15 : 1);
+}
+
+
+// Surface & mud state
+let isCarInMud = false;
+let currentSurfaceName = "Wet Asphalt (Sunset Sheen)";
+let lastClosestNode = 0;
+
+// Camera
+let camX = 0;
+let camY = 0;
+
+// Skid marks, mud tracks, spray particles, smoke particles, mud clods, and leaf particles
+const skids = [];
+const mudTracks = [];
+const sprayParticles = [];
+const smokeParticles = [];
+const mudParticles = [];
+const leafParticles = [];
+
+// Trees planted all around road
+const trees = [];
+
+// Procedural Road spline
+const roadNodes = [];
+const ROAD_NODE_DIST = 44;
+let curveMultiplier = 1.7;
+
+// Clear sky stars
+const stars = [];
+function initStars() {
+  stars.length = 0;
+  for (let i = 0; i < 110; i++) {
+    stars.push({
+      x: Math.random() * w,
+      y: Math.random() * (h * 0.80),
+      r: Math.random() * 1.5 + 0.4,
+      alpha: Math.random() * 0.6 + 0.25,
+      twinkleSpeed: Math.random() * 0.03 + 0.012,
+      twinkleOffset: Math.random() * Math.PI * 2
+    });
+  }
+}
+initStars();
+
+function generateTreesForNode(index, x, y, angle) {
+  if (index < 4) return;
+  const nx = -Math.sin(angle);
+  const ny = Math.cos(angle);
+
+  function spawnBands(sideSign) {
+    if (Math.random() < 0.72) {
+      const dist = sideSign * (124 + Math.random() * 42);
+      trees.push({
+        x: x + nx * dist,
+        y: y + ny * dist,
+        r: 16 + Math.random() * 9,
+        species: Math.floor(Math.random() * 3),
+        shade: Math.floor(Math.random() * 3),
+        sway: Math.random() * Math.PI * 2,
+        tier: 0,
+        trunkR: 3.5 + Math.random() * 1.5,
+        hitCooldown: 0
+      });
+    }
+
+    if (Math.random() < 0.88) {
+      const dist = sideSign * (170 + Math.random() * 150);
+      trees.push({
+        x: x + nx * dist,
+        y: y + ny * dist,
+        r: 22 + Math.random() * 14,
+        species: Math.floor(Math.random() * 3),
+        shade: Math.floor(Math.random() * 3),
+        sway: Math.random() * Math.PI * 2,
+        tier: 1,
+        trunkR: 4.5 + Math.random() * 2,
+        hitCooldown: 0
+      });
+    }
+
+    if (Math.random() < 0.92) {
+      const dist = sideSign * (330 + Math.random() * 310);
+      trees.push({
+        x: x + nx * dist,
+        y: y + ny * dist,
+        r: 28 + Math.random() * 20,
+        species: Math.floor(Math.random() * 3),
+        shade: Math.floor(Math.random() * 3),
+        sway: Math.random() * Math.PI * 2,
+        tier: 2,
+        trunkR: 5 + Math.random() * 2.5,
+        hitCooldown: 0
+      });
+    }
+
+    if (Math.random() < 0.65) {
+      const dist = sideSign * (650 + Math.random() * 300);
+      trees.push({
+        x: x + nx * dist,
+        y: y + ny * dist,
+        r: 34 + Math.random() * 24,
+        species: Math.floor(Math.random() * 3),
+        shade: Math.floor(Math.random() * 3),
+        sway: Math.random() * Math.PI * 2,
+        tier: 3,
+        trunkR: 6 + Math.random() * 3,
+        hitCooldown: 0
+      });
+    }
+  }
+
+  spawnBands(-1);
+  spawnBands(1);
+}
+
+function extendRoad(targetCount) {
+  while (roadNodes.length < targetCount) {
+    const i = roadNodes.length;
+    let prevX = 0;
+    let prevY = 0;
+    if (i > 0) {
+      prevX = roadNodes[i - 1].x;
+      prevY = roadNodes[i - 1].y;
+    }
+    const sCurve = Math.sin(i * 0.13 * curveMultiplier) * 0.74;
+    const hairPin = Math.sin(i * 0.052 * curveMultiplier) * 0.46;
+    const microWiggle = Math.cos(i * 0.28 * curveMultiplier) * 0.18;
+    const angle = -Math.PI / 2 + (i < 8 ? 0 : sCurve + hairPin + microWiggle);
+    const newNode = {
+      x: prevX + Math.cos(angle) * ROAD_NODE_DIST,
+      y: prevY + Math.sin(angle) * ROAD_NODE_DIST
+    };
+    roadNodes.push(newNode);
+
+    if (i >= 4) {
+      generateTreesForNode(i, newNode.x, newNode.y, angle);
+    }
+  }
+}
+
+extendRoad(1400);
+
+let rainParticles = [];
+function updateRainParticles(count) {
+  rainParticles = [];
+  for (let i = 0; i < count; i++) {
+    rainParticles.push({
+      x: Math.random() * w,
+      y: Math.random() * h,
+      len: Math.random() * 18 + 10,
+      speed: Math.random() * 10 + 16,
+      opacity: Math.random() * 0.4 + 0.3
+    });
+  }
+}
+updateRainParticles(320);
+
+let audioCtx = null;
+let isAudioActive = false;
+let rainGain = null;
+let mudGain = null;
+
+function initAudio() {
+  if (isAudioActive) return;
+  try {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    const bufferSize = audioCtx.sampleRate * 2;
+    const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    const output = noiseBuffer.getChannelData(0);
+    let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+    for (let i = 0; i < bufferSize; i++) {
+      const white = Math.random() * 2 - 1;
+      b0 = 0.99886 * b0 + white * 0.0555;
+      b1 = 0.99332 * b1 + white * 0.0750;
+      b2 = 0.96900 * b2 + white * 0.1538;
+      b3 = 0.86650 * b3 + white * 0.3104;
+      b4 = 0.55000 * b4 + white * 0.5329;
+      b5 = -0.7616 * b5 - white * 0.0168;
+      output[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.536) * 0.035;
+      b6 = white * 0.1159;
+    }
+    const noise = audioCtx.createBufferSource();
+    noise.buffer = noiseBuffer;
+    noise.loop = true;
+
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = isSunsetActive ? 1250 : 1000;
+
+    rainGain = audioCtx.createGain();
+    rainGain.gain.value = isRainActive ? 0.35 : 0;
+
+    noise.connect(filter);
+    filter.connect(rainGain);
+    rainGain.connect(audioCtx.destination);
+    noise.start();
+
+    const mudOsc = audioCtx.createOscillator();
+    mudOsc.type = 'sawtooth';
+    mudOsc.frequency.value = 46;
+    const mudFilter = audioCtx.createBiquadFilter();
+    mudFilter.type = 'lowpass';
+    mudFilter.frequency.value = 180;
+    mudGain = audioCtx.createGain();
+    mudGain.gain.value = 0;
+    mudOsc.connect(mudFilter);
+    mudFilter.connect(mudGain);
+    mudGain.connect(audioCtx.destination);
+    mudOsc.start();
+
+    isAudioActive = true;
+    startSelectedMusic();
+  } catch(e) {
+    console.error("Audio init error:", e);
+  }
+}
+
+function playTreeRustle() {
+  if (!audioCtx || !isAudioActive) return;
+  try {
+    const now = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    const filter = audioCtx.createBiquadFilter();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(140, now);
+    osc.frequency.exponentialRampToValueAtTime(45, now + 0.18);
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(360, now);
+    gain.gain.setValueAtTime(0.08, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(now);
+    osc.stop(now + 0.22);
+  } catch(e) {}
+}
+
+const MUSIC_TRACKS = [
+  {
+    name: "Lo-fi Chill",
+    short: "LO-FI",
+    chords: [
+      [146.83, 174.61, 220.00, 261.63, 329.63],
+      [98.00, 174.61, 246.94, 329.63],
+      [130.81, 164.81, 196.00, 246.94, 293.66],
+      [110.00, 196.00, 261.63, 329.63]
+    ],
+    waveform: "sine", interval: 3333, duration: 3.8,
+    gain: 0.045, filter: 850, kick: true
+  },
+  {
+    name: "Ambient Drift",
+    short: "AMBIENT",
+    chords: [
+      [130.81, 196.00, 261.63, 392.00],
+      [110.00, 164.81, 220.00, 329.63],
+      [146.83, 220.00, 293.66, 440.00],
+      [98.00, 146.83, 196.00, 293.66]
+    ],
+    waveform: "sine", interval: 4800, duration: 5.4,
+    gain: 0.032, filter: 650, kick: false
+  },
+  {
+    name: "Night Drive",
+    short: "NIGHT",
+    chords: [
+      [110.00, 164.81, 220.00, 261.63],
+      [82.41, 123.47, 164.81, 246.94],
+      [98.00, 146.83, 196.00, 293.66],
+      [87.31, 130.81, 174.61, 261.63]
+    ],
+    waveform: "triangle", interval: 3600, duration: 4.2,
+    gain: 0.038, filter: 1050, kick: false, bass: 55
+  },
+  {
+    name: "Piano Dreams",
+    short: "PIANO",
+    chords: [
+      [261.63, 329.63, 392.00, 523.25],
+      [220.00, 261.63, 329.63, 440.00],
+      [196.00, 293.66, 392.00, 493.88],
+      [174.61, 261.63, 349.23, 440.00]
+    ],
+    waveform: "triangle", interval: 2800, duration: 2.2,
+    gain: 0.052, filter: 1500, kick: false
+  },
+  { name: "Music Off", short: "OFF", off: true }
+];
+
+let selectedMusicIndex = 0;
+let musicStopper = null;
+let musicBus = null;
+
+function updateMusicButtons() {
+  const track = MUSIC_TRACKS[selectedMusicIndex];
+  const desktop = document.getElementById("music-toggle-btn");
+  const mobile = document.getElementById("touch-music");
+  const label = document.getElementById("amb-music");
+
+  if (desktop) desktop.textContent = `🎵 Music: ${track.name} [M]`;
+  if (mobile) mobile.textContent = `🎵 MUSIC: ${track.short}`;
+  if (label) label.textContent = track.off ? "Music Off" : track.name;
+}
+
+function startLofiChords(ctx, config, output) {
+  const chords = config.chords;
+  let chordIdx = 0;
+  let timer = null;
+
+  function playChord() {
+    if (!ctx || ctx.state === "closed") return;
+
+    const now = ctx.currentTime;
+    const notes = chords[chordIdx % chords.length];
+    chordIdx++;
+
+    notes.forEach((freq) => {
+      const osc = ctx.createOscillator();
+      const oscGain = ctx.createGain();
+      const lpf = ctx.createBiquadFilter();
+
+      osc.type = config.waveform;
+      osc.frequency.value = freq;
+
+      lpf.type = "lowpass";
+      lpf.frequency.value = config.filter;
+
+      const attack = config.off ? 0.1 : 0.22;
+      const end = config.duration;
+
+      oscGain.gain.setValueAtTime(0.0001, now);
+      oscGain.gain.linearRampToValueAtTime(config.gain, now + attack);
+      oscGain.gain.exponentialRampToValueAtTime(0.0001, now + end);
+
+      osc.connect(lpf);
+      lpf.connect(oscGain);
+      oscGain.connect(output);
+
+      osc.start(now);
+      osc.stop(now + end + 0.1);
+    });
+
+    if (config.bass) {
+      const bass = ctx.createOscillator();
+      const bassGain = ctx.createGain();
+      bass.type = "sine";
+      bass.frequency.setValueAtTime(config.bass, now);
+      bassGain.gain.setValueAtTime(0.0001, now);
+      bassGain.gain.linearRampToValueAtTime(0.035, now + 0.3);
+      bassGain.gain.exponentialRampToValueAtTime(0.0001, now + 2.5);
+      bass.connect(bassGain);
+      bassGain.connect(output);
+      bass.start(now);
+      bass.stop(now + 2.6);
+    }
+
+    if (config.kick) {
+      const kickOsc = ctx.createOscillator();
+      const kickGain = ctx.createGain();
+      kickOsc.frequency.setValueAtTime(65, now);
+      kickOsc.frequency.exponentialRampToValueAtTime(28, now + 0.2);
+      kickGain.gain.setValueAtTime(0.12, now);
+      kickGain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+      kickOsc.connect(kickGain);
+      kickGain.connect(output);
+      kickOsc.start(now);
+      kickOsc.stop(now + 0.25);
+    }
+
+    timer = setTimeout(playChord, config.interval);
+  }
+
+  playChord();
+  return () => {
+    if (timer !== null) clearTimeout(timer);
+  };
+}
+
+function startSelectedMusic() {
+  updateMusicButtons();
+
+  if (!audioCtx) return;
+
+  if (musicStopper) {
+    musicStopper();
+    musicStopper = null;
+  }
+
+  const oldBus = musicBus;
+  musicBus = null;
+
+  if (oldBus) {
+    const now = audioCtx.currentTime;
+    oldBus.gain.cancelScheduledValues(now);
+    oldBus.gain.setTargetAtTime(0, now, 0.22);
+    setTimeout(() => {
+      try { oldBus.disconnect(); } catch (e) {}
+    }, 1200);
+  }
+
+  const track = MUSIC_TRACKS[selectedMusicIndex];
+  if (track.off) return;
+
+  const bus = audioCtx.createGain();
+  bus.gain.setValueAtTime(0, audioCtx.currentTime);
+  bus.gain.linearRampToValueAtTime(0.62, audioCtx.currentTime + 1.1);
+  bus.connect(audioCtx.destination);
+
+  musicBus = bus;
+  musicStopper = startLofiChords(audioCtx, track, bus);
+}
+
+function cycleMusic() {
+  selectedMusicIndex = (selectedMusicIndex + 1) % MUSIC_TRACKS.length;
+  startSelectedMusic();
+
+  const track = MUSIC_TRACKS[selectedMusicIndex];
+  showToast("🎵", track.off ? "Music turned off" : `Now playing: ${track.name}`);
+}
+
+updateMusicButtons();
+
+let startTime = Date.now();
+let gameMode = 'endless';
+let timeAttackState = 'idle';
+let timeAttackStartAt = 0;
+let timeAttackPausedMs = 0;
+let timeAttackFinishMs = 0;
+let timeAttackCheckpoint = 0;
+
+// Time Attack ghost recording and playback.
+let timeAttackRecording = [];
+let timeAttackLastSampleAt = 0;
+let timeAttackGhost = null;
+
+function loadTimeAttackGhost() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('zen-drift-time-attack-ghost'));
+    if (
+      saved &&
+      saved.v === 1 &&
+      Array.isArray(saved.samples) &&
+      saved.samples.length > 1
+    ) {
+      return saved;
+    }
+  } catch (_) {}
+  return null;
+}
+
+function recordTimeAttackGhostSample() {
+  if (gameMode !== 'timeAttack' || timeAttackState !== 'racing') return;
+
+  const now = Date.now();
+  if (now - timeAttackLastSampleAt < 40) return;
+  timeAttackLastSampleAt = now;
+
+  timeAttackRecording.push({
+    t: getRaceElapsedMs(),
+    x: car.x,
+    y: car.y,
+    a: car.angle,
+    n: lastClosestNode
+  });
+  updateTimeAttackHUD();
+}
+
+function getTimeAttackGhostPose(elapsed) {
+  const samples = timeAttackGhost && timeAttackGhost.samples;
+  if (!samples || samples.length < 2) return null;
+  if (elapsed > samples[samples.length - 1].t) return null;
+
+  let low = 0;
+  let high = samples.length - 1;
+
+  while (low < high) {
+    const mid = Math.floor((low + high) / 2);
+    if (samples[mid].t < elapsed) low = mid + 1;
+    else high = mid;
+  }
+
+  const b = samples[low];
+  const a = samples[Math.max(0, low - 1)];
+  const span = b.t - a.t;
+  const f = span > 0 ? Math.max(0, Math.min(1, (elapsed - a.t) / span)) : 0;
+
+  let angleDiff = ((b.a - a.a + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
+
+  return {
+    x: a.x + (b.x - a.x) * f,
+    y: a.y + (b.y - a.y) * f,
+    a: a.a + angleDiff * f
+  };
+}
+
+function drawTimeAttackGhost() {
+  if (
+    gameMode !== 'timeAttack' ||
+    timeAttackState !== 'racing' ||
+    !timeAttackGhost
+  ) return;
+
+  const pose = getTimeAttackGhostPose(getRaceElapsedMs());
+  if (!pose) return;
+
+  ctx.save();
+  ctx.globalAlpha = 0.38;
+  ctx.translate(pose.x, pose.y);
+  ctx.rotate(pose.a);
+
+  ctx.fillStyle = '#38bdf8';
+  ctx.strokeStyle = '#e0f7ff';
+  ctx.lineWidth = 2;
+
+  ctx.beginPath();
+  ctx.roundRect(-22, -11, 44, 22, 5);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = '#075985';
+  ctx.beginPath();
+  ctx.roundRect(-8, -8, 20, 16, 3);
+  ctx.fill();
+
+  ctx.restore();
+}
+
+const TIME_ATTACK_CHECKPOINT_NODES = [100, 200, 300, 400];
+let pausedAt = null;
+let totalPausedMs = 0;
+let toastTimeout = null;
+function showToast(icon, text) {
+  const toast = document.getElementById('hud-toast');
+  const txt = document.getElementById('hud-toast-text');
+  if (!toast || !txt) return;
+  toast.querySelector('.hud-toast-icon').textContent = icon;
+  txt.textContent = text;
+  toast.classList.remove('hide');
+  if (toastTimeout) clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => {
+    toast.classList.add('hide');
+  }, 1900);
+}
+
+function updateHUDLabels() {
+  const weatherEl = document.getElementById('amb-weather');
+  const badgeEl = document.getElementById('hud-weather-badge');
+  const ambDot = document.getElementById('amb-indicator');
+  const names = {
+    sunset: 'GOLDEN SUNSET',
+    day: 'DAYTIME DRIVE',
+    snow: 'SNOWY MOUNTAINS',
+    fog: 'MISTY FOREST',
+    night: 'CLEAR STARry NIGHT',
+    desert: 'DESERT DRIVE'
+  };
+  const weatherNames = {
+    sunset: 'Golden Sunset',
+    day: 'Bright Daylight',
+    snow: 'Snowy Mountain Forest',
+    fog: 'Foggy Forest',
+    night: 'Clear Starry Night',
+    desert: 'Desert Dunes'
+  };
+  const titleText = (names[landscapeMode] || names.sunset) +
+    (isRainActive ? ' • RAIN' : ' • DRY ASPHALT');
+  if (weatherEl) {
+    weatherEl.textContent = (weatherNames[landscapeMode] || weatherNames.sunset) +
+      (isRainActive ? ' & Wet Asphalt' : ' (Dry Asphalt)');
+  }
+  if (badgeEl) {
+    badgeEl.textContent = titleText;
+    badgeEl.className = landscapeMode === 'sunset'
+      ? (isRainActive ? 'hud-badge' : 'hud-badge sunset-dry')
+      : (landscapeMode === 'night' ? 'hud-badge night-dry' : 'hud-badge');
+  }
+  if (ambDot && !isCarInMud) {
+    ambDot.className = landscapeMode === 'sunset' || landscapeMode === 'day'
+      ? 'amb-dot' : 'amb-dot night-dot';
+  }
+}
+
+function setLandscape(mode, notifyServer = true) {
+  const selected = LANDSCAPES.find(item => item.id === mode);
+  if (!selected) return;
+
+  landscapeMode = mode;
+  isSunsetActive = mode === 'sunset';
+
+  const mobileTimeBtn = document.getElementById('touch-time');
+  if (mobileTimeBtn) mobileTimeBtn.textContent = selected.mobile + ': ON';
+
+  const sunsetBtn = document.getElementById('sunset-toggle-btn');
+  if (sunsetBtn) {
+    sunsetBtn.textContent = selected.label + ' [P]';
+    sunsetBtn.className = mode === 'sunset'
+      ? 'hud-pill-btn sunset-mode'
+      : (mode === 'night' ? 'hud-pill-btn night-mode' : 'hud-pill-btn');
+  }
+
+  updateHUDLabels();
+
+  if (notifyServer) {
+    fetch('/api/toggle-sunset', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sunsetEnabled: isSunsetActive })
+    }).catch(() => {});
+  }
+
+  showToast(selected.label.split(' ')[0], selected.label + ' landscape');
+}
+
+function applySunsetState(enabled, notifyServer = false) {
+  setLandscape(enabled ? 'sunset' : 'night', notifyServer);
+}
+
+function toggleSunset(notifyServer = true) {
+  const current = LANDSCAPES.findIndex(item => item.id === landscapeMode);
+  const next = LANDSCAPES[(current + 1) % LANDSCAPES.length];
+  setLandscape(next.id, notifyServer);
+}
+
+function applyRainState(enabled, notifyServer = false) {
+  isSunsetActive = enabled;
+  const mobileTimeBtn = document.getElementById('touch-time');
+  if (mobileTimeBtn) {
+    mobileTimeBtn.textContent = isSunsetActive ? '🌅 SUNSET: ON' : '🌙 NIGHT: ON';
+  }
+  const sunsetBtn = document.getElementById('sunset-toggle-btn');
+  if (sunsetBtn) {
+    sunsetBtn.textContent = isSunsetActive ? '🌅 Sunset: ON [P]' : '🌙 Night [P]';
+    sunsetBtn.className = isSunsetActive ? 'hud-pill-btn sunset-mode' : 'hud-pill-btn night-mode';
+  }
+
+  updateHUDLabels();
+
+  if (notifyServer) {
+    fetch('/api/toggle-sunset', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sunsetEnabled: isSunsetActive })
+    }).catch(() => {});
+  }
+}
+
+function toggleSunset(notifyServer = true) {
+  const current = LANDSCAPES.findIndex(item => item.id === landscapeMode);
+  const next = LANDSCAPES[(current + 1) % LANDSCAPES.length];
+  setLandscape(next.id, notifyServer);
+}
+
+function applyRainState(enabled, notifyServer = false) {
+  isRainActive = enabled;
+  const mobileRainBtn = document.getElementById('touch-rain');
+  if (mobileRainBtn) {
+    mobileRainBtn.textContent = isRainActive ? '🌧 RAIN: ON' : '☀️ DRY: ON';
+  }
+  if (!isRainActive) {
+    if (rainGain && audioCtx) {
+      rainGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.12);
+    }
+    car.lateralGrip = 0.92;
+    const btnEl = document.getElementById('rain-toggle-btn');
+    if (btnEl) {
+      btnEl.textContent = '☀️ Dry [T]';
+      btnEl.className = 'hud-pill-btn dry-mode';
+    }
+  } else {
+    if (rainGain && audioCtx) {
+      rainGain.gain.setTargetAtTime((rainDensity / 100) * 0.38, audioCtx.currentTime, 0.12);
+    }
+    car.lateralGrip = Math.max(0.58, 0.94 - (rainDensity * 0.0035));
+    const btnEl = document.getElementById('rain-toggle-btn');
+    if (btnEl) {
+      btnEl.textContent = '🌧 Rain: ON [T]';
+      btnEl.className = 'hud-pill-btn rain-mode';
+    }
+  }
+
+  updateHUDLabels();
+
+  if (notifyServer) {
+    fetch('/api/toggle-rain', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rainEnabled: isRainActive })
+    }).catch(() => {});
+  }
+}
+
+function toggleRain(notifyServer = true) {
+  applyRainState(!isRainActive, notifyServer);
+  showToast(
+    isRainActive ? '🌧' : '☀️',
+    isRainActive
+      ? (isSunsetActive ? 'Sunset Rain ON • Warm wet asphalt sheen [T]' : 'Night Rain ON • Slick midnight asphalt [T]')
+      : (isSunsetActive ? 'Rain OFF • Warm golden sunset dry asphalt [T]' : 'Rain OFF • Clear starry night dry asphalt [T]')
+  );
+}
+
+document.getElementById('touch-restart')?.addEventListener('click', restartCurrentMode);
+document.getElementById('touch-rain')?.addEventListener('click', () => toggleRain(true));
+document.getElementById('touch-time')?.addEventListener('click', () => toggleSunset(true));
+
+function updateAutoDriveButtons() {
+  const label = autoDriveEnabled ? '🤖 AUTO DRIVE: ON' : '🤖 AUTO DRIVE: OFF';
+
+  ['auto-drive-btn', 'touch-auto-drive'].forEach((id) => {
+    const button = document.getElementById(id);
+    if (!button) return;
+    button.textContent = label;
+    button.classList.toggle('active', autoDriveEnabled);
+    button.setAttribute('aria-pressed', String(autoDriveEnabled));
+  });
+}
+
+function setAutoDrive(enabled) {
+  if (enabled && (!gameStarted || gamePaused)) return;
+
+  autoDriveEnabled = enabled;
+  clearDrivingKeys();
+  updateAutoDriveButtons();
+
+  showToast(
+    '🤖',
+    autoDriveEnabled
+      ? 'Auto Drive ON • Following the road'
+      : 'Auto Drive OFF • Manual control'
+  );
+}
+
+function toggleAutoDrive() {
+  setAutoDrive(!autoDriveEnabled);
+}
+
+document.getElementById('auto-drive-btn')
+  ?.addEventListener('click', toggleAutoDrive);
+
+document.getElementById('touch-auto-drive')
+  ?.addEventListener('click', toggleAutoDrive);
+
+const touchToolsToggle = document.getElementById('touch-tools-toggle');
+const touchUtilityButtons = document.getElementById('touch-utility-buttons');
+
+touchToolsToggle?.addEventListener('click', () => {
+  const isExpanded = touchToolsToggle.getAttribute('aria-expanded') === 'true';
+  touchToolsToggle.setAttribute('aria-expanded', String(!isExpanded));
+  touchToolsToggle.textContent = isExpanded ? '☰ TOOLS' : '✕ CLOSE';
+  touchUtilityButtons?.classList.toggle('collapsed', isExpanded);
+});
+
+const sunsetBtn = document.getElementById('sunset-toggle-btn');
+if (sunsetBtn) {
+  sunsetBtn.addEventListener('click', () => toggleSunset(true));
+}
+const rainBtn = document.getElementById('rain-toggle-btn');
+if (rainBtn) {
+  rainBtn.addEventListener('click', () => toggleRain(true));
+}
+
+document.getElementById("music-toggle-btn")?.addEventListener("click", cycleMusic);
+document.getElementById("touch-music")?.addEventListener("click", cycleMusic);
+
+function restartCar(notifyServer = true) {
+  autoDriveEnabled = false;
+  clearDrivingKeys();
+  updateAutoDriveButtons();
+
+  car.x = 0;
+  car.y = 0;
+  car.vx = 0;
+  car.vy = 0;
+  car.speed = 0;
+  car.driftAngle = 0;
+  car.steer = 0;
+  car.angle = -Math.PI / 2;
+
+  totalDistanceKm = 0;
+
+  camX = 0;
+  camY = 0;
+
+  skids.length = 0;
+  mudTracks.length = 0;
+  mudParticles.length = 0;
+  sprayParticles.length = 0;
+  smokeParticles.length = 0;
+  leafParticles.length = 0;
+
+  lastClosestNode = 0;
+  isCarInMud = false;
+  currentSurfaceName = isRainActive ? "Wet Asphalt (Smooth Sheen)" : "Dry Asphalt (High Grip)";
+
+  startTime = Date.now();
+  pausedAt = null;
+  totalPausedMs = 0;
+
+  if (mudGain && audioCtx) {
+    mudGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.05);
+  }
+
+  const surfaceEl = document.getElementById('hud-surface');
+  if (surfaceEl) {
+    surfaceEl.textContent = 'ASPHALT';
+    surfaceEl.className = 'stat-val hud-surface-val on-asphalt';
+  }
+  const speedEl = document.getElementById('hud-speed');
+  if (speedEl) speedEl.textContent = '0';
+  const distEl = document.getElementById('hud-dist');
+  if (distEl) distEl.textContent = '0.00 km';
+  const driftEl = document.getElementById('hud-drift');
+  if (driftEl) driftEl.textContent = '0°';
+  const timeEl = document.getElementById('hud-time');
+  if (timeEl) timeEl.textContent = '00:00';
+
+  updateHUDLabels();
+  showToast('↺', 'Restarted with [R] • Odometer reset to 0.00 km');
+
+  if (notifyServer) {
+    fetch('/api/heartbeat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        speed: 0,
+        driftAngle: 0,
+        duration: 0,
+        distanceKm: 0,
+        inMud: false,
+        sunsetEnabled: isSunsetActive,
+        rainEnabled: isRainActive,
+        surface: currentSurfaceName,
+        roadside: "Lush Touge Pine Forest All Around Road",
+        restarted: true
+      })
+    }).catch(() => {});
+  }
+}
+
+// Telemetry syncing
+setInterval(() => {
+  const currentPauseMs = gamePaused && pausedAt !== null
+    ? Date.now() - pausedAt
+    : 0;
+  const elapsed = gameMode === 'timeAttack'
+    ? Math.floor(getRaceElapsedMs() / 1000)
+    : Math.floor(
+        (Date.now() - startTime - totalPausedMs - currentPauseMs) / 1000
+      );
+  const m = Math.floor(elapsed / 60);
+  const sec = elapsed % 60;
+  const timeEl = document.getElementById('hud-time');
+  if (timeEl) {
+    timeEl.textContent = gameMode === 'timeAttack'
+      ? formatRaceTime(getRaceElapsedMs())
+      : String(m).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
+  }
+
+  fetch('/api/heartbeat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      speed: Math.round(car.speed * 8),
+      driftAngle: Math.round(Math.abs(car.driftAngle * 180 / Math.PI)),
+      duration: elapsed,
+      distanceKm: parseFloat(totalDistanceKm.toFixed(2)),
+      inMud: isCarInMud,
+      sunsetEnabled: isSunsetActive,
+      rainEnabled: isRainActive,
+      surface: currentSurfaceName,
+      roadside: "Lush Touge Pine Forest All Around Road"
+    })
+  }).catch(() => {});
+}, 1200);
+
+let lastAppliedResetId = 0;
+setInterval(() => {
+  fetch('/api/state')
+    .then(r => r.json())
+    .then(data => {
+      if (data.resetId && data.resetId !== lastAppliedResetId) {
+        lastAppliedResetId = data.resetId;
+        restartCar(false);
+      }
+      if ((landscapeMode === 'sunset' || landscapeMode === 'night') &&
+          typeof data.sunsetEnabled === 'boolean' &&
+          data.sunsetEnabled !== isSunsetActive) {
+        applySunsetState(data.sunsetEnabled, false);
+      }
+      if (typeof data.rainEnabled === 'boolean' && data.rainEnabled !== isRainActive) {
+        applyRainState(data.rainEnabled, false);
+      }
+      if (data.weatherPreset) document.getElementById('amb-weather').textContent = data.weatherPreset;
+      if (data.soundtrack) document.getElementById('amb-music').textContent = data.soundtrack;
+      if (data.forest) document.getElementById('amb-trees').textContent = data.forest;
+      if (typeof data.curveMultiplier === 'number' && data.curveMultiplier !== curveMultiplier) {
+        curveMultiplier = data.curveMultiplier;
+      }
+      if (typeof data.rainDensity === 'number' && data.rainDensity !== rainDensity) {
+        rainDensity = data.rainDensity;
+        updateRainParticles(Math.floor(rainDensity * 3.8));
+        if (isRainActive) {
+          car.lateralGrip = Math.max(0.58, 0.94 - (rainDensity * 0.0035));
+          if (rainGain && audioCtx) rainGain.gain.value = (rainDensity / 100) * 0.45;
+        }
+      }
+    })
+    .catch(() => {});
+}, 1200);
+
+function drawLushTree(c, tree, inHeadlights, distToCar, beamDiff) {
+  const swayIntensity = tree.tier === 0 ? 2.2 : (tree.tier === 1 ? 1.6 : 0.9);
+  const swayX = Math.sin(Date.now() * 0.0016 + tree.sway) * swayIntensity;
+  const swayY = Math.cos(Date.now() * 0.0012 + tree.sway) * (swayIntensity * 0.6);
+
+  if (landscapeMode === 'desert') {
+    if (tree.tier > 1) return;
+    const height = tree.r * (1.8 + (tree.species % 3) * 0.25);
+    const x = tree.x + swayX * 0.25;
+    const y = tree.y;
+    c.save();
+    c.fillStyle = '#477044';
+    c.strokeStyle = '#263f2b';
+    c.lineWidth = Math.max(2, tree.r * 0.12);
+    c.beginPath();
+    c.moveTo(x - tree.r * 0.25, y);
+    c.lineTo(x - tree.r * 0.25, y - height);
+    c.lineTo(x + tree.r * 0.25, y - height);
+    c.lineTo(x + tree.r * 0.25, y);
+    c.closePath();
+    c.fill();
+    c.stroke();
+    c.beginPath();
+    c.moveTo(x - tree.r * 0.15, y - height * 0.55);
+    c.lineTo(x - tree.r * 0.8, y - height * 0.55);
+    c.lineTo(x - tree.r * 0.8, y - height * 0.9);
+    c.moveTo(x + tree.r * 0.15, y - height * 0.38);
+    c.lineTo(x + tree.r * 0.75, y - height * 0.38);
+    c.lineTo(x + tree.r * 0.75, y - height * 0.72);
+    c.stroke();
+    c.restore();
+    return;
+  }
+  if (tree.tier === 3) {
+    c.fillStyle = isSunsetActive
+      ? (isRainActive ? 'rgba(28, 14, 20, 0.45)' : 'rgba(32, 16, 22, 0.4)')
+      : (isRainActive ? 'rgba(8, 18, 16, 0.42)' : 'rgba(10, 22, 18, 0.35)');
+    c.beginPath();
+    c.arc(tree.x, tree.y, tree.r, 0, Math.PI * 2);
+    c.fill();
+    return;
+  }
+
+  const shadowAlpha = tree.tier === 0 ? 0.75 : 0.45;
+  c.fillStyle = isSunsetActive ? 'rgba(18, 8, 12, ' + shadowAlpha + ')' : 'rgba(8, 10, 14, ' + shadowAlpha + ')';
+  c.beginPath();
+  c.ellipse(tree.x + 3, tree.y + 4, tree.r * 1.15, tree.r * 0.95, 0, 0, Math.PI * 2);
+  c.fill();
+
+  if (tree.tier <= 1) {
+    c.fillStyle = tree.shade === 0 ? '#18100c' : '#221410';
+    c.beginPath();
+    c.arc(tree.x, tree.y, tree.trunkR * 1.4, 0, Math.PI * 2);
+    c.fill();
+
+    c.fillStyle = isSunsetActive ? 'rgba(54, 38, 24, 0.6)' : 'rgba(32, 54, 40, 0.55)';
+    c.beginPath();
+    c.arc(tree.x - 1, tree.y - 1, tree.trunkR * 0.8, 0, Math.PI * 2);
+    c.fill();
+  }
+
+  const palettesByLandscape = {
+    sunset: [
+      ['#140d12','#1c1618','#262420','#3b3226','#524332'],
+      ['#120c10','#1a1416','#221f1c','#332c22','#4a3d2c'],
+      ['#160e14','#1e181b','#2a2722','#3e3528','#5a4836']
+    ],
+    day: [
+      ['#17452c','#21613a','#2e7844','#438e50','#63a85d'],
+      ['#123d29','#1c5736','#286d42','#39834e','#55a05b'],
+      ['#1c4a30','#28653d','#357b48','#4a9253','#69ad65']
+    ],
+    snow: [
+      ['#263b4c','#40596b','#60798a','#8ba0ad','#dce8ed'],
+      ['#203747','#3a5365','#587184','#8099aa','#e6eef2'],
+      ['#30495a','#4b6577','#6c8494','#9aafbb','#edf4f6']
+    ],
+    fog: [
+      ['#303b3d','#465354','#5b6969','#778483','#a0aaa5'],
+      ['#293638','#3e4d4e','#536263','#71807e','#9ba7a1'],
+      ['#364344','#4b5a5a','#647271','#84918d','#b1bbb2']
+    ],
+    night: [
+      ['#07140e','#0b2418','#103322','#184730','#256344'],
+      ['#06110c','#091d15','#0e2b20','#143c2c','#1f543e'],
+      ['#081610','#0e261c','#13392a','#1c4e3a','#2c6d52']
+    ],
+    desert: [
+      ['#66502b','#806238','#9b7743','#b18a4e','#d0a65f'],
+      ['#594526','#745832','#927044','#ad8751','#d5ad70'],
+      ['#72552d','#8c6838','#a98248','#c59a58','#e0ba79']
+    ]
+  };
+  const palettes = palettesByLandscape[landscapeMode] || palettesByLandscape.sunset;
+  const p = palettes[tree.species % 3];
+
+  const layerConfigs = [
+    { scale: 1.0, pts: 12, color: p[0], innerRatio: 0.76 },
+    { scale: 0.78, pts: 10, color: p[1], innerRatio: 0.74 },
+    { scale: 0.54, pts: 8, color: p[2], innerRatio: 0.72 },
+    { scale: 0.32, pts: 6, color: p[3], innerRatio: 0.70 },
+    { scale: 0.16, pts: 5, color: p[4], innerRatio: 0.68 }
+  ];
+
+  layerConfigs.forEach((layer, lIdx) => {
+    c.save();
+    const lSway = (lIdx * 0.22 + 0.1);
+    c.translate(tree.x + swayX * lSway, tree.y + swayY * lSway);
+    c.fillStyle = layer.color;
+    c.beginPath();
+
+    const count = layer.pts;
+    const baseR = tree.r * layer.scale;
+
+    for (let i = 0; i < count * 2; i++) {
+      const a = (i / (count * 2)) * Math.PI * 2;
+      const rad = (i % 2 === 0) ? baseR : baseR * layer.innerRatio;
+      const px = Math.cos(a) * rad;
+      const py = Math.sin(a) * rad;
+      if (i === 0) c.moveTo(px, py);
+      else c.lineTo(px, py);
+    }
+    c.closePath();
+    c.fill();
+
+    if (isSunsetActive && lIdx >= 2) {
+      c.fillStyle = 'rgba(245, 140, 50, 0.16)';
+      c.fill();
+    }
+
+    if (inHeadlights && distToCar > 0) {
+      const litFactor = Math.min(0.55, (1 - distToCar / 380) * (1 - beamDiff / 0.48) * 0.62);
+      c.fillStyle = 'rgba(255, 238, 190, ' + (litFactor * (0.8 + lIdx * 0.1)) + ')';
+      c.fill();
+    }
+    c.restore();
+  });
+
+  if (isRainActive && tree.tier === 0) {
+    c.fillStyle = isSunsetActive ? 'rgba(255, 205, 160, 0.5)' : 'rgba(200, 230, 255, 0.55)';
+    c.beginPath();
+    c.arc(tree.x + swayX * 0.8, tree.y + swayY * 0.8, 2.4, 0, Math.PI * 2);
+    c.fill();
+  }
+}
+
+function drawTimeAttackGate() {
+  if (gameMode !== 'timeAttack' ||
+      !['countdown', 'racing'].includes(timeAttackState)) return;
+
+  const nodeIndex = TIME_ATTACK_CHECKPOINT_NODES[timeAttackCheckpoint];
+  const node = roadNodes[nodeIndex];
+  const before = roadNodes[nodeIndex - 1];
+  const after = roadNodes[nodeIndex + 1];
+  if (!node || !before || !after) return;
+
+  const dx = after.x - before.x;
+  const dy = after.y - before.y;
+  const length = Math.hypot(dx, dy) || 1;
+  const nx = -dy / length;
+  const ny = dx / length;
+  const leftX = node.x + nx * 150;
+  const leftY = node.y + ny * 150;
+  const rightX = node.x - nx * 150;
+  const rightY = node.y - ny * 150;
+  const isFinish = timeAttackCheckpoint === TIME_ATTACK_CHECKPOINT_NODES.length - 1;
+
+  ctx.save();
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  ctx.strokeStyle = isFinish ? '#22c55e' : '#f97316';
+  ctx.lineWidth = 13;
+  ctx.beginPath();
+  ctx.moveTo(leftX, leftY);
+  ctx.lineTo(leftX, leftY - 82);
+  ctx.moveTo(rightX, rightY);
+  ctx.lineTo(rightX, rightY - 82);
+  ctx.stroke();
+
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineWidth = 15;
+  ctx.setLineDash([22, 12]);
+  ctx.beginPath();
+  ctx.moveTo(leftX, leftY - 82);
+  ctx.lineTo(rightX, rightY - 82);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.fillStyle = isFinish ? '#86efac' : '#fed7aa';
+  ctx.font = '900 19px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(
+    isFinish ? 'FINISH' : 'CHECKPOINT ' + (timeAttackCheckpoint + 1),
+    node.x,
+    node.y - 105
+  );
+  ctx.restore();
+}
+
+const desktopFixedFrame = desktopMode;
+
+function loop() {
+  if (desktopFixedFrame) {
+    setTimeout(loop, 1000 / 60);
+  } else {
+    requestAnimationFrame(loop);
+  }
+  if (gamePaused) return;
+
+  if (gameMode === 'timeAttack') {
+    if (timeAttackState === 'countdown') {
+      const remaining = timeAttackStartAt - Date.now();
+      if (remaining > 0) {
+        updateRaceStatus('GET READY • ' + Math.ceil(remaining / 1000), true);
+        return;
+      }
+      timeAttackState = 'racing';
+      timeAttackStartAt = Date.now();
+      timeAttackPausedMs = 0;
+      updateRaceStatus('GO! • CHECKPOINTS 0/3', true);
+    }
+    if (timeAttackState !== 'racing') return;
+  }
+
+  let minDist = Infinity;
+  let closestIdx = lastClosestNode;
+  const sStart = Math.max(0, lastClosestNode - 25);
+  const sEnd = Math.min(roadNodes.length - 1, lastClosestNode + 55);
+
+  for (let i = sStart; i < sEnd; i++) {
+    const n1 = roadNodes[i];
+    const n2 = roadNodes[i + 1];
+    if (!n2) continue;
+    const dx = n2.x - n1.x;
+    const dy = n2.y - n1.y;
+    const lenSq = dx * dx + dy * dy;
+    if (lenSq === 0) continue;
+    let t = ((car.x - n1.x) * dx + (car.y - n1.y) * dy) / lenSq;
+    t = Math.max(0, Math.min(1, t));
+    const px = n1.x + t * dx;
+    const py = n1.y + t * dy;
+    const dist = Math.hypot(car.x - px, car.y - py);
+    if (dist < minDist) {
+      minDist = dist;
+      closestIdx = i;
+    }
+  }
+  lastClosestNode = closestIdx;
+
+  if (gameMode === 'timeAttack' && timeAttackState === 'racing') {
+    const targetNode = TIME_ATTACK_CHECKPOINT_NODES[timeAttackCheckpoint];
+    if (lastClosestNode >= targetNode) {
+      if (timeAttackCheckpoint === TIME_ATTACK_CHECKPOINT_NODES.length - 1) {
+        finishTimeAttack();
+        return;
+      }
+
+      timeAttackCheckpoint++;
+      // Checkpoint status notification removed.
+      // Checkpoint toast notification removed.
+    }
+  }
+
+  const ROAD_EDGE = 118;
+  isCarInMud = minDist > ROAD_EDGE;
+  const mudDepth = isCarInMud ? Math.pow(Math.min(1, (minDist - ROAD_EDGE) / 55), 1.7) : 0;
+  currentSurfaceName = isCarInMud
+    ? (mudDepth > 0.5 ? "Deep Mud & Trees (-70% Drag)" : "Muddy Shoulder (Slowdown)")
+    : (isRainActive ? (isSunsetActive ? "Wet Asphalt (Sunset Sheen)" : "Wet Asphalt (Smooth)") : (isSunsetActive ? "Dry Asphalt (Sunset Grip)" : "Dry Asphalt (High Grip)"));
+
+  const surfaceEl = document.getElementById('hud-surface');
+  const ambIndicator = document.getElementById('amb-indicator');
+  if (surfaceEl) {
+    if (isCarInMud) {
+      surfaceEl.textContent = mudDepth > 0.5 ? 'DEEP MUD' : 'MUD SHOULDER';
+      surfaceEl.className = 'stat-val hud-surface-val in-mud';
+      if (ambIndicator) ambIndicator.className = 'amb-dot mud-alert';
+    } else {
+      surfaceEl.textContent = 'ASPHALT';
+      surfaceEl.className = 'stat-val hud-surface-val on-asphalt';
+      if (ambIndicator) ambIndicator.className = isSunsetActive ? 'amb-dot' : 'amb-dot night-dot';
+    }
+  }
+
+  if (mudGain && audioCtx) {
+    const targetMudGain = isCarInMud && car.speed > 0.4 ? Math.min(0.24, car.speed * 0.04) : 0;
+    mudGain.gain.setTargetAtTime(targetMudGain, audioCtx.currentTime, 0.08);
+  }
+
+  const steerLimit = mobileDrivingMode ? 0.038 : 0.052;
+  const steerSmooth = mobileDrivingMode ? 0.075 : 0.14;
+
+  let targetSteer = keys.left ? -steerLimit : (keys.right ? steerLimit : 0);
+  let autoThrottle = false;
+  let autoBrake = false;
+
+  if (autoDriveEnabled && roadNodes.length > closestIdx + 12) {
+    // Dynamic look-ahead: longer at higher speeds.
+    const lookAheadDistance = Math.max(
+      82,
+      Math.min(170, 82 + car.speed * 7)
+    );
+    const targetIndex = Math.min(
+      roadNodes.length - 1,
+      closestIdx + Math.max(2, Math.ceil(lookAheadDistance / ROAD_NODE_DIST))
+    );
+
+    const targetPoint = roadNodes[targetIndex];
+    const desiredAngle = Math.atan2(
+      targetPoint.y - car.y,
+      targetPoint.x - car.x
+    );
+
+    let headingError = desiredAngle - car.angle;
+    while (headingError > Math.PI) headingError -= Math.PI * 2;
+    while (headingError < -Math.PI) headingError += Math.PI * 2;
+
+    const steeringGain = mobileDrivingMode ? 0.72 : 0.75;
+    targetSteer = Math.max(
+      -steerLimit,
+      Math.min(steerLimit, headingError * steeringGain)
+    );
+
+    // Estimate upcoming road curvature from two road segments.
+    const a = roadNodes[closestIdx + 2];
+    const b = roadNodes[closestIdx + 4];
+    const c = roadNodes[closestIdx + 8];
+    const d = roadNodes[closestIdx + 10];
+
+    const angleA = Math.atan2(b.y - a.y, b.x - a.x);
+    const angleB = Math.atan2(d.y - c.y, d.x - c.x);
+
+    let curveDelta = angleB - angleA;
+    while (curveDelta > Math.PI) curveDelta -= Math.PI * 2;
+    while (curveDelta < -Math.PI) curveDelta += Math.PI * 2;
+
+    const curvature = Math.abs(curveDelta) / (6 * ROAD_NODE_DIST);
+    const safeCurvature = Math.max(curvature, 0.0001);
+
+    let targetSpeed = Math.sqrt(0.62 / safeCurvature);
+    targetSpeed = Math.max(
+      car.maxSpeed * 0.34,
+      Math.min(car.maxSpeed * 0.84, targetSpeed)
+    );
+
+    if (isCarInMud) targetSpeed *= 0.72;
+
+    autoThrottle = car.speed < targetSpeed - 0.18;
+    autoBrake = car.speed > targetSpeed + 0.35;
+  }
+
+  car.steer += (targetSteer - car.steer) * steerSmooth;
+
+  const baseAccel = car.accel * (1 - mudDepth * 0.35) * (selectedCarType === 'f1' ? 1.15 : 1);
+  const accel = autoDriveEnabled
+    ? (autoThrottle ? baseAccel : (autoBrake ? -baseAccel * 0.55 : 0))
+    : (keys.up ? baseAccel : (keys.down ? -baseAccel * 0.55 : 0));
+  const fwdX = Math.cos(car.angle);
+  const fwdY = Math.sin(car.angle);
+
+  car.vx += fwdX * accel;
+  car.vy += fwdY * accel;
+
+  const forwardVel = car.vx * fwdX + car.vy * fwdY;
+  const rightX = -fwdY;
+  const rightY = fwdX;
+  let lateralVel = car.vx * rightX + car.vy * rightY;
+
+  const currentGrip = selectedCarType === 'f1'
+    ? 0.08
+    : (keys.handbrake ? 0.96 : (isCarInMud ? 0.68 : Math.max(car.lateralGrip, 0.90)));
+  lateralVel *= currentGrip;
+
+  car.vx = (fwdX * forwardVel * car.friction) + (rightX * lateralVel);
+  car.vy = (fwdY * forwardVel * car.friction) + (rightY * lateralVel);
+
+  if (isCarInMud) {
+    const mudDrag = 0.994 - (mudDepth * 0.004);
+    car.vx *= mudDrag;
+    car.vy *= mudDrag;
+    car.speed = Math.sqrt(car.vx * car.vx + car.vy * car.vy);
+
+    const maxMudSpeed = car.maxSpeed * (1 - mudDepth * 0.30);
+    if (car.speed > maxMudSpeed) {
+      const scale = maxMudSpeed / car.speed;
+      car.vx *= scale;
+      car.vy *= scale;
+      car.speed = maxMudSpeed;
+    }
+  }
+
+  for (let i = 0; i < trees.length; i++) {
+    const tree = trees[i];
+    if (tree.tier > 1) continue;
+    if (Math.abs(tree.x - car.x) > 65 || Math.abs(tree.y - car.y) > 65) continue;
+    const dx = car.x - tree.x;
+    const dy = car.y - tree.y;
+    const dist = Math.hypot(dx, dy);
+    const minDist = (tree.trunkR || 4) + 13;
+    if (dist < minDist && dist > 0) {
+      const nx = dx / dist;
+      const ny = dy / dist;
+      const overlap = minDist - dist;
+      car.x += nx * overlap;
+      car.y += ny * overlap;
+
+      const dot = car.vx * nx + car.vy * ny;
+      if (dot < 0) {
+        car.vx = (car.vx - 1.4 * dot * nx) * 0.7;
+        car.vy = (car.vy - 1.4 * dot * ny) * 0.7;
+      }
+      car.speed *= 0.7;
+
+      if (Date.now() - tree.hitCooldown > 300) {
+        tree.hitCooldown = Date.now();
+        playTreeRustle();
+        for (let s = 0; s < 8; s++) {
+          leafParticles.push({
+            x: tree.x + (Math.random() - 0.5) * tree.r,
+            y: tree.y + (Math.random() - 0.5) * tree.r,
+            vx: nx * (Math.random() * 2.5 + 1) + (Math.random() - 0.5) * 2,
+            vy: ny * (Math.random() * 2.5 + 1) + (Math.random() - 0.5) * 2,
+            size: Math.random() * 3 + 2,
+            alpha: 0.9,
+            color: isSunsetActive ? 'rgba(74, 52, 36,' : 'rgba(35, 85, 55,'
+          });
+        }
+      }
+    }
+  }
+
+  car.x += car.vx;
+  car.y += car.vy;
+  car.speed = Math.sqrt(car.vx * car.vx + car.vy * car.vy);
+  if (desktopMode && car.speed > car.maxSpeed) {
+    const speedScale = car.maxSpeed / car.speed;
+    car.vx *= speedScale;
+    car.vy *= speedScale;
+    car.speed = car.maxSpeed;
+  }
+
+  // Accumulate distance in kilometers (km)
+  if (car.speed > 0.05) {
+    // car.speed * 8 is in mph; 1 mph = 1.60934 km/h; at 60fps dt = 1/60s:
+    // km/frame = (car.speed * 8 * 1.60934) / (3600 * 60)
+    totalDistanceKm += (car.speed * 8 * 1.60934) / 216000;
+  }
+
+  if (car.speed > 0.4) {
+    const turnStrength = mobileDrivingMode ? 0.72 : 0.90;
+    car.angle += car.steer * (car.speed / car.maxSpeed) * turnStrength;
+    const moveAngle = Math.atan2(car.vy, car.vx);
+    let diff = car.angle - moveAngle;
+    while (diff > Math.PI) diff -= Math.PI * 2;
+    while (diff < -Math.PI) diff += Math.PI * 2;
+    car.driftAngle = diff;
+  } else {
+    car.driftAngle = 0;
+  }
+
+  recordTimeAttackGhostSample();
+
+  const rearX = car.x - Math.cos(car.angle) * 16;
+  const rearY = car.y - Math.sin(car.angle) * 16;
+  const rX = -Math.sin(car.angle) * 9;
+  const rY = Math.cos(car.angle) * 9;
+
+  if (isCarInMud && car.speed > 0.4) {
+    mudTracks.push({ x1: rearX - rX, y1: rearY - rY, x2: rearX + rX, y2: rearY + rY, alpha: 0.65 });
+    if (mudTracks.length > 400) mudTracks.shift();
+
+    for (let s = 0; s < 3; s++) {
+      mudParticles.push({
+        x: rearX + (Math.random() - 0.5) * 14,
+        y: rearY + (Math.random() - 0.5) * 14,
+        vx: -Math.cos(car.angle) * (car.speed * 0.3) + (Math.random() - 0.5) * 3,
+        vy: -Math.sin(car.angle) * (car.speed * 0.3) + (Math.random() - 0.5) * 3,
+        size: Math.random() * 3 + 2,
+        alpha: 0.75,
+        color: Math.random() > 0.5 ? 'rgba(54, 38, 22,' : 'rgba(82, 58, 34,'
+      });
+    }
+    if (mudParticles.length > 140) mudParticles.splice(0, 20);
+  } else if (!isCarInMud && Math.abs(car.driftAngle) > 0.18 && car.speed > 2.4) {
+    skids.push({ x1: rearX - rX, y1: rearY - rY, x2: rearX + rX, y2: rearY + rY, alpha: isRainActive ? 0.5 : 0.65 });
+    if (skids.length > 500) skids.shift();
+
+    if (isRainActive) {
+      for (let s = 0; s < 2; s++) {
+        sprayParticles.push({
+          x: rearX + (Math.random() - 0.5) * 12,
+          y: rearY + (Math.random() - 0.5) * 12,
+          vx: -Math.cos(car.angle) * (car.speed * 0.25) + (Math.random() - 0.5) * 2,
+          vy: -Math.sin(car.angle) * (car.speed * 0.25) + (Math.random() - 0.5) * 2,
+          alpha: 0.45,
+          size: Math.random() * 2.5 + 1.5
+        });
+      }
+      if (sprayParticles.length > 120) sprayParticles.splice(0, 20);
+    } else {
+      for (let s = 0; s < 2; s++) {
+        smokeParticles.push({
+          x: rearX + (Math.random() - 0.5) * 10,
+          y: rearY + (Math.random() - 0.5) * 10,
+          vx: -Math.cos(car.angle) * (car.speed * 0.15) + (Math.random() - 0.5) * 1.5,
+          vy: -Math.sin(car.angle) * (car.speed * 0.15) + (Math.random() - 0.5) * 1.5,
+          alpha: 0.35,
+          size: Math.random() * 3 + 2
+        });
+      }
+      if (smokeParticles.length > 100) smokeParticles.splice(0, 20);
+    }
+  }
+
+  const lastNode = roadNodes[roadNodes.length - 1];
+  if (car.y < lastNode.y + 12000) {
+    extendRoad(roadNodes.length + 320);
+  }
+
+  if (trees.length > 1200 && trees[0].y > car.y + 2800) {
+    trees.splice(0, 80);
+  }
+
+  document.getElementById('hud-speed').textContent = Math.round(car.speed * 8);
+  const distEl = document.getElementById('hud-dist');
+  if (distEl) distEl.textContent = totalDistanceKm.toFixed(2) + ' km';
+  document.getElementById('hud-drift').textContent = Math.round(Math.abs(car.driftAngle * 180 / Math.PI)) + '°';
+
+  const cameraZoom = mobileDrivingMode ? 0.80 : 1;
+  const cameraLookAhead = mobileDrivingMode ? h * 0.18 : 0;
+
+  camX += (car.x - camX) * 0.08;
+  camY += (car.y + cameraLookAhead - camY) * 0.08;
+
+  // Render Sky & Background for the selected landscape
+  const skyGrad = ctx.createLinearGradient(0, 0, 0, h);
+  const skyPalettes = {
+    sunset: ['#141026','#341535','#6b1f37','#be461a','#f7ab3e'],
+    day: ['#2878b9','#58a6dc','#9bd5ed','#d6edf2','#eaf5ee'],
+    snow: ['#243b59','#55799c','#9abbd0','#dce9ef','#f5f8fa'],
+    fog: ['#39494e','#647579','#9aa9a8','#c4ceca','#dce1dc'],
+    night: ['#030611','#080e1d','#101b2d','#142238','#1a2638'],
+    desert: ['#643b25','#a75c32','#d58b4a','#efb96b','#f8d28b']
+  };
+  const colors = skyPalettes[landscapeMode] || skyPalettes.sunset;
+  colors.forEach((color, i) => skyGrad.addColorStop(i / (colors.length - 1), color));
+  ctx.fillStyle = skyGrad;
+  ctx.fillRect(0, 0, w, h);
+
+  if (landscapeMode === 'sunset' || landscapeMode === 'day') {
+    const sunX = w * 0.72;
+    const sunY = h * (landscapeMode === 'day' ? 0.22 : 0.65);
+    const sunR = landscapeMode === 'day' ? 42 : 66;
+    const glow = ctx.createRadialGradient(sunX, sunY, 5, sunX, sunY, sunR * 3);
+    glow.addColorStop(0, 'rgba(255,245,205,0.85)');
+    glow.addColorStop(0.35, 'rgba(255,190,95,0.28)');
+    glow.addColorStop(1, 'rgba(255,180,90,0)');
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(sunX, sunY, sunR * 3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = landscapeMode === 'day' ? '#fff4c9' : '#fff0c2';
+    ctx.beginPath();
+    ctx.arc(sunX, sunY, sunR * 0.48, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  if (landscapeMode === 'night' && !isRainActive) {
+    ctx.fillStyle = '#ffffff';
+    stars.forEach(st => {
+      const a = st.alpha + Math.sin(Date.now() * st.twinkleSpeed + st.twinkleOffset) * 0.22;
+      ctx.globalAlpha = Math.max(0.12, Math.min(0.9, a));
+      ctx.beginPath();
+      ctx.arc(st.x, st.y, st.r, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+  }
+
+  // Distant landscape silhouette
+  const ridgeColors = {
+    sunset: '#180c1d', day: '#587b78', snow: '#d8e5eb',
+    fog: '#8b9996', night: '#080e18', desert: '#c99b4b'
+  };
+  const ridgeY = landscapeMode === 'desert' ? 0.72 : 0.75;
+  ctx.fillStyle = ridgeColors[landscapeMode] || ridgeColors.sunset;
+  ctx.beginPath();
+  ctx.moveTo(0, h * ridgeY);
+  for (let m = 0; m <= 20; m++) {
+    const mx = m * (w / 20);
+    let peak = Math.sin(m * 1.3) * 28 + Math.cos(m * 0.7) * 20;
+    if (landscapeMode === 'snow') peak += (m % 2 ? 45 : 12);
+    if (landscapeMode === 'desert') peak = Math.sin(m * 0.65) * 22 + Math.cos(m * 0.31) * 16;
+    ctx.lineTo(mx, h * ridgeY - peak);
+  }
+  ctx.lineTo(w, h);
+  ctx.lineTo(0, h);
+  ctx.closePath();
+  ctx.fill();
+
+  if (landscapeMode === 'snow') {
+    ctx.fillStyle = 'rgba(255,255,255,0.82)';
+    for (let m = 0; m < 20; m++) {
+      const mx = m * (w / 20);
+      const my = h * ridgeY - (Math.sin(m * 1.3) * 28 + Math.cos(m * 0.7) * 20 + (m % 2 ? 45 : 12));
+      ctx.beginPath();
+      ctx.moveTo(mx - 13, my + 10);
+      ctx.lineTo(mx, my - 13);
+      ctx.lineTo(mx + 13, my + 10);
+      ctx.closePath();
+      ctx.fill();
+    }
+  }
+
+  if (landscapeMode === 'desert') {
+    ctx.fillStyle = '#e4bd65';
+    ctx.beginPath();
+    ctx.moveTo(0, h * 0.84);
+    for (let x = 0; x <= w; x += 24) {
+      ctx.lineTo(x, h * 0.82 + Math.sin(x * 0.012) * 18 + Math.cos(x * 0.021) * 10);
+    }
+    ctx.lineTo(w, h);
+    ctx.lineTo(0, h);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  ctx.save();
+  if (mobileDrivingMode) {
+    ctx.translate(w / 2, h * 0.75);
+    ctx.scale(cameraZoom, cameraZoom);
+    ctx.translate(-camX, -camY);
+  } else {
+    ctx.translate(w / 2 - camX, h / 2 - camY);
+  }
+
+  // Road underlayers
+  ctx.lineWidth = 1200;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.strokeStyle = landscapeMode === 'desert' ? '#e8c875' : landscapeMode === 'snow' ? '#eaf2f6' :
+    (isSunsetActive
+      ? (isRainActive ? '#120b12' : '#140c14')
+      : (isRainActive ? '#050c09' : '#040907'));
+  ctx.beginPath();
+  roadNodes.forEach((node, i) => {
+    if (i === 0) ctx.moveTo(node.x, node.y);
+    else ctx.lineTo(node.x, node.y);
+  });
+  ctx.stroke();
+
+  ctx.lineWidth = 620;
+  ctx.strokeStyle = landscapeMode === 'desert' ? '#d9b45e' : landscapeMode === 'snow' ? '#d5e2e9' :
+    (isSunsetActive
+      ? (isRainActive ? '#190e16' : '#1b1018')
+      : (isRainActive ? '#08140f' : '#07110d'));
+  ctx.stroke();
+
+  ctx.lineWidth = 370;
+  ctx.strokeStyle = landscapeMode === 'desert' ? '#c99e4e' : landscapeMode === 'snow' ? '#b7c9d4' : '#221410';
+  ctx.stroke();
+
+  ctx.lineWidth = 310;
+  ctx.strokeStyle = landscapeMode === 'desert' ? '#b98b3e' : landscapeMode === 'snow' ? '#91a8b6' : '#2d1a12';
+  ctx.stroke();
+
+  ctx.lineWidth = 264;
+  ctx.strokeStyle = landscapeMode === 'desert' ? '#e9ca7a' : landscapeMode === 'snow' ? '#dce8ee' : '#1e120c';
+  ctx.stroke();
+
+  // Asphalt Main Track
+  ctx.lineWidth = 236;
+  ctx.strokeStyle = landscapeMode === 'desert' ? '#8e713e' : landscapeMode === 'snow' ? '#b9c8d1' :
+    (isSunsetActive
+      ? (isRainActive ? '#1b1319' : '#22181d')
+      : (isRainActive ? '#111720' : '#181e28'));
+  ctx.stroke();
+
+  if (isRainActive) {
+    ctx.lineWidth = 224;
+    ctx.strokeStyle = landscapeMode === 'desert' ? '#806438' : landscapeMode === 'snow' ? '#a8bbc7' :
+      (isSunsetActive ? '#261821' : '#141d29');
+    ctx.stroke();
+  }
+
+  // Edge road marking lines
+  ctx.lineWidth = 216;
+  ctx.strokeStyle = landscapeMode === 'desert' ? 'rgba(255,239,190,0.8)' : landscapeMode === 'snow' ? 'rgba(255,255,255,0.82)' :
+    (isSunsetActive
+      ? (isRainActive ? 'rgba(255, 215, 175, 0.28)' : 'rgba(255, 230, 200, 0.38)')
+      : (isRainActive ? 'rgba(255, 255, 255, 0.22)' : 'rgba(255, 255, 255, 0.32)'));
+  ctx.stroke();
+
+  ctx.lineWidth = 208;
+  ctx.strokeStyle = landscapeMode === 'desert' ? '#98763d' : landscapeMode === 'snow' ? '#aebfca' :
+    (isSunsetActive
+      ? (isRainActive ? '#181116' : '#1d1519')
+      : (isRainActive ? '#121822' : '#171c26'));
+  ctx.stroke();
+
+  // Centerline Dashed Strip
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = isSunsetActive
+    ? (isRainActive ? 'rgba(255, 175, 45, 0.85)' : 'rgba(255, 195, 60, 0.92)')
+    : (isRainActive ? 'rgba(240, 186, 48, 0.7)' : 'rgba(245, 196, 62, 0.85)');
+  ctx.setLineDash([20, 24]);
+  ctx.beginPath();
+  roadNodes.forEach((node, i) => {
+    if (i === 0) ctx.moveTo(node.x, node.y);
+    else ctx.lineTo(node.x, node.y);
+  });
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Mud Tracks & Skids
+  ctx.fillStyle = landscapeMode === 'snow'
+    ? 'rgba(95,115,128,0.55)' : 'rgba(42, 28, 16, 0.6)';
+  mudTracks.forEach((track) => {
+    ctx.beginPath();
+    ctx.arc(track.x1, track.y1, 3.5, 0, Math.PI * 2);
+    ctx.arc(track.x2, track.y2, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  ctx.fillStyle = landscapeMode === 'snow'
+    ? 'rgba(75,91,105,0.55)'
+    : (isSunsetActive
+      ? (isRainActive ? 'rgba(16, 10, 14, 0.65)' : 'rgba(20, 12, 16, 0.75)')
+      : (isRainActive ? 'rgba(8, 12, 18, 0.55)' : 'rgba(10, 14, 20, 0.7)'));
+  skids.forEach((skid) => {
+    ctx.beginPath();
+    ctx.arc(skid.x1, skid.y1, 2.5, 0, Math.PI * 2);
+    ctx.arc(skid.x2, skid.y2, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  // Draw the next checkpoint or finish gate along the existing road.
+  drawTimeAttackGate();
+
+  // Render Trees
+  const visibleTrees = [];
+  for (let i = 0; i < trees.length; i++) {
+    const tree = trees[i];
+    if (Math.abs(tree.x - camX) > w / 2 + 100 || Math.abs(tree.y - camY) > h / 2 + 100) {
+      continue;
+    }
+    visibleTrees.push(tree);
+  }
+  visibleTrees.sort((a, b) => b.tier - a.tier || a.y - b.y);
+
+  for (let i = 0; i < visibleTrees.length; i++) {
+    const tree = visibleTrees[i];
+    const toTreeX = tree.x - car.x;
+    const toTreeY = tree.y - car.y;
+    const distToCar = Math.hypot(toTreeX, toTreeY);
+    const angleToTree = Math.atan2(toTreeY, toTreeX);
+    let beamDiff = Math.abs(angleToTree - car.angle);
+    while (beamDiff > Math.PI) beamDiff = Math.abs(beamDiff - Math.PI * 2);
+    const inHeadlights = distToCar < 380 && beamDiff < 0.48;
+    drawLushTree(ctx, tree, inHeadlights, distToCar, beamDiff);
+  }
+
+  // Mud Clods
+  for (let i = mudParticles.length - 1; i >= 0; i--) {
+    const mp = mudParticles[i];
+    mp.x += mp.vx;
+    mp.y += mp.vy;
+    mp.alpha -= 0.02;
+    mp.size += 0.15;
+    if (mp.alpha <= 0) {
+      mudParticles.splice(i, 1);
+      continue;
+    }
+    ctx.fillStyle = mp.color + mp.alpha + ')';
+    ctx.beginPath();
+    ctx.arc(mp.x, mp.y, mp.size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Leaves
+  for (let i = leafParticles.length - 1; i >= 0; i--) {
+    const lp = leafParticles[i];
+    lp.x += lp.vx;
+    lp.y += lp.vy;
+    lp.vx *= 0.94;
+    lp.vy *= 0.94;
+    lp.alpha -= 0.024;
+    if (lp.alpha <= 0) {
+      leafParticles.splice(i, 1);
+      continue;
+    }
+    ctx.fillStyle = lp.color + lp.alpha + ')';
+    ctx.beginPath();
+    ctx.arc(lp.x, lp.y, lp.size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Spray / Smoke
+  if (isRainActive) {
+    for (let i = sprayParticles.length - 1; i >= 0; i--) {
+      const sp = sprayParticles[i];
+      sp.x += sp.vx;
+      sp.y += sp.vy;
+      sp.alpha -= 0.02;
+      sp.size += 0.25;
+      if (sp.alpha <= 0) {
+        sprayParticles.splice(i, 1);
+        continue;
+      }
+      ctx.fillStyle = isSunsetActive
+        ? 'rgba(255, 190, 140, ' + (sp.alpha * 0.38) + ')'
+        : 'rgba(160, 200, 240, ' + (sp.alpha * 0.35) + ')';
+      ctx.beginPath();
+      ctx.arc(sp.x, sp.y, sp.size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  } else {
+    for (let i = smokeParticles.length - 1; i >= 0; i--) {
+      const smk = smokeParticles[i];
+      smk.x += smk.vx;
+      smk.y += smk.vy;
+      smk.alpha -= 0.018;
+      smk.size += 0.35;
+      if (smk.alpha <= 0) {
+        smokeParticles.splice(i, 1);
+        continue;
+      }
+      ctx.fillStyle = isSunsetActive
+        ? 'rgba(240, 200, 180, ' + (smk.alpha * 0.28) + ')'
+        : 'rgba(210, 220, 230, ' + (smk.alpha * 0.25) + ')';
+      ctx.beginPath();
+      ctx.arc(smk.x, smk.y, smk.size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  // Draw the previous personal-best ghost before the real car.
+
+
+  drawTimeAttackGhost();
+
+
+
+  // Draw Drift Car
+  ctx.save();
+  ctx.translate(car.x, car.y);
+  ctx.rotate(car.angle);
+
+  // Headlight beam
+  const grad = ctx.createRadialGradient(24, 0, 10, 180, 0, 210);
+  grad.addColorStop(0, 'rgba(255, 250, 210, 0.44)');
+  grad.addColorStop(0.5, 'rgba(255, 248, 200, 0.18)');
+  grad.addColorStop(1, 'rgba(255, 248, 200, 0)');
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.moveTo(18, -6);
+  ctx.lineTo(260, -75);
+  ctx.lineTo(260, 75);
+  ctx.lineTo(18, 6);
+  ctx.closePath();
+  ctx.fill();
+
+  // Taillight glow
+  const tailGrad = ctx.createRadialGradient(-18, 0, 2, -28, 0, 48);
+  tailGrad.addColorStop(0, 'rgba(255, 34, 51, 0.65)');
+  tailGrad.addColorStop(1, 'rgba(255, 34, 51, 0)');
+  ctx.fillStyle = tailGrad;
+  ctx.beginPath();
+  ctx.arc(-18, 0, 48, 0, Math.PI * 2);
+  ctx.fill();
+
+
+  // Selected vehicle body — refined Zen Motorsport silhouettes.
+  const paintColor = isCarInMud ? '#55545a' : selectedCarColor;
+  const paintOutline = isCarInMud ? '#c27c32' : 'rgba(255,255,255,.72)';
+
+  const drawTyre = (x, y, w, h) => {
+    ctx.fillStyle = '#080a0e';
+    ctx.beginPath();
+    ctx.roundRect(x, y, w, h, 2.5);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(180,190,205,.3)';
+    ctx.lineWidth = .8;
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(160,170,185,.28)';
+    ctx.fillRect(x + w * .25, y + h * .18, w * .5, h * .64);
+  };
+
+  if (selectedCarType === 'f1') {
+    // Formula racing tyres and aerodynamic wings.
+    drawTyre(7, -20, 14, 8);
+    drawTyre(7, 12, 14, 8);
+    drawTyre(-21, -20, 14, 8);
+    drawTyre(-21, 12, 14, 8);
+
+    ctx.fillStyle = '#151a23';
+    ctx.strokeStyle = '#64748b';
+    ctx.lineWidth = 1;
+    ctx.fillRect(22, -19, 9, 38);
+    ctx.strokeRect(22, -19, 9, 38);
+    ctx.fillRect(-28, -21, 10, 42);
+    ctx.strokeRect(-28, -21, 10, 42);
+
+    // Sculpted Formula nose and chassis.
+    ctx.fillStyle = paintColor;
+    ctx.strokeStyle = paintOutline;
+    ctx.lineWidth = 1.1;
+    ctx.beginPath();
+    ctx.moveTo(31, 0);
+    ctx.lineTo(18, -4);
+    ctx.lineTo(8, -7);
+    ctx.lineTo(-12, -8);
+    ctx.lineTo(-22, -5);
+    ctx.lineTo(-25, 0);
+    ctx.lineTo(-22, 5);
+    ctx.lineTo(-12, 8);
+    ctx.lineTo(8, 7);
+    ctx.lineTo(18, 4);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Cockpit and halo.
+    ctx.fillStyle = '#080d16';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 7, 4.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#aeb8c5';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.arc(0, 0, 8, Math.PI * 1.05, Math.PI * 1.95);
+    ctx.stroke();
+
+    // Centreline and front-wing accents.
+    ctx.strokeStyle = 'rgba(255,255,255,.48)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(-18, 0);
+    ctx.lineTo(24, 0);
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(255,255,255,.7)';
+    ctx.fillRect(24, -15, 3, 30);
+  } else if (selectedDriftSkin === 'widebody') {
+    // Optional widebody kit for the Drift GT: a boxier, extra-wide street build.
+    drawTyre(7, -18, 17, 10);
+    drawTyre(7, 8, 17, 10);
+    drawTyre(-24, -18, 17, 10);
+    drawTyre(-24, 8, 17, 10);
+
+    // Oversized bumpers, diffuser and a tall deck wing.
+    ctx.fillStyle = '#0c1017';
+    ctx.fillRect(-31, -13, 8, 26);
+    ctx.fillRect(-35, -19, 9, 3);
+    ctx.fillRect(-35, 16, 9, 3);
+    ctx.fillRect(28, -18, 5, 36);
+    ctx.fillStyle = '#fb923c';
+    ctx.fillRect(-35, -19, 9, 1.5);
+    ctx.fillRect(-35, 17.5, 9, 1.5);
+    ctx.fillRect(31, -15, 2, 30);
+
+    // Flared, squared widebody shell.
+    ctx.fillStyle = paintColor;
+    ctx.strokeStyle = paintOutline;
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.moveTo(34, 0);
+    ctx.lineTo(29, -8);
+    ctx.lineTo(22, -13);
+    ctx.lineTo(-20, -13);
+    ctx.lineTo(-28, -10);
+    ctx.lineTo(-32, -6);
+    ctx.lineTo(-32, 6);
+    ctx.lineTo(-28, 10);
+    ctx.lineTo(-20, 13);
+    ctx.lineTo(22, 13);
+    ctx.lineTo(29, 8);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Dark canopy and separated windshield/rear glass.
+    ctx.fillStyle = '#101722';
+    ctx.beginPath();
+    ctx.moveTo(17, -7);
+    ctx.lineTo(10, -10);
+    ctx.lineTo(-14, -10);
+    ctx.lineTo(-20, -6);
+    ctx.lineTo(-20, 6);
+    ctx.lineTo(-14, 10);
+    ctx.lineTo(10, 10);
+    ctx.lineTo(17, 7);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(190,210,230,.58)';
+    ctx.lineWidth = .8;
+    ctx.beginPath();
+    ctx.moveTo(3, -9);
+    ctx.lineTo(3, 9);
+    ctx.moveTo(-19, 0);
+    ctx.lineTo(16, 0);
+    ctx.stroke();
+
+    // Carbon hood, roof stripe and a bold orange side slash.
+    ctx.fillStyle = '#151a22';
+    ctx.beginPath();
+    ctx.moveTo(20, -9);
+    ctx.lineTo(29, -4);
+    ctx.lineTo(29, 4);
+    ctx.lineTo(20, 9);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = '#fb923c';
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    ctx.moveTo(23, -5);
+    ctx.lineTo(31, -2);
+    ctx.moveTo(23, 5);
+    ctx.lineTo(31, 2);
+    ctx.stroke();
+    ctx.fillStyle = '#ef4444';
+    ctx.beginPath();
+    ctx.moveTo(-9, -12);
+    ctx.lineTo(5, -12);
+    ctx.lineTo(13, -10);
+    ctx.lineTo(-1, -10);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(-9, 12);
+    ctx.lineTo(5, 12);
+    ctx.lineTo(13, 10);
+    ctx.lineTo(-1, 10);
+    ctx.closePath();
+    ctx.fill();
+
+    // Heavy overfenders, side skirts and bright wheel bolts.
+    ctx.strokeStyle = '#11151d';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(17, -12);
+    ctx.quadraticCurveTo(10, -19, 3, -12);
+    ctx.moveTo(-15, -12);
+    ctx.quadraticCurveTo(-23, -20, -30, -10);
+    ctx.moveTo(17, 12);
+    ctx.quadraticCurveTo(10, 19, 3, 12);
+    ctx.moveTo(-15, 12);
+    ctx.quadraticCurveTo(-23, 20, -30, 10);
+    ctx.stroke();
+    ctx.fillStyle = '#fb923c';
+    [[13, -14], [13, 14], [-23, -14], [-23, 14]].forEach(([x, y]) => {
+      ctx.beginPath();
+      ctx.arc(x, y, 1.7, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.fillStyle = '#0b0e14';
+    ctx.fillRect(-13, -14, 28, 2);
+    ctx.fillRect(-13, 12, 28, 2);
+
+  } else {
+    // Wide drift coupe on stretched tyres with a planted tuner stance.
+    drawTyre(8, -15, 15, 7);
+    drawTyre(8, 8, 15, 7);
+    drawTyre(-22, -15, 15, 7);
+    drawTyre(-22, 8, 15, 7);
+
+    // Rear diffuser, canards and a raised GT wing.
+    ctx.fillStyle = '#11151d';
+    ctx.fillRect(-28, -12, 6, 24);
+    ctx.fillRect(-28, -17, 3, 5);
+    ctx.fillRect(-28, 12, 3, 5);
+    ctx.fillRect(-31, -18, 8, 3);
+    ctx.fillRect(-31, 15, 8, 3);
+    ctx.fillStyle = '#ef4444';
+    ctx.fillRect(-31, -18, 8, 1);
+    ctx.fillRect(-31, 17, 8, 1);
+
+    // Squared touring-car body with flat panels and clipped corners.
+    ctx.fillStyle = paintColor;
+    ctx.strokeStyle = paintOutline;
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(30, 0);
+    ctx.lineTo(26, -7);
+    ctx.lineTo(20, -11);
+    ctx.lineTo(-18, -11);
+    ctx.lineTo(-25, -8);
+    ctx.lineTo(-29, -5);
+    ctx.lineTo(-29, 5);
+    ctx.lineTo(-25, 8);
+    ctx.lineTo(-18, 11);
+    ctx.lineTo(20, 11);
+    ctx.lineTo(26, 7);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Flat rectangular glass roof.
+    ctx.fillStyle = '#101b2a';
+    ctx.beginPath();
+    ctx.moveTo(16, -6);
+    ctx.lineTo(10, -8);
+    ctx.lineTo(-13, -8);
+    ctx.lineTo(-18, -5);
+    ctx.lineTo(-18, 5);
+    ctx.lineTo(-13, 8);
+    ctx.lineTo(10, 8);
+    ctx.lineTo(16, 6);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.strokeStyle = 'rgba(190,210,230,.42)';
+    ctx.lineWidth = .8;
+    ctx.beginPath();
+    ctx.moveTo(3, -7);
+    ctx.lineTo(3, 7);
+    ctx.moveTo(-16, 0);
+    ctx.lineTo(16, 0);
+    ctx.stroke();
+
+    // Carbon bonnet, twin racing stripes and sharp fender flares.
+    ctx.fillStyle = '#171b23';
+    ctx.beginPath();
+    ctx.moveTo(19, -6);
+    ctx.lineTo(26, -2.5);
+    ctx.lineTo(26, 2.5);
+    ctx.lineTo(19, 6);
+    ctx.lineTo(16, 4);
+    ctx.lineTo(16, -4);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(251,146,60,.95)';
+    ctx.lineWidth = 1.3;
+    ctx.beginPath();
+    ctx.moveTo(20, -2.3);
+    ctx.lineTo(27, -2.3);
+    ctx.moveTo(20, 2.3);
+    ctx.lineTo(27, 2.3);
+    ctx.moveTo(25, -7);
+    ctx.lineTo(30, -3);
+    ctx.lineTo(30, 3);
+    ctx.lineTo(25, 7);
+    ctx.stroke();
+
+    // Side skirts and angular door livery.
+    ctx.fillStyle = '#11151d';
+    ctx.fillRect(-14, -12, 28, 2);
+    ctx.fillRect(-14, 10, 28, 2);
+    ctx.fillStyle = '#ef4444';
+    ctx.beginPath();
+    ctx.moveTo(-8, -10);
+    ctx.lineTo(1, -10);
+    ctx.lineTo(7, -8.8);
+    ctx.lineTo(-3, -8.8);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(-8, 10);
+    ctx.lineTo(1, 10);
+    ctx.lineTo(7, 8.8);
+    ctx.lineTo(-3, 8.8);
+    ctx.closePath();
+    ctx.fill();
+
+    // Widebody arches and forged wheel-center highlights.
+    ctx.strokeStyle = 'rgba(20,24,32,.95)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(14, -10);
+    ctx.quadraticCurveTo(9, -15, 4, -10);
+    ctx.moveTo(-16, -10);
+    ctx.quadraticCurveTo(-21, -15, -26, -9);
+    ctx.moveTo(14, 10);
+    ctx.quadraticCurveTo(9, 15, 4, 10);
+    ctx.moveTo(-16, 10);
+    ctx.quadraticCurveTo(-21, 15, -26, 9);
+    ctx.stroke();
+    ctx.fillStyle = '#fb923c';
+    [[15, -11], [15, 11], [-20, -11], [-20, 11]].forEach(([x, y]) => {
+      ctx.beginPath();
+      ctx.arc(x, y, 1.5, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    // Subtle underbody glow gives the white coupe a custom night-run look.
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.shadowColor = 'rgba(249,115,22,.8)';
+    ctx.shadowBlur = 9;
+    ctx.strokeStyle = 'rgba(249,115,22,.48)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(-10, -12);
+    ctx.lineTo(12, -12);
+    ctx.moveTo(-10, 12);
+    ctx.lineTo(12, 12);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // Headlight lamps.
+  ctx.fillStyle = '#fff4d2';
+  const frontLampX = selectedCarType === 'f1' ? 28 :
+    selectedDriftSkin === 'widebody' ? 31 : 23;
+  ctx.fillRect(frontLampX, -7, 2.5, 4);
+  ctx.fillRect(frontLampX, 3, 2.5, 4);
+
+  // Rear lights.
+  ctx.fillStyle = '#ff3048';
+  const rearLampX = selectedCarType === 'f1' ? -27 :
+    selectedDriftSkin === 'widebody' ? -31 : -24;
+  ctx.fillRect(rearLampX, -7, 2, 5);
+  ctx.fillRect(rearLampX, 2, 2, 5);
+  ctx.fillStyle = '#ff2233';
+  ctx.fillRect(selectedCarType === 'f1' ? -25 :
+    selectedDriftSkin === 'widebody' ? -29 : -22, -9, 2, 18);
+
+
+  ctx.restore();
+  ctx.restore();
+
+  // Falling Rain overlay
+  if (isRainActive) {
+    ctx.strokeStyle = isSunsetActive ? 'rgba(255, 215, 175, 0.42)' : 'rgba(162, 196, 232, 0.35)';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    rainParticles.forEach((p) => {
+      p.y += p.speed;
+      p.x += 1.5;
+      if (p.y > h) {
+        p.y = -20;
+        p.x = Math.random() * w;
+      }
+      ctx.moveTo(p.x, p.y);
+      ctx.lineTo(p.x + 3, p.y + p.len);
+    });
+    ctx.stroke();
+  }
+  // Snowfall and fog atmospheric overlays
+  if (landscapeMode === 'snow') {
+    const count = Math.min(150, Math.max(65, Math.floor(w * h / 8500)));
+    while (snowParticles.length < count) {
+      snowParticles.push({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        r: Math.random() * 2.5 + 1,
+        speed: Math.random() * 1.8 + 0.7,
+        drift: Math.random() * 0.8 - 0.4
+      });
+    }
+    ctx.fillStyle = 'rgba(255,255,255,0.88)';
+    snowParticles.forEach(p => {
+      p.y += p.speed;
+      p.x += p.drift + Math.sin(Date.now() * 0.001 + p.y * 0.01) * 0.35;
+      if (p.y > h + 5) { p.y = -5; p.x = Math.random() * w; }
+      if (p.x < -5) p.x = w + 5;
+      if (p.x > w + 5) p.x = -5;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fill();
+    });
+  } else if (snowParticles.length) {
+    snowParticles = [];
+  }
+
+  if (landscapeMode === 'fog') {
+    const fog = ctx.createLinearGradient(0, 0, 0, h);
+    fog.addColorStop(0, 'rgba(210,220,218,0.32)');
+    fog.addColorStop(0.45, 'rgba(210,220,218,0.16)');
+    fog.addColorStop(0.75, 'rgba(220,226,220,0.28)');
+    fog.addColorStop(1, 'rgba(220,226,220,0.42)');
+    ctx.fillStyle = fog;
+    ctx.fillRect(0, 0, w, h);
+    for (let i = 0; i < 3; i++) {
+      const y = h * (0.35 + i * 0.2) + Math.sin(Date.now() * 0.00025 + i) * 12;
+      const mist = ctx.createLinearGradient(0, y - 35, 0, y + 45);
+      mist.addColorStop(0, 'rgba(235,240,236,0)');
+      mist.addColorStop(0.5, 'rgba(235,240,236,0.18)');
+      mist.addColorStop(1, 'rgba(235,240,236,0)');
+      ctx.fillStyle = mist;
+      ctx.fillRect(0, y - 35, w, 80);
+    }
+  }
+}
+
+loop();
+</script>
+
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js", {
+      scope: "/",
+      updateViaCache: "none"
+    }).catch((error) => {
+      console.warn("Zen Cruise Service Worker registration failed:", error);
+    });
+  });
+}
+</script>
+</body>
+</html>
