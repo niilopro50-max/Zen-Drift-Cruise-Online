@@ -1,0 +1,57 @@
+name: Build Zen Drift Cruise for macOS
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "desktop/**"
+      - "game/**"
+      - "server.ts"
+      - "widgetKit.ts"
+      - "package.json"
+      - "package-lock.json"
+      - "manifest.json"
+      - "sw.js"
+      - "icons/**"
+      - ".github/workflows/build-macos.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  build-macos:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build desktop server
+        run: npm run desktop:build
+
+      - name: Build Apple Silicon installer
+        run: npx electron-builder --mac dmg --arm64 --publish never
+
+      - name: Publish installer to GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          dmg=$(find release-build -maxdepth 1 -name '*.dmg' -print -quit)
+          if [ -z "$dmg" ]; then
+            echo "macOS DMG was not created."
+            exit 1
+          fi
+          asset="release-build/Zen.Drift.Cruise-1.0.2-arm64.dmg"
+          mv "$dmg" "$asset"
+          gh release upload v1.0.2 "$asset" --repo "$GITHUB_REPOSITORY" --clobber
