@@ -1,6 +1,6 @@
 {
   "name": "zen-drift",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "private": true,
   "description": "Chill drifting at golden sunset or starry night with rain, km odometer counter, mountain pines, and lofi beats.",
   "type": "module",
@@ -81,6 +81,13 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true
-    }
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "niilopro50-max",
+        "repo": "Zen-Drift-Cruise-Online"
+      }
+    ]
   }
 }

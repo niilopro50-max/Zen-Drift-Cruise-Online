@@ -18,7 +18,7 @@ on:
       - ".github/workflows/build-windows.yml"
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build-windows:
@@ -50,3 +50,12 @@ jobs:
           path: release-build/*.exe
           if-no-files-found: error
           retention-days: 30
+
+      - name: Publish Windows installer to GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: pwsh
+        run: |
+          $installer = Get-ChildItem -Path release-build -Filter "*.exe" | Select-Object -ExpandProperty FullName
+          if (-not $installer) { throw "Windows installer was not created." }
+          gh release upload v1.0.2 $installer --repo $env:GITHUB_REPOSITORY --clobber

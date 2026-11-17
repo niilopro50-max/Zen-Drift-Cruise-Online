@@ -5152,7 +5152,7 @@ function loop() {
 
   const ROAD_EDGE = 118;
   isCarInMud = minDist > ROAD_EDGE;
-  const mudDepth = isCarInMud ? Math.min(1, (minDist - ROAD_EDGE) / 55) : 0;
+  const mudDepth = isCarInMud ? Math.pow(Math.min(1, (minDist - ROAD_EDGE) / 55), 1.7) : 0;
   currentSurfaceName = isCarInMud
     ? (mudDepth > 0.5 ? "Deep Mud & Trees (-70% Drag)" : "Muddy Shoulder (Slowdown)")
     : (isRainActive ? (isSunsetActive ? "Wet Asphalt (Sunset Sheen)" : "Wet Asphalt (Smooth)") : (isSunsetActive ? "Dry Asphalt (Sunset Grip)" : "Dry Asphalt (High Grip)"));
@@ -5176,8 +5176,8 @@ function loop() {
     mudGain.gain.setTargetAtTime(targetMudGain, audioCtx.currentTime, 0.08);
   }
 
-  const steerLimit = mobileDrivingMode ? 0.045 : 0.065;
-  const steerSmooth = mobileDrivingMode ? 0.10 : 0.22;
+  const steerLimit = mobileDrivingMode ? 0.038 : 0.052;
+  const steerSmooth = mobileDrivingMode ? 0.075 : 0.14;
 
   let targetSteer = keys.left ? -steerLimit : (keys.right ? steerLimit : 0);
   let autoThrottle = false;
@@ -5204,7 +5204,7 @@ function loop() {
     while (headingError > Math.PI) headingError -= Math.PI * 2;
     while (headingError < -Math.PI) headingError += Math.PI * 2;
 
-    const steeringGain = mobileDrivingMode ? 0.90 : 0.82;
+    const steeringGain = mobileDrivingMode ? 0.72 : 0.75;
     targetSteer = Math.max(
       -steerLimit,
       Math.min(steerLimit, headingError * steeringGain)
@@ -5240,7 +5240,7 @@ function loop() {
 
   car.steer += (targetSteer - car.steer) * steerSmooth;
 
-  const baseAccel = (isCarInMud ? car.accel * 0.4 : car.accel) * (selectedCarType === 'f1' ? 1.15 : 1);
+  const baseAccel = car.accel * (1 - mudDepth * 0.35) * (selectedCarType === 'f1' ? 1.15 : 1);
   const accel = autoDriveEnabled
     ? (autoThrottle ? baseAccel : (autoBrake ? -baseAccel * 0.55 : 0))
     : (keys.up ? baseAccel : (keys.down ? -baseAccel * 0.55 : 0));
@@ -5255,19 +5255,21 @@ function loop() {
   const rightY = fwdX;
   let lateralVel = car.vx * rightX + car.vy * rightY;
 
-  const currentGrip = selectedCarType === 'f1' ? 0.08 : (keys.handbrake ? 0.52 : (isCarInMud ? 0.68 : car.lateralGrip));
+  const currentGrip = selectedCarType === 'f1'
+    ? 0.08
+    : (keys.handbrake ? 0.96 : (isCarInMud ? 0.68 : Math.max(car.lateralGrip, 0.90)));
   lateralVel *= currentGrip;
 
   car.vx = (fwdX * forwardVel * car.friction) + (rightX * lateralVel);
   car.vy = (fwdY * forwardVel * car.friction) + (rightY * lateralVel);
 
   if (isCarInMud) {
-    const mudDrag = 0.88 - (mudDepth * 0.06);
+    const mudDrag = 0.994 - (mudDepth * 0.004);
     car.vx *= mudDrag;
     car.vy *= mudDrag;
     car.speed = Math.sqrt(car.vx * car.vx + car.vy * car.vy);
 
-    const maxMudSpeed = 3.6 + (1 - mudDepth) * 1.6;
+    const maxMudSpeed = car.maxSpeed * (1 - mudDepth * 0.30);
     if (car.speed > maxMudSpeed) {
       const scale = maxMudSpeed / car.speed;
       car.vx *= scale;
@@ -5334,7 +5336,7 @@ function loop() {
   }
 
   if (car.speed > 0.4) {
-    const turnStrength = mobileDrivingMode ? 0.85 : 1.1;
+    const turnStrength = mobileDrivingMode ? 0.72 : 0.90;
     car.angle += car.steer * (car.speed / car.maxSpeed) * turnStrength;
     const moveAngle = Math.atan2(car.vy, car.vx);
     let diff = car.angle - moveAngle;
