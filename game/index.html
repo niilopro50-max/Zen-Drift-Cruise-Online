@@ -5260,6 +5260,8 @@ function loop() {
   let minDist = Infinity;
   let closestIdx = lastClosestNode;
   let signedRoadOffset = 0;
+  let roadNormalX = 0;
+  let roadNormalY = 1;
   const sStart = Math.max(0, lastClosestNode - 25);
   const sEnd = Math.min(roadNodes.length - 1, lastClosestNode + 55);
 
@@ -5280,7 +5282,9 @@ function loop() {
       minDist = dist;
       closestIdx = i;
       const segmentLength = Math.sqrt(lenSq);
-      signedRoadOffset = ((car.x - px) * -dy + (car.y - py) * dx) / segmentLength;
+      roadNormalX = -dy / segmentLength;
+      roadNormalY = dx / segmentLength;
+      signedRoadOffset = (car.x - px) * roadNormalX + (car.y - py) * roadNormalY;
     }
   }
   lastClosestNode = closestIdx;
@@ -5493,6 +5497,22 @@ function loop() {
 
   car.x += car.vx;
   car.y += car.vy;
+  if (autoDriveEnabled && Number.isFinite(minDist)) {
+    const maxAutoDriveOffset = ROAD_HALF_WIDTH * 0.72;
+    const nextRoadOffset = signedRoadOffset + car.vx * roadNormalX + car.vy * roadNormalY;
+    if (Math.abs(nextRoadOffset) > maxAutoDriveOffset) {
+      const side = Math.sign(nextRoadOffset);
+      const excess = nextRoadOffset - side * maxAutoDriveOffset;
+      car.x -= roadNormalX * excess;
+      car.y -= roadNormalY * excess;
+
+      const outwardSpeed = side * (car.vx * roadNormalX + car.vy * roadNormalY);
+      if (outwardSpeed > 0) {
+        car.vx -= roadNormalX * side * outwardSpeed;
+        car.vy -= roadNormalY * side * outwardSpeed;
+      }
+    }
+  }
   car.speed = Math.sqrt(car.vx * car.vx + car.vy * car.vy);
   if (desktopMode && car.speed > car.maxSpeed) {
     const speedScale = car.maxSpeed / car.speed;
