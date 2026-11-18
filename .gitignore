@@ -25,3 +25,12 @@ android/local.properties
 android/*.jks
 android/signing.local.env
 *.idsig
+
+# External historical archive - preserve locally, exclude from Git
+_ARCHIVO_EXTERNO/
+
+# Local temporary website backups
+website/*.save
+
+# Empty accidental root file (preserved locally)
+/tsx

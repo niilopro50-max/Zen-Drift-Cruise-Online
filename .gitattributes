@@ -1,0 +1,5 @@
+# Normalize text files in the repository
+* text=auto
+
+# Preserve Windows batch-file line endings on checkout
+*.cmd text eol=crlf
