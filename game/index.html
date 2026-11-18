@@ -3080,11 +3080,11 @@ body {
   min-height: 58px;
 }
 
-#menu-home .menu-website-link {
-  position: fixed;
-  top: max(16px, env(safe-area-inset-top, 0px));
-  left: max(16px, env(safe-area-inset-left, 0px));
-  z-index: 220;
+#overlay > .menu-website-link {
+  position: absolute;
+  top: max(10px, env(safe-area-inset-top, 0px));
+  left: max(10px, env(safe-area-inset-left, 0px));
+  z-index: 230;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -3103,11 +3103,16 @@ body {
   transition: background 0.2s, border-color 0.2s, color 0.2s;
 }
 
-#menu-home .menu-website-link[hidden] {
+#overlay:has(#menu-home:not([hidden])) > .menu-website-link {
+  display: inline-flex;
+}
+
+#overlay > .menu-website-link[hidden],
+#overlay:not(:has(#menu-home:not([hidden]))) > .menu-website-link {
   display: none !important;
 }
 
-#menu-home .menu-website-link:hover {
+#overlay > .menu-website-link:hover {
   background: rgba(234,88,12,0.16);
   border-color: rgba(251,146,60,0.6);
   color: #fff;
@@ -3241,6 +3246,7 @@ body {
 </div>
 
 <div id="overlay" role="dialog" aria-label="Zen Drift main menu">
+  <a id="return-website-btn" class="menu-website-link" href="/">← BACK TO WEBSITE</a>
   <div class="ov-box">
 
     
@@ -3268,7 +3274,6 @@ body {
     <button id="menu-modes" type="button">GAME MODES</button>
     <button id="menu-settings" type="button">SETTINGS</button>
   </div>
-  <a id="return-website-btn" class="menu-website-link" href="/">← BACK TO WEBSITE</a>
 </section>
 
 
