@@ -4981,10 +4981,6 @@ function addTree(tree) {
   trees.push(tree);
   indexTree(tree);
 }
-function rebuildTreeSpatialGrid() {
-  treeSpatialGrid.clear();
-  for (let i = 0; i < trees.length; i++) indexTree(trees[i]);
-}
 const forestCanopySheet = new Image();
 forestCanopySheet.src = 'assets/forest-canopy-sprites.png';
 const desertCactusSheet = new Image();
@@ -6465,54 +6461,6 @@ function loop(frameTime) {
     }
   }
 
-  const collisionCellX = Math.floor(car.x / TREE_GRID_SIZE);
-  const collisionCellY = Math.floor(car.y / TREE_GRID_SIZE);
-  for (let cellX = collisionCellX - 1; cellX <= collisionCellX + 1; cellX++) {
-    for (let cellY = collisionCellY - 1; cellY <= collisionCellY + 1; cellY++) {
-      const nearbyTrees = treeSpatialGrid.get(treeGridKey(cellX, cellY));
-      if (!nearbyTrees) continue;
-      for (let i = 0; i < nearbyTrees.length; i++) {
-        const tree = nearbyTrees[i];
-        if (tree.tier > 1) continue;
-        if (Math.abs(tree.x - car.x) > 65 || Math.abs(tree.y - car.y) > 65) continue;
-        const dx = car.x - tree.x;
-        const dy = car.y - tree.y;
-        const dist = Math.hypot(dx, dy);
-        const minDist = (tree.trunkR || 4) + 13;
-        if (dist < minDist && dist > 0) {
-          const nx = dx / dist;
-          const ny = dy / dist;
-          const overlap = minDist - dist;
-          car.x += nx * overlap;
-          car.y += ny * overlap;
-
-          const dot = car.vx * nx + car.vy * ny;
-          if (dot < 0) {
-            const impactDamping = Math.pow(0.7, frameScale);
-            car.vx = (car.vx - 1.4 * dot * nx) * impactDamping;
-            car.vy = (car.vy - 1.4 * dot * ny) * impactDamping;
-          }
-          car.speed *= Math.pow(0.7, frameScale);
-
-          if (Date.now() - tree.hitCooldown > 300) {
-            tree.hitCooldown = Date.now();
-            playTreeRustle();
-            for (let s = 0; s < 8; s++) {
-              leafParticles.push({
-                x: tree.x + (Math.random() - 0.5) * tree.r,
-                y: tree.y + (Math.random() - 0.5) * tree.r,
-                vx: nx * (Math.random() * 2.5 + 1) + (Math.random() - 0.5) * 2,
-                vy: ny * (Math.random() * 2.5 + 1) + (Math.random() - 0.5) * 2,
-                size: Math.random() * 3 + 2,
-                alpha: 0.9,
-                color: isSunsetActive ? 'rgba(74, 52, 36,' : 'rgba(35, 85, 55,'
-              });
-            }
-          }
-        }
-      }
-    }
-  }
 
   car.speed = Math.sqrt(car.vx * car.vx + car.vy * car.vy);
   if (car.speed > car.maxSpeed) {
@@ -6600,11 +6548,6 @@ function loop(frameTime) {
   const lastNode = roadNodes[roadNodes.length - 1];
   if (car.y < lastNode.y + 12000) {
     extendRoad(roadNodes.length + 320);
-  }
-
-  if (trees.length > 1200 && trees[0].y > car.y + 2800) {
-    trees.splice(0, 80);
-    rebuildTreeSpatialGrid();
   }
 
   if (currentFrameTime - lastHudUpdateTime >= 100) {
