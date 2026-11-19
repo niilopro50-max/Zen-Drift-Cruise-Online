@@ -703,11 +703,16 @@
 }
 
 @media (pointer: coarse) and (orientation: landscape) and (max-height: 600px) {
+  /* Keep the open menu in the center lane between steering and GAS controls. */
   #touch-utility-buttons {
     top: 150px;
-    max-height: min(46vh, calc(100vh - 164px - env(safe-area-inset-bottom, 0px)));
-    max-height: min(46dvh, calc(100dvh - 164px - env(safe-area-inset-bottom, 0px)));
-    width: min(220px, calc(100vw - 20px));
+    right: auto;
+    left: 50%;
+    transform: translateX(-50%);
+    max-height: calc(100vh - 166px - env(safe-area-inset-bottom, 0px));
+    max-height: calc(100dvh - 166px - env(safe-area-inset-bottom, 0px));
+    width: min(220px, calc(100vw - 180px));
+    min-width: 0;
     gap: 4px;
     padding: 2px 4px 4px 2px;
     overflow-x: hidden;
