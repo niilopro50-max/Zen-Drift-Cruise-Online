@@ -4974,8 +4974,6 @@ const desertCactusSheet = new Image();
 desertCactusSheet.src = 'assets/desert-cactus-sprites.png';
 let preparedCanopySprites = null;
 let preparedCanopyFilterKey = '';
-let roadPath = new Path2D();
-let roadPathNeedsRebuild = true;
 
 // Procedural Road spline
 const roadNodes = [];
@@ -5073,7 +5071,6 @@ function generateTreesForNode(index, x, y, angle) {
 }
 
 function extendRoad(targetCount) {
-  const previousLength = roadNodes.length;
   while (roadNodes.length < targetCount) {
     const i = roadNodes.length;
     let prevX = 0;
@@ -5096,7 +5093,6 @@ function extendRoad(targetCount) {
       generateTreesForNode(i, newNode.x, newNode.y, angle);
     }
   }
-  if (roadNodes.length !== previousLength) roadPathNeedsRebuild = true;
 }
 
 extendRoad(1400);
@@ -6040,16 +6036,18 @@ function drawLushTree(c, tree, inHeadlights, distToCar, beamDiff) {
   }
   c.save();
   c.translate(tree.x + swayX * 0.32, tree.y + swayY * 0.32);
-  const shadowAlpha = tree.tier === 0 ? 0.22 : (tree.tier === 3 ? 0.08 : 0.15);
-  const shadowTone = landscapeMode === 'snow' || landscapeMode === 'fog'
-    ? `rgba(14, 25, 32, ${shadowAlpha})`
-    : isSunsetActive
-      ? `rgba(22, 13, 9, ${shadowAlpha})`
-      : `rgba(5, 13, 11, ${shadowAlpha})`;
-  c.fillStyle = shadowTone;
-  c.beginPath();
-  c.ellipse(tree.r * 0.12, tree.r * 0.28, tree.r * 0.92, tree.r * 0.72, -0.16, 0, Math.PI * 2);
-  c.fill();
+  if (tree.tier < 2) {
+    const shadowAlpha = tree.tier === 0 ? 0.22 : 0.15;
+    const shadowTone = landscapeMode === 'snow' || landscapeMode === 'fog'
+      ? `rgba(14, 25, 32, ${shadowAlpha})`
+      : isSunsetActive
+        ? `rgba(22, 13, 9, ${shadowAlpha})`
+        : `rgba(5, 13, 11, ${shadowAlpha})`;
+    c.fillStyle = shadowTone;
+    c.beginPath();
+    c.ellipse(tree.r * 0.12, tree.r * 0.28, tree.r * 0.92, tree.r * 0.72, -0.16, 0, Math.PI * 2);
+    c.fill();
+  }
 
   if (forestCanopySheet.complete && forestCanopySheet.naturalWidth > 0) {
     const columns = 2;
@@ -6070,7 +6068,7 @@ function drawLushTree(c, tree, inHeadlights, distToCar, beamDiff) {
             ? 'sepia(0.16) saturate(1.10) brightness(1.03)'
             : 'none';
     if (preparedCanopyFilterKey !== biomeFilter) {
-      const targetScale = Math.min(1, 256 / cellWidth, 256 / cellHeight);
+      const targetScale = Math.min(1, 192 / cellWidth, 192 / cellHeight);
       const targetWidth = Math.round(cellWidth * targetScale);
       const targetHeight = Math.round(cellHeight * targetScale);
       preparedCanopySprites = Array.from({ length: 4 }, (_, spriteIndex) => {
@@ -6101,12 +6099,12 @@ function drawLushTree(c, tree, inHeadlights, distToCar, beamDiff) {
     );
     c.restore();
 
-    if (landscapeMode === 'snow') {
+    if (landscapeMode === 'snow' && tree.tier < 2) {
       c.save();
       c.beginPath();
       c.ellipse(0, 0, tree.r * 0.88, tree.r * 0.82, 0, 0, Math.PI * 2);
       c.clip();
-      for (let patch = 0; patch < 14; patch++) {
+      for (let patch = 0; patch < 6; patch++) {
         const angle = tree.sway * 0.22 + patch * 2.399;
         const distance = tree.r * (0.08 + ((patch * 17 + tree.species * 11) % 8) * 0.075);
         const px = Math.cos(angle) * distance;
@@ -6122,7 +6120,7 @@ function drawLushTree(c, tree, inHeadlights, distToCar, beamDiff) {
       c.restore();
     }
 
-    if (landscapeMode === 'fog') {
+    if (landscapeMode === 'fog' && tree.tier < 2) {
       const mist = c.createRadialGradient(0, 0, tree.r * 0.48, 0, 0, tree.r * 1.22);
       mist.addColorStop(0, 'rgba(202, 214, 213, 0)');
       mist.addColorStop(0.76, 'rgba(202, 214, 213, 0.12)');
@@ -6144,7 +6142,7 @@ function drawLushTree(c, tree, inHeadlights, distToCar, beamDiff) {
     c.fill();
   }
 
-  if (inHeadlights && distToCar > 0) {
+  if (inHeadlights && distToCar > 0 && tree.tier === 0) {
     const litFactor = Math.min(0.28, (1 - distToCar / 380) * (1 - beamDiff / 0.48) * 0.34);
     if (litFactor > 0) {
       c.fillStyle = `rgba(255, 235, 185, ${litFactor})`;
@@ -6707,15 +6705,12 @@ function loop(frameTime) {
     (isSunsetActive
       ? (isRainActive ? '#120b12' : '#140c14')
       : (isRainActive ? '#050c09' : '#040907'));
-  if (roadPathNeedsRebuild) {
-    roadPath = new Path2D();
-    roadNodes.forEach((node, i) => {
-      if (i === 0) roadPath.moveTo(node.x, node.y);
-      else roadPath.lineTo(node.x, node.y);
-    });
-    roadPathNeedsRebuild = false;
-  }
-  ctx.stroke(roadPath);
+  ctx.beginPath();
+  roadNodes.forEach((node, i) => {
+    if (i === 0) ctx.moveTo(node.x, node.y);
+    else ctx.lineTo(node.x, node.y);
+  });
+  ctx.stroke();
 
   ctx.lineWidth = 790;
   ctx.strokeStyle = landscapeMode === 'desert' ? '#d9b45e' : landscapeMode === 'snow' ? '#d5e2e9' :
@@ -6772,7 +6767,12 @@ function loop(frameTime) {
     ? (isRainActive ? 'rgba(255, 175, 45, 0.85)' : 'rgba(255, 195, 60, 0.92)')
     : (isRainActive ? 'rgba(240, 186, 48, 0.7)' : 'rgba(245, 196, 62, 0.85)');
   ctx.setLineDash([20, 24]);
-  ctx.stroke(roadPath);
+  ctx.beginPath();
+  roadNodes.forEach((node, i) => {
+    if (i === 0) ctx.moveTo(node.x, node.y);
+    else ctx.lineTo(node.x, node.y);
+  });
+  ctx.stroke();
   ctx.setLineDash([]);
 
   // Mud Tracks & Skids
