@@ -4945,6 +4945,9 @@ function updateCarPerformance() {
   car.maxSpeed = standardMaxSpeed * (selectedCarType === 'f1' ? 1.15 : 1);
 }
 
+// Apply the desktop speed cap to the default car too, before the first drive.
+updateCarPerformance();
+
 
 // Surface & mud state
 let isCarInMud = false;

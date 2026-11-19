@@ -47,7 +47,7 @@ jobs:
       - name: Create release if needed
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release view v1.2.3 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 || gh release create v1.2.3 --repo "$GITHUB_REPOSITORY" --title "Zen Drift Cruise 1.2.3" --notes "Permanent scenery without tree collisions, optimized for smoother phone play."
+        run: gh release view v1.2.4 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 || gh release create v1.2.4 --repo "$GITHUB_REPOSITORY" --title "Zen Drift Cruise 1.2.4" --notes "Fixes the desktop default-car speed cap and keeps permanent non-colliding trees."
 
       - name: Publish installer to GitHub release
         env:
@@ -58,6 +58,6 @@ jobs:
             echo "macOS DMG was not created."
             exit 1
           fi
-          asset="release-build/Zen.Drift.Cruise-1.2.3-arm64.dmg"
+          asset="release-build/Zen.Drift.Cruise-1.2.4-arm64.dmg"
           mv "$dmg" "$asset"
-          gh release upload v1.2.3 "$asset" --repo "$GITHUB_REPOSITORY" --clobber
+          gh release upload v1.2.4 "$asset" --repo "$GITHUB_REPOSITORY" --clobber

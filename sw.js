@@ -1,4 +1,4 @@
-const CACHE_NAME = "zen-cruise-v8";
+const CACHE_NAME = "zen-cruise-v9";
 
 const APP_FILES = [
   "/",
