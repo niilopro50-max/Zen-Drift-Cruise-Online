@@ -837,6 +837,12 @@
   text-align: center;
 }
 
+/* Remove the old orange accent rail from the menu card. */
+#overlay:has(#menu-home:not([hidden])) .ov-box::before {
+  display: none !important;
+  content: none !important;
+}
+
 #menu-home .hero-car-label {
   align-self: flex-end;
   margin: 8px 14px 0;
@@ -3176,6 +3182,762 @@ body {
 
 /* ===== END ZEN DRIFT HOME AND MENU NAVIGATION FIX ===== */
 
+/* ===== LOCAL HOME SCREEN CONCEPT: TOUGE SUNSET ===== */
+#overlay:has(#menu-home:not([hidden])) {
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  overflow-y: auto;
+  background-image:
+    linear-gradient(180deg, rgba(3,5,9,.22) 0%, rgba(3,5,9,.18) 44%, rgba(3,5,9,.76) 100%),
+    linear-gradient(90deg, rgba(3,5,9,.18), transparent 54%, rgba(3,5,9,.18)),
+    url("assets/home-screen-touge.jpg") !important;
+  background-size: cover !important;
+  background-position: center 54% !important;
+  background-repeat: no-repeat !important;
+  animation: none !important;
+  backdrop-filter: none;
+}
+
+#overlay:has(#menu-home:not([hidden])) .ov-box {
+  width: min(1120px, 100%);
+  max-width: none;
+  min-height: min(100%, 820px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(66px, 10vh, 100px) 24px 24px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  text-align: center;
+}
+
+#menu-home:not([hidden]) {
+  width: 100%;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  grid-template-areas: "eyebrow" "copy" "chips" "nav" !important;
+  justify-items: center;
+  align-content: center;
+  gap: clamp(10px, 1.7vh, 18px);
+  text-align: center;
+}
+
+#menu-home > .menu-eyebrow {
+  grid-area: eyebrow !important;
+  margin: 0;
+  color: #ffad52 !important;
+  font-family: "Arial Black", Impact, sans-serif !important;
+  font-size: clamp(9px, 1vw, 12px) !important;
+  font-weight: 950 !important;
+  letter-spacing: clamp(3px, .55vw, 7px) !important;
+  text-shadow: 0 2px 12px #000, 0 0 16px rgba(255,126,36,.65);
+}
+
+#menu-home .menu-hero-copy {
+  grid-area: copy !important;
+  width: 100%;
+  text-align: center !important;
+}
+
+#menu-home .ov-title {
+  margin: 0 auto clamp(8px, 1.5vh, 16px) !important;
+  color: #fff8eb !important;
+  font-family: "Arial Black", Impact, Haettenschweiler, sans-serif !important;
+  font-size: clamp(56px, 11.5vw, 152px) !important;
+  font-style: italic;
+  font-weight: 1000 !important;
+  line-height: .86 !important;
+  letter-spacing: -.045em !important;
+  white-space: nowrap;
+  -webkit-text-stroke: 1px rgba(255,244,220,.35);
+  text-shadow: 3px 4px 0 #342014, 7px 9px 0 rgba(20,9,5,.88), 0 12px 32px rgba(0,0,0,.8), 0 0 28px rgba(255,95,18,.55) !important;
+  transform: skewX(-5deg);
+}
+
+#menu-home .ov-title span {
+  color: #ff761d !important;
+  -webkit-text-stroke: 1px rgba(255,190,117,.7);
+  text-shadow: 3px 4px 0 #641d0a, 7px 9px 0 rgba(30,8,3,.9), 0 12px 34px rgba(0,0,0,.8), 0 0 32px rgba(255,91,9,.72) !important;
+}
+
+/* Graffiti treatment for the main logo lettering. */
+#menu-home .ov-title {
+  position: relative;
+  display: inline-block;
+  z-index: 0;
+  padding: .04em .14em .12em;
+  font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif !important;
+  font-weight: 1000 !important;
+  font-style: italic;
+  letter-spacing: -.075em !important;
+  -webkit-text-stroke: 2px #21100a;
+  paint-order: stroke fill;
+  transform: rotate(-3deg) skewX(-11deg);
+  filter: drop-shadow(0 8px 0 rgba(16,7,3,.86)) drop-shadow(0 0 17px rgba(255,103,21,.62));
+  text-shadow: 2px 2px 0 #21100a, -2px -1px 0 #21100a, 1px -2px 0 #21100a !important;
+}
+
+#menu-home .ov-title::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 34% -3% 28% -4%;
+  background: linear-gradient(100deg, transparent 0%, rgba(255,97,25,.55) 9%, rgba(194,39,16,.82) 48%, rgba(255,111,24,.66) 88%, transparent 100%);
+  clip-path: polygon(0 38%,11% 22%,25% 30%,36% 0,52% 24%,71% 7%,87% 27%,100% 12%,95% 72%,83% 60%,68% 100%,51% 70%,34% 92%,20% 66%,7% 83%);
+  transform: skewX(-8deg);
+}
+
+#menu-home .ov-title span {
+  position: relative;
+  display: inline-block;
+  -webkit-text-stroke: 2px #451506;
+  paint-order: stroke fill;
+  text-shadow: 2px 2px 0 #451506, -2px -1px 0 #451506, 1px -2px 0 #451506, 0 0 20px rgba(255,108,19,.68) !important;
+}
+
+#menu-home .ov-title span::after {
+  content: none;
+}
+
+#menu-home .ov-title {
+  width: 100%;
+  max-width: 1000px;
+  padding: 0;
+  border: 0;
+  transform: none;
+  filter: drop-shadow(0 12px 16px rgba(0,0,0,.55));
+  -webkit-text-stroke: 0;
+  text-shadow: none !important;
+}
+
+#menu-home .ov-title img {
+  display: block;
+  width: 100%;
+  height: clamp(130px, 13vw, 190px);
+  object-fit: fill;
+  margin: 0 auto;
+}
+
+/* Give each menu its own scene while keeping the same warm racing palette. */
+#overlay:has(#menu-garage-page:not([hidden])),
+#overlay:has(#menu-modes-page:not([hidden])),
+#overlay:has(#menu-settings-page:not([hidden])) {
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 24px;
+  animation: none !important;
+}
+
+#overlay:has(#menu-garage-page:not([hidden])) {
+  background: radial-gradient(ellipse at 50% 42%, rgba(255,126,40,.17), transparent 38%),
+    repeating-linear-gradient(132deg, transparent 0 148px, rgba(255,143,62,.09) 149px 151px, transparent 152px 290px),
+    linear-gradient(125deg, #080b12 0%, #15131a 52%, #28140d 100%) !important;
+}
+
+#overlay:has(#menu-modes-page:not([hidden])) {
+  background: radial-gradient(ellipse at 50% 50%, rgba(226,77,24,.2), transparent 45%),
+    repeating-linear-gradient(157deg, transparent 0 110px, rgba(255,105,34,.11) 111px 113px, transparent 114px 220px),
+    linear-gradient(145deg, #08090d 0%, #171116 53%, #2b120b 100%) !important;
+}
+
+#overlay:has(#menu-settings-page:not([hidden])) {
+  background: radial-gradient(ellipse at 78% 24%, rgba(51,112,169,.25), transparent 40%),
+    repeating-linear-gradient(0deg, transparent 0 47px, rgba(132,177,221,.045) 48px 49px),
+    repeating-linear-gradient(90deg, transparent 0 47px, rgba(132,177,221,.04) 48px 49px),
+    linear-gradient(140deg, #080d17 0%, #101a27 54%, #17212c 100%) !important;
+}
+
+#overlay:has(#menu-garage-page:not([hidden])) .ov-box,
+#overlay:has(#menu-modes-page:not([hidden])) .ov-box,
+#overlay:has(#menu-settings-page:not([hidden])) .ov-box {
+  width: min(920px, 100%);
+  max-width: none;
+  padding: 58px 26px 24px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+#menu-garage-page,
+#menu-modes-page,
+#menu-settings-page {
+  width: min(100%, 760px);
+  color: #fff5e9;
+}
+
+#menu-garage-page > .menu-eyebrow,
+#menu-modes-page > .menu-eyebrow,
+#menu-settings-page > .menu-eyebrow {
+  color: #ffb46f !important;
+  font-family: "Arial Black", Impact, sans-serif;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 4px;
+  text-shadow: 0 2px 12px #000, 0 0 15px rgba(255,112,32,.7);
+}
+
+#menu-garage-page .ov-page-title,
+#menu-modes-page .ov-page-title,
+#menu-settings-page .ov-page-title {
+  margin: 5px 0 8px;
+  color: #fff7ed;
+  font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+  font-size: clamp(38px, 5vw, 62px);
+  font-style: italic;
+  font-weight: 1000;
+  letter-spacing: -.045em;
+  line-height: .95;
+  text-shadow: 3px 4px 0 #35170b, 0 8px 22px rgba(0,0,0,.88);
+  transform: skewX(-5deg);
+}
+
+#menu-garage-page .ov-page-copy {
+  color: #fff1e2;
+  text-shadow: 0 2px 10px #000;
+}
+
+#menu-garage-page .garage-showroom {
+  border: 1px solid rgba(255,151,73,.62);
+  border-radius: 12px;
+  background: linear-gradient(145deg, rgba(24,14,11,.88), rgba(8,9,13,.86));
+  box-shadow: 0 14px 38px rgba(0,0,0,.45), 0 0 18px rgba(255,112,32,.16);
+}
+
+#menu-garage-page .garage-stage-ring {
+  border-color: rgba(255,160,91,.46);
+  box-shadow: 0 0 30px rgba(255,116,35,.18), inset 0 0 24px rgba(255,116,35,.08);
+}
+
+#menu-garage-page .garage-showroom-kicker,
+#menu-garage-page #garage-preview-type,
+#menu-garage-page .garage-stage-caption b {
+  color: #ff9a48;
+}
+
+#menu-garage-page .garage-car-option,
+#menu-garage-page .garage-current,
+#menu-garage-page .player-name-panel,
+#menu-garage-page .garage-skin-selector {
+  border-color: rgba(255,151,73,.55);
+  background: linear-gradient(110deg, rgba(23,14,11,.91), rgba(12,12,15,.88));
+  color: #fff4e8;
+  box-shadow: 0 8px 22px rgba(0,0,0,.24);
+}
+
+#menu-garage-page .garage-car-option.selected {
+  border-color: #ff8a36;
+  background: linear-gradient(110deg, rgba(255,105,27,.28), rgba(22,13,10,.92) 72%);
+  box-shadow: inset 4px 0 #ff8a36, 0 0 17px rgba(255,105,27,.2);
+}
+
+#menu-garage-page .garage-car-option > span:not(.garage-car-icon),
+#menu-garage-page .garage-skin-label,
+#menu-garage-page .garage-section-label,
+#menu-garage-page .player-name-panel label {
+  color: #ffc184;
+  font-family: "Arial Black", Impact, sans-serif;
+  letter-spacing: 1.4px;
+}
+
+#menu-garage-page .garage-car-option small,
+#menu-garage-page .player-name-hint {
+  color: #d7c2b0;
+}
+
+#menu-garage-page .garage-skin-option,
+#menu-garage-page .garage-color {
+  border-color: rgba(255,151,73,.55);
+}
+
+#menu-garage-page .garage-skin-option.selected,
+#menu-garage-page .garage-color.selected {
+  outline-color: #ff9a48;
+  border-color: #fff0dc;
+  box-shadow: 0 0 15px rgba(255,112,32,.38);
+}
+
+#menu-garage-page #player-name-input {
+  border-color: rgba(255,151,73,.5);
+  background: rgba(7,8,12,.85);
+  color: #fff7ee;
+}
+
+#menu-garage-page #garage-drive,
+#menu-modes-page .menu-mode-card {
+  border: 2px solid #ff913f;
+  border-radius: 5px 15px 5px 15px;
+  background: linear-gradient(100deg, rgba(23,13,9,.92), rgba(45,20,11,.88));
+  color: #fff6ec;
+  font-family: "Arial Black", Impact, sans-serif;
+  font-style: italic;
+  letter-spacing: 1.3px;
+  text-shadow: 0 2px 8px #000;
+  box-shadow: 0 0 18px rgba(255,105,24,.27), inset 0 0 18px rgba(255,126,36,.08);
+}
+
+#menu-modes-page .menu-mode-card::before {
+  opacity: .08 !important;
+}
+
+#menu-modes-page {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+#menu-modes-page .ov-page-title { margin-bottom: 8px; }
+
+#menu-modes-page .menu-mode-card {
+  min-height: 88px;
+  padding: 17px 22px;
+  text-align: left;
+}
+
+#menu-modes-page .menu-mode-card span {
+  color: #fff7ed;
+  font-size: clamp(17px, 2vw, 23px);
+}
+
+#menu-modes-page .menu-mode-card small {
+  color: #f4c39b;
+  font-size: 10px;
+  letter-spacing: 1.1px;
+}
+
+#menu-modes-page .menu-mode-card:hover:not(:disabled),
+#menu-garage-page #garage-drive:hover {
+  border-color: #ffc07b;
+  background: linear-gradient(100deg, rgba(102,43,15,.95), rgba(40,19,12,.93));
+  box-shadow: 0 0 26px rgba(255,105,24,.55), inset 0 0 20px rgba(255,126,36,.14);
+}
+
+#menu-modes-page .mode-coming-soon {
+  opacity: .64;
+}
+
+#menu-garage-page .menu-back,
+#menu-modes-page .menu-back,
+#menu-settings-page .menu-back {
+  border-color: rgba(255,151,73,.72);
+  background: rgba(15,10,8,.76);
+  color: #ffe5cd;
+  font-family: "Arial Black", Impact, sans-serif;
+  letter-spacing: 1px;
+}
+
+#menu-settings-page .ov-page-copy {
+  max-width: 620px;
+  margin: 10px 0 22px;
+  padding: 18px 20px;
+  border-left: 3px solid #79b8ee;
+  border-radius: 0 10px 10px 0;
+  background: linear-gradient(100deg, rgba(25,50,73,.74), rgba(12,22,34,.7));
+  color: #e3eef9;
+  line-height: 1.6;
+  text-shadow: 0 2px 8px #000;
+}
+
+#menu-settings-page .menu-mode-card {
+  max-width: 620px;
+  padding: 22px;
+  border: 1px solid rgba(121,184,238,.5);
+  border-radius: 9px 18px 9px 18px;
+  background: linear-gradient(110deg, rgba(29,62,91,.78), rgba(12,20,31,.85));
+  color: #f1f7fc;
+  font-family: "Arial Black", Impact, sans-serif;
+  font-size: 17px;
+  font-style: italic;
+  letter-spacing: 1.2px;
+  box-shadow: 0 10px 28px rgba(0,0,0,.3), 0 0 18px rgba(76,155,219,.12);
+}
+
+#menu-settings-page .menu-mode-card small {
+  display: block;
+  margin-top: 8px;
+  color: #a9c8e3;
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+
+#menu-settings-page .menu-back {
+  border-color: rgba(121,184,238,.58);
+  color: #dcedfc;
+}
+
+@media (max-width: 700px) {
+  #overlay:has(#menu-garage-page:not([hidden])),
+  #overlay:has(#menu-modes-page:not([hidden])),
+  #overlay:has(#menu-settings-page:not([hidden])) { padding: 12px; }
+  #overlay:has(#menu-garage-page:not([hidden])) .ov-box,
+  #overlay:has(#menu-modes-page:not([hidden])) .ov-box,
+  #overlay:has(#menu-settings-page:not([hidden])) .ov-box { padding: 52px 8px 14px; }
+  #menu-garage-page,
+  #menu-modes-page,
+  #menu-settings-page { width: 100%; }
+  #menu-modes-page .menu-mode-card { min-height: 72px; padding: 13px 15px; }
+  #menu-modes-page { gap: 10px; }
+}
+
+#menu-home .ov-sub {
+  max-width: 720px;
+  margin: 0 auto;
+  color: #fffaf2;
+  font-size: clamp(14px, 1.55vw, 21px);
+  font-family: "Trebuchet MS", Arial, sans-serif;
+  font-weight: 800;
+  letter-spacing: .015em;
+  line-height: 1.45;
+  text-shadow: 0 2px 12px rgba(0,0,0,.95), 0 0 22px rgba(0,0,0,.8);
+}
+
+#menu-home .menu-chip-row {
+  grid-area: chips !important;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin: 0;
+}
+
+#menu-home .menu-chip {
+  padding: 8px 13px;
+  border: 1px solid rgba(255,153,68,.86) !important;
+  border-radius: 3px 10px 3px 10px !important;
+  background: rgba(15,10,8,.68) !important;
+  color: #fff4e7 !important;
+  font-size: 10px;
+  font-family: "Arial Black", Impact, sans-serif;
+  font-style: italic;
+  font-weight: 900;
+  letter-spacing: 1.1px;
+  box-shadow: 0 0 12px rgba(255,112,27,.3), inset 0 0 12px rgba(255,119,31,.08);
+}
+
+#menu-home #start-btn { display: none !important; }
+
+#menu-home .menu-nav {
+  grid-area: nav !important;
+  display: flex !important;
+  flex-direction: column;
+  width: min(600px, 100%);
+  gap: clamp(8px, 1.5vh, 14px);
+  margin: clamp(5px, 1vh, 12px) auto 0;
+}
+
+#menu-home .menu-nav button {
+  min-height: clamp(54px, 7.2vh, 74px);
+  padding: 10px 18px;
+  border: 2px solid rgba(255,145,57,.92) !important;
+  border-radius: 4px 15px 4px 15px !important;
+  background: linear-gradient(100deg, rgba(15,11,9,.82), rgba(28,16,11,.76)) !important;
+  color: #fff7ee !important;
+  font-family: "Arial Black", Impact, "Trebuchet MS", sans-serif;
+  font-size: clamp(17px, 2.15vw, 27px);
+  font-style: italic;
+  font-weight: 950;
+  letter-spacing: 1.5px !important;
+  text-shadow: 0 2px 8px #000, 0 0 12px rgba(255,140,50,.35);
+  box-shadow: 0 0 14px rgba(255,105,24,.36), inset 0 0 18px rgba(255,126,36,.08);
+  transition: transform .18s ease, background .18s ease, box-shadow .18s ease;
+}
+
+#menu-home .menu-nav button:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(100deg, rgba(91,38,14,.9), rgba(39,20,12,.88)) !important;
+  box-shadow: 0 0 22px rgba(255,105,24,.6), inset 0 0 20px rgba(255,126,36,.12);
+}
+
+#menu-home #menu-modes {
+  border-color: rgba(255,145,57,.92) !important;
+  background: linear-gradient(100deg, rgba(15,11,9,.82), rgba(28,16,11,.76)) !important;
+  box-shadow: 0 0 14px rgba(255,105,24,.36), inset 0 0 18px rgba(255,126,36,.08) !important;
+}
+
+#overlay > .menu-website-link {
+  top: max(18px, env(safe-area-inset-top, 0px));
+  left: max(18px, env(safe-area-inset-left, 0px));
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 2px solid rgba(255,145,57,.9);
+  border-radius: 10px;
+  background: rgba(16,10,8,.72);
+  color: #fff4e7;
+  font-size: 12px;
+  font-style: italic;
+  box-shadow: 0 0 14px rgba(255,105,24,.28);
+}
+
+@media (max-width: 700px) {
+  #overlay:has(#menu-home:not([hidden])) {
+    align-items: stretch;
+    padding: max(12px, env(safe-area-inset-top)) 12px max(16px, env(safe-area-inset-bottom));
+    background-position: 57% center;
+  }
+
+  #overlay:has(#menu-home:not([hidden])) .ov-box {
+    width: 100%;
+    min-height: 100%;
+    margin: 0;
+    padding: 68px 8px 16px;
+  }
+
+  #menu-home:not([hidden]) { gap: 13px; }
+
+  #menu-home .ov-title {
+    font-size: clamp(42px, 12vw, 76px) !important;
+    letter-spacing: -.05em !important;
+  }
+
+  #menu-home .ov-sub {
+    max-width: 440px;
+    font-size: 14px;
+  }
+
+  #menu-home .menu-chip-row { gap: 6px; }
+
+  #menu-home .menu-chip {
+    padding: 7px 9px;
+    font-size: 8px;
+    letter-spacing: .5px;
+  }
+
+  #menu-home .menu-nav {
+    width: min(500px, 100%);
+    gap: 8px;
+  }
+
+  #menu-home .menu-nav button {
+    min-height: 52px;
+    font-size: 18px;
+  }
+
+  #overlay > .menu-website-link {
+    top: max(10px, env(safe-area-inset-top));
+    left: max(10px, env(safe-area-inset-left));
+    min-height: 38px;
+    padding: 8px 11px;
+    font-size: 10px;
+  }
+}
+
+@media (max-height: 620px) and (orientation: landscape) {
+  #overlay:has(#menu-home:not([hidden])) { padding: 12px; }
+
+  #overlay:has(#menu-home:not([hidden])) .ov-box {
+    padding: 58px 14px 10px;
+  }
+
+  #menu-home:not([hidden]) { gap: 8px; }
+
+  #menu-home .ov-title {
+    font-size: clamp(48px, 8.5vw, 92px) !important;
+    margin-bottom: 6px !important;
+  }
+
+  #menu-home .ov-sub { font-size: 13px; }
+  #menu-home .menu-chip { padding: 6px 9px; }
+  #menu-home .menu-nav { margin-top: 4px; gap: 6px; }
+  #menu-home .menu-nav button { min-height: 43px; font-size: 17px; }
+}
+/* ===== END LOCAL HOME SCREEN CONCEPT ===== */
+
+/* Final visual polish for the garage, modes, and settings screens. */
+#overlay:has(#menu-garage-page:not([hidden])) {
+  background: radial-gradient(ellipse at 52% 18%, rgba(255,145,75,.15), transparent 30%),
+    linear-gradient(145deg, #080a0f 0%, #11131a 54%, #21140f 100%) !important;
+  align-items: flex-start !important;
+  justify-content: center !important;
+}
+
+#overlay:has(#menu-garage-page:not([hidden])) .ov-box,
+#overlay:has(#menu-modes-page:not([hidden])) .ov-box,
+#overlay:has(#menu-settings-page:not([hidden])) .ov-box {
+  margin-inline: auto !important;
+}
+
+@media (min-width: 701px) {
+  #overlay:has(#menu-garage-page:not([hidden])) .ov-box,
+  #overlay:has(#menu-modes-page:not([hidden])) .ov-box,
+  #overlay:has(#menu-settings-page:not([hidden])) .ov-box {
+    transform: translateX(1.5vw);
+  }
+}
+
+#menu-garage-page,
+#menu-modes-page,
+#menu-settings-page {
+  margin-inline: auto !important;
+}
+
+#overlay:has(#menu-modes-page:not([hidden])) {
+  background: radial-gradient(ellipse at 50% 38%, rgba(255,111,37,.12), transparent 36%),
+    linear-gradient(155deg, #090b10 0%, #121217 56%, #1e120f 100%) !important;
+}
+
+#overlay:has(#menu-settings-page:not([hidden])) {
+  background: radial-gradient(ellipse at 78% 20%, rgba(75,146,205,.2), transparent 34%),
+    linear-gradient(145deg, #080d16 0%, #101a27 55%, #141d28 100%) !important;
+}
+
+#menu-garage-page .garage-showroom {
+  border-color: rgba(255,163,103,.45);
+  background: linear-gradient(145deg, rgba(19,16,17,.92), rgba(9,11,16,.9));
+  box-shadow: 0 18px 44px rgba(0,0,0,.4), 0 0 22px rgba(255,122,46,.1);
+}
+
+#menu-garage-page .garage-car-option,
+#menu-garage-page .garage-skin-option,
+#menu-garage-page .garage-current,
+#menu-garage-page .player-name-panel {
+  transition: border-color .18s ease, background .18s ease, box-shadow .18s ease;
+}
+
+#menu-garage-page .garage-car-option.selected {
+  background: linear-gradient(105deg, rgba(73,35,20,.88), rgba(15,13,15,.94));
+  box-shadow: inset 3px 0 #ff9348, 0 8px 24px rgba(0,0,0,.24);
+}
+
+#menu-garage-page .garage-skin-option.selected {
+  background: linear-gradient(105deg, rgba(70,35,22,.9), rgba(19,15,15,.96));
+  color: #fff1e4;
+}
+
+#menu-garage-page #garage-drive {
+  background: linear-gradient(100deg, #f56d22, #c74618 78%) !important;
+  border-color: #ffb16f;
+  color: #fffaf4;
+  box-shadow: 0 9px 26px rgba(199,70,24,.28);
+}
+
+#menu-modes-page button.menu-mode-card.mode-endless-option,
+#menu-modes-page button.menu-mode-card.mode-time-attack-option {
+  border: 1px solid rgba(255,151,83,.68) !important;
+  border-left: 4px solid #ff873b !important;
+  border-radius: 5px 14px 5px 14px !important;
+  background: linear-gradient(105deg, rgba(31,20,17,.97), rgba(19,17,20,.94) 72%, rgba(35,20,16,.94)) !important;
+  box-shadow: 0 12px 28px rgba(0,0,0,.28), inset 0 1px rgba(255,255,255,.06) !important;
+}
+
+#menu-modes-page button.menu-mode-card.mode-endless-option::before,
+#menu-modes-page button.menu-mode-card.mode-time-attack-option::before {
+  display: none !important;
+}
+
+#menu-modes-page button.menu-mode-card.mode-endless-option:hover,
+#menu-modes-page button.menu-mode-card.mode-time-attack-option:hover,
+#menu-modes-page button.menu-mode-card.mode-endless-option:focus-visible,
+#menu-modes-page button.menu-mode-card.mode-time-attack-option:focus-visible {
+  border-color: #ffc18b !important;
+  background: linear-gradient(105deg, rgba(77,40,23,.98), rgba(28,20,19,.96)) !important;
+  box-shadow: 0 0 24px rgba(255,116,44,.2), 0 12px 28px rgba(0,0,0,.32) !important;
+}
+
+#menu-modes-page button.menu-mode-card.mode-coming-soon {
+  border: 1px solid rgba(255,151,83,.3);
+  border-left: 4px solid rgba(255,151,83,.35);
+  border-radius: 5px 14px 5px 14px;
+  background: rgba(19,16,17,.76);
+  box-shadow: none;
+}
+
+#menu-settings-page .menu-mode-card {
+  border-color: rgba(126,181,224,.38);
+  background: linear-gradient(110deg, rgba(22,44,65,.8), rgba(12,21,33,.9));
+}
+
+#menu-garage-page .menu-back,
+#menu-modes-page .menu-back,
+#menu-settings-page .menu-back {
+  min-height: 54px;
+  margin-top: 8px;
+  border-radius: 5px 13px 5px 13px;
+  transition: background .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+
+#menu-garage-page .menu-back:hover,
+#menu-modes-page .menu-back:hover {
+  border-color: #ffc18b;
+  background: rgba(59,31,20,.9);
+  box-shadow: 0 0 18px rgba(255,116,44,.18);
+}
+
+#menu-settings-page .menu-back:hover {
+  border-color: #9bcdf4;
+  background: rgba(31,58,80,.9);
+  box-shadow: 0 0 18px rgba(76,155,219,.18);
+}
+
+#menu-garage-page :focus-visible,
+#menu-modes-page :focus-visible,
+#menu-settings-page :focus-visible {
+  outline: 2px solid #ffe0c0;
+  outline-offset: 3px;
+}
+
+@keyframes menu-background-waves {
+  from { background-position: 0 0, 0 0; }
+  to { background-position: 1080px 0, -760px 0; }
+}
+
+#overlay:has(#menu-garage-page:not([hidden])),
+#overlay:has(#menu-modes-page:not([hidden])),
+#overlay:has(#menu-settings-page:not([hidden])) {
+  isolation: isolate;
+}
+
+#overlay:has(#menu-garage-page:not([hidden]))::before,
+#overlay:has(#menu-modes-page:not([hidden]))::before,
+#overlay:has(#menu-settings-page:not([hidden]))::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  inset: -12%;
+  pointer-events: none;
+  opacity: .76;
+  background-repeat: repeat, no-repeat;
+  background-size: 1080px 520px, 100% 100%;
+  animation: menu-background-waves 14s linear infinite;
+  will-change: background-position;
+}
+
+#overlay:has(#menu-garage-page:not([hidden]))::before {
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1080' height='520' viewBox='0 0 1080 520'%3E%3Cg fill='none' stroke='%23ffad72' stroke-opacity='.34' stroke-width='1.4'%3E%3Cpath d='M0 90 C135 -10 135 -10 270 90 C405 190 405 190 540 90 C675 -10 675 -10 810 90 C945 190 945 190 1080 90'/%3E%3Cpath d='M0 145 C135 45 135 45 270 145 C405 245 405 245 540 145 C675 45 675 45 810 145 C945 245 945 245 1080 145'/%3E%3Cpath d='M0 200 C135 100 135 100 270 200 C405 300 405 300 540 200 C675 100 675 100 810 200 C945 300 945 300 1080 200'/%3E%3Cpath d='M0 255 C135 155 135 155 270 255 C405 355 405 355 540 255 C675 155 675 155 810 255 C945 355 945 355 1080 255'/%3E%3Cpath d='M0 310 C135 210 135 210 270 310 C405 410 405 410 540 310 C675 210 675 210 810 310 C945 410 945 410 1080 310'/%3E%3Cpath d='M0 365 C135 265 135 265 270 365 C405 465 405 465 540 365 C675 265 675 265 810 365 C945 465 945 465 1080 365'/%3E%3Cpath d='M0 420 C135 320 135 320 270 420 C405 520 405 520 540 420 C675 320 675 320 810 420 C945 520 945 520 1080 420'/%3E%3C/g%3E%3C/svg%3E"),
+    radial-gradient(ellipse at 50% 45%, rgba(239,116,54,.17), transparent 64%);
+}
+
+#overlay:has(#menu-modes-page:not([hidden]))::before {
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1080' height='520' viewBox='0 0 1080 520'%3E%3Cg fill='none' stroke='%23ff8b54' stroke-opacity='.32' stroke-width='1.5'%3E%3Cpath d='M0 90 C135 -10 135 -10 270 90 C405 190 405 190 540 90 C675 -10 675 -10 810 90 C945 190 945 190 1080 90'/%3E%3Cpath d='M0 145 C135 45 135 45 270 145 C405 245 405 245 540 145 C675 45 675 45 810 145 C945 245 945 245 1080 145'/%3E%3Cpath d='M0 200 C135 100 135 100 270 200 C405 300 405 300 540 200 C675 100 675 100 810 200 C945 300 945 300 1080 200'/%3E%3Cpath d='M0 255 C135 155 135 155 270 255 C405 355 405 355 540 255 C675 155 675 155 810 255 C945 355 945 355 1080 255'/%3E%3Cpath d='M0 310 C135 210 135 210 270 310 C405 410 405 410 540 310 C675 210 675 210 810 310 C945 410 945 410 1080 310'/%3E%3Cpath d='M0 365 C135 265 135 265 270 365 C405 465 405 465 540 365 C675 265 675 265 810 365 C945 465 945 465 1080 365'/%3E%3Cpath d='M0 420 C135 320 135 320 270 420 C405 520 405 520 540 420 C675 320 675 320 810 420 C945 520 945 520 1080 420'/%3E%3C/g%3E%3C/svg%3E"),
+    radial-gradient(ellipse at 55% 48%, rgba(239,92,44,.16), transparent 62%);
+}
+
+#overlay:has(#menu-settings-page:not([hidden]))::before {
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1080' height='520' viewBox='0 0 1080 520'%3E%3Cg fill='none' stroke='%239bd3ff' stroke-opacity='.30' stroke-width='1.35'%3E%3Cpath d='M0 90 C135 -10 135 -10 270 90 C405 190 405 190 540 90 C675 -10 675 -10 810 90 C945 190 945 190 1080 90'/%3E%3Cpath d='M0 145 C135 45 135 45 270 145 C405 245 405 245 540 145 C675 45 675 45 810 145 C945 245 945 245 1080 145'/%3E%3Cpath d='M0 200 C135 100 135 100 270 200 C405 300 405 300 540 200 C675 100 675 100 810 200 C945 300 945 300 1080 200'/%3E%3Cpath d='M0 255 C135 155 135 155 270 255 C405 355 405 355 540 255 C675 155 675 155 810 255 C945 355 945 355 1080 255'/%3E%3Cpath d='M0 310 C135 210 135 210 270 310 C405 410 405 410 540 310 C675 210 675 210 810 310 C945 410 945 410 1080 310'/%3E%3Cpath d='M0 365 C135 265 135 265 270 365 C405 465 405 465 540 365 C675 265 675 265 810 365 C945 465 945 465 1080 365'/%3E%3Cpath d='M0 420 C135 320 135 320 270 420 C405 520 405 520 540 420 C675 320 675 320 810 420 C945 520 945 520 1080 420'/%3E%3C/g%3E%3C/svg%3E"),
+    radial-gradient(ellipse at 52% 42%, rgba(74,145,216,.16), transparent 66%);
+}
+
+#overlay:has(#menu-garage-page:not([hidden])) > .ov-box,
+#overlay:has(#menu-modes-page:not([hidden])) > .ov-box,
+#overlay:has(#menu-settings-page:not([hidden])) > .ov-box {
+  position: relative;
+  z-index: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #overlay:has(#menu-garage-page:not([hidden]))::before,
+  #overlay:has(#menu-modes-page:not([hidden]))::before,
+  #overlay:has(#menu-settings-page:not([hidden]))::before {
+    animation: none;
+  }
+}
+
 
 </style>
 <link rel="manifest" href="/manifest.json">
@@ -3290,7 +4052,7 @@ body {
   <div class="menu-eyebrow">ZEN DRIFT • CRUISE ONLINE</div>
 
   <div class="menu-hero-copy">
-    <div class="ov-title">ZEN <span>DRIFT</span></div>
+    <div class="ov-title"><img src="assets/home-screen-logo.png" alt="Zen Drift" /></div>
     <p class="ov-sub">
       Find your flow. Take the mountain road.
       Relax, cruise and drift through the sunset.
@@ -3590,6 +4352,7 @@ function showMenuPage(page) {
     const element = document.getElementById('menu-' + name);
     if (element) element.hidden = name !== page;
   });
+  overlay.scrollTop = 0;
   syncGarageLivePreview(page === 'garage-page');
 }
 
@@ -5557,18 +6320,21 @@ function loop() {
     while (headingError < -Math.PI) headingError += Math.PI * 2;
 
     const steeringGain = mobileDrivingMode ? 1.05 : 1.12;
-    targetSteer = Math.max(
-      -steerLimit,
-      Math.min(steerLimit, headingError * steeringGain)
-    );
-
     const safeCurvature = Math.max(curvature, 0.0001);
     const roadPosition = Math.abs(signedRoadOffset) / ROAD_HALF_WIDTH;
     autoRecoveryStrength = Math.max(0, Math.min(1, (roadPosition - 0.18) / 0.42));
     const driftRoom = Math.max(0, Math.min(1, 1 - roadPosition / 0.40));
     autoDriftStrength = curveDirection === 0
       ? 0
-      : Math.max(0, Math.min(1, curvature * 220)) * driftRoom * (1 - autoRecoveryStrength);
+      : Math.max(0, Math.min(1, curvature * 320)) * driftRoom * (1 - autoRecoveryStrength);
+
+    // Point the nose slightly into the bend while the tyres let the body
+    // slide a little wider. Recovery takes priority near the road edge.
+    const driftSteerBias = curveDirection * autoDriftStrength * 0.022;
+    targetSteer = Math.max(
+      -steerLimit,
+      Math.min(steerLimit, headingError * steeringGain + driftSteerBias)
+    );
 
     let targetSpeed = Math.sqrt(0.62 / safeCurvature);
     targetSpeed = Math.max(
@@ -5602,10 +6368,10 @@ function loop() {
   let lateralVel = car.vx * rightX + car.vy * rightY;
 
   const currentGrip = selectedCarType === 'f1'
-    ? (autoDriveEnabled ? 0.08 + autoDriftStrength * 0.06 : 0.08)
+    ? (autoDriveEnabled ? 0.08 + autoDriftStrength * 0.16 : 0.08)
     : (keys.handbrake ? 0.96 : (isCarInMud
       ? 0.68
-      : Math.max(0.70, car.lateralGrip - autoDriftStrength * 0.10) * (1 - autoRecoveryStrength * 0.45)));
+      : Math.max(0.56, car.lateralGrip - autoDriftStrength * 0.24) * (1 - autoRecoveryStrength * 0.55)));
   lateralVel *= currentGrip;
 
   car.vx = (fwdX * forwardVel * car.friction) + (rightX * lateralVel);
