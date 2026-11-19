@@ -6396,30 +6396,76 @@ function loop(frameTime) {
 
   const steerLimit = mobileDrivingMode ? 0.038 : 0.052;
   const steerSmooth = mobileDrivingMode ? 0.075 : 0.14;
+  const autoSteerLimit = mobileDrivingMode ? 0.12 : 0.10;
 
   let targetSteer = keys.left ? -steerLimit : (keys.right ? steerLimit : 0);
+  const activeSteerSmooth = autoDriveEnabled ? (mobileDrivingMode ? 0.18 : 0.22) : steerSmooth;
   let autoThrottle = false;
   let autoBrake = false;
   let autoDriftStrength = 0;
   let autoRecoveryStrength = 0;
 
   if (autoDriveEnabled && roadNodes.length > closestIdx + 12) {
-    // Follow a virtual lead car farther along the road. This gives the
-    // steering time to choose a smooth path through the next bend.
-    const lookAheadDistance = Math.max(105, Math.min(190, 105 + car.speed * 5.2));
+    // Predict the car's position from its actual velocity, then steer toward
+    // a point on the yellow centerline beyond that predicted position.
+    const lookAheadDistance = Math.max(88, Math.min(136, 88 + car.speed * 3.2));
+    const predictionFrames = Math.max(5, Math.min(12, 5 + car.speed * 0.46));
+    const predictedX = car.x + car.vx * predictionFrames;
+    const predictedY = car.y + car.vy * predictionFrames;
+    const turnStrength = mobileDrivingMode ? 0.72 : 0.90;
+    let predictedBodyAngle = car.angle + car.steer * (car.speed / car.maxSpeed) * turnStrength * predictionFrames;
+    while (predictedBodyAngle > Math.PI) predictedBodyAngle -= Math.PI * 2;
+    while (predictedBodyAngle < -Math.PI) predictedBodyAngle += Math.PI * 2;
+
+    const predictedNode = Math.min(
+      roadNodes.length - 2,
+      closestIdx + Math.round(car.speed * predictionFrames / ROAD_NODE_DIST)
+    );
+    let predictedRoadOffset = signedRoadOffset;
+    let predictedDistanceSq = Infinity;
+    const predictionStart = Math.max(0, predictedNode - 4);
+    const predictionEnd = Math.min(roadNodes.length - 1, predictedNode + 5);
+    for (let i = predictionStart; i < predictionEnd; i++) {
+      const n1 = roadNodes[i];
+      const n2 = roadNodes[i + 1];
+      if (!n2) continue;
+      const dx = n2.x - n1.x;
+      const dy = n2.y - n1.y;
+      const lenSq = dx * dx + dy * dy;
+      if (!lenSq) continue;
+      const t = Math.max(0, Math.min(1,
+        ((predictedX - n1.x) * dx + (predictedY - n1.y) * dy) / lenSq
+      ));
+      const px = n1.x + t * dx;
+      const py = n1.y + t * dy;
+      const errorX = predictedX - px;
+      const errorY = predictedY - py;
+      const distanceSq = errorX * errorX + errorY * errorY;
+      if (distanceSq < predictedDistanceSq) {
+        const segmentLength = Math.sqrt(lenSq);
+        predictedDistanceSq = distanceSq;
+        const predictedRoadNormalX = -dy / segmentLength;
+        const predictedRoadNormalY = dx / segmentLength;
+        predictedRoadOffset = errorX * predictedRoadNormalX + errorY * predictedRoadNormalY;
+      }
+    }
+    const predictedRoadPosition = Math.abs(predictedRoadOffset) / ROAD_HALF_WIDTH;
     const targetIndex = Math.min(
       roadNodes.length - 1,
-      closestIdx + Math.max(2, Math.ceil(lookAheadDistance / ROAD_NODE_DIST))
+      predictedNode + Math.max(2, Math.ceil(lookAheadDistance / ROAD_NODE_DIST))
     );
-
     const targetPoint = roadNodes[targetIndex];
+    const desiredAngle = Math.atan2(targetPoint.y - predictedY, targetPoint.x - predictedX);
 
-    // Read the road's upcoming direction and curvature, while aiming at its
-    // centerline like a lead car the auto-drive is following.
-    const a = roadNodes[closestIdx + 2];
-    const b = roadNodes[closestIdx + 4];
-    const c = roadNodes[closestIdx + 8];
-    const d = roadNodes[closestIdx + 10];
+    let headingError = desiredAngle - predictedBodyAngle;
+    while (headingError > Math.PI) headingError -= Math.PI * 2;
+    while (headingError < -Math.PI) headingError += Math.PI * 2;
+
+    const curveSample = Math.min(roadNodes.length - 11, predictedNode);
+    const a = roadNodes[curveSample + 2];
+    const b = roadNodes[curveSample + 4];
+    const c = roadNodes[curveSample + 8];
+    const d = roadNodes[curveSample + 10];
     const angleA = Math.atan2(b.y - a.y, b.x - a.x);
     const angleB = Math.atan2(d.y - c.y, d.x - c.x);
     let curveDelta = angleB - angleA;
@@ -6427,36 +6473,37 @@ function loop(frameTime) {
     while (curveDelta < -Math.PI) curveDelta += Math.PI * 2;
     const curvature = Math.abs(curveDelta) / (6 * ROAD_NODE_DIST);
     const curveDirection = Math.sign(curveDelta);
-    const desiredAngle = Math.atan2(targetPoint.y - car.y, targetPoint.x - car.x);
 
-    let headingError = desiredAngle - car.angle;
-    while (headingError > Math.PI) headingError -= Math.PI * 2;
-    while (headingError < -Math.PI) headingError += Math.PI * 2;
-
-    const steeringGain = mobileDrivingMode ? 1.05 : 1.12;
+    const steeringGain = mobileDrivingMode ? 1.48 : 1.58;
     const safeCurvature = Math.max(curvature, 0.0001);
     const roadPosition = Math.abs(signedRoadOffset) / ROAD_HALF_WIDTH;
-    autoRecoveryStrength = Math.max(0, Math.min(1, (roadPosition - 0.18) / 0.42));
-    const driftRoom = Math.max(0, Math.min(1, 1 - roadPosition / 0.40));
+    // Start pulling back while there is still plenty of asphalt available.
+    autoRecoveryStrength = Math.max(0, Math.min(1, (roadPosition - 0.08) / 0.32));
+    const driftRoom = Math.max(0, Math.min(1, 1 - roadPosition / 0.30));
     autoDriftStrength = curveDirection === 0
       ? 0
-      : Math.max(0, Math.min(1, curvature * 320)) * driftRoom * (1 - autoRecoveryStrength);
+      : Math.max(0, Math.min(1, curvature * 260)) * driftRoom * (1 - autoRecoveryStrength) * 0.34;
 
     // Point the nose slightly into the bend while the tyres let the body
     // slide a little wider. Recovery takes priority near the road edge.
-    const driftSteerBias = curveDirection * autoDriftStrength * 0.022;
+    // Match the road's measured bend with enough steering authority. Without
+    // this feed-forward term the car only reacts to heading error and drifts
+    // wide on the sharper generated curves.
+    const curveSteerFeedForward = (curveDelta / (6 * ROAD_NODE_DIST)) * car.maxSpeed / turnStrength;
+    const driftSteerBias = curveDirection * autoDriftStrength * 0.012;
     targetSteer = Math.max(
-      -steerLimit,
-      Math.min(steerLimit, headingError * steeringGain + driftSteerBias)
+      -autoSteerLimit,
+      Math.min(autoSteerLimit, headingError * steeringGain + curveSteerFeedForward + driftSteerBias)
     );
 
-    let targetSpeed = Math.sqrt(0.62 / safeCurvature);
+    let targetSpeed = Math.sqrt(0.42 / safeCurvature);
     targetSpeed = Math.max(
-      car.maxSpeed * 0.34,
-      Math.min(car.maxSpeed * 0.84, targetSpeed)
+      car.maxSpeed * 0.30,
+      Math.min(car.maxSpeed * 0.78, targetSpeed)
     );
-    targetSpeed *= 1 - autoDriftStrength * 0.10;
-    targetSpeed *= Math.max(0.36, 1 - Math.max(0, roadPosition - 0.18) * 0.95);
+    targetSpeed *= 1 - autoDriftStrength * 0.06;
+    targetSpeed *= Math.max(0.32, 1 - Math.max(0, roadPosition - 0.08) * 1.2);
+    targetSpeed *= Math.max(0.42, 1 - Math.max(0, predictedRoadPosition - 0.12) * 1.1);
 
     if (isCarInMud) targetSpeed *= 0.72;
 
@@ -6464,7 +6511,7 @@ function loop(frameTime) {
     autoBrake = car.speed > targetSpeed + 0.35;
   }
 
-  const steerBlend = 1 - Math.pow(1 - steerSmooth, frameScale);
+  const steerBlend = 1 - Math.pow(1 - activeSteerSmooth, frameScale);
   car.steer += (targetSteer - car.steer) * steerBlend;
 
   const baseAccel = car.accel * (1 - mudDepth * 0.35) * (selectedCarType === 'f1' ? 1.15 : 1);
@@ -6491,16 +6538,6 @@ function loop(frameTime) {
   const frameGrip = Math.pow(currentGrip, frameScale);
   car.vx = (fwdX * forwardVel * frameFriction) + (rightX * lateralVel * frameGrip);
   car.vy = (fwdY * forwardVel * frameFriction) + (rightY * lateralVel * frameGrip);
-
-  if (autoDriveEnabled && autoRecoveryStrength > 0 && Math.abs(signedRoadOffset) > 0) {
-    const roadSide = Math.sign(signedRoadOffset);
-    const outwardVelocity = roadSide * (car.vx * roadNormalX + car.vy * roadNormalY);
-    if (outwardVelocity > 0) {
-      const gripCorrection = outwardVelocity * autoRecoveryStrength * 0.65 * frameScale;
-      car.vx -= roadNormalX * roadSide * gripCorrection;
-      car.vy -= roadNormalY * roadSide * gripCorrection;
-    }
-  }
 
   if (isCarInMud) {
     const mudDrag = Math.pow(0.994 - (mudDepth * 0.004), frameScale);
