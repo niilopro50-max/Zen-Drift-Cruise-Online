@@ -59,14 +59,14 @@ jobs:
         run: |
           $installer = Get-ChildItem -Path release-build -Filter "*.exe" | Select-Object -First 1
           if (-not $installer) { throw "Windows installer was not created." }
-          $target = Join-Path $installer.DirectoryName "Zen.Drift.Cruise.Setup.1.2.1.exe"
+          $target = Join-Path $installer.DirectoryName "Zen.Drift.Cruise.Setup.1.2.2.exe"
           Move-Item $installer.FullName $target -Force
-          gh release view v1.2.1 --repo $env:GITHUB_REPOSITORY *> $null
+          gh release view v1.2.2 --repo $env:GITHUB_REPOSITORY *> $null
           if ($LASTEXITCODE -ne 0) {
-            gh release create v1.2.1 --repo $env:GITHUB_REPOSITORY --title "Zen Drift Cruise 1.2.1" --notes "Restored complete road layers with lighter tree rendering for smoother gameplay."
+            gh release create v1.2.2 --repo $env:GITHUB_REPOSITORY --title "Zen Drift Cruise 1.2.2" --notes "Road rendering and nearby-tree checks optimized for smoother phone play."
             if ($LASTEXITCODE -ne 0) {
-              gh release view v1.2.1 --repo $env:GITHUB_REPOSITORY *> $null
-              if ($LASTEXITCODE -ne 0) { throw "Could not create or find release v1.2.1." }
+              gh release view v1.2.2 --repo $env:GITHUB_REPOSITORY *> $null
+              if ($LASTEXITCODE -ne 0) { throw "Could not create or find release v1.2.2." }
             }
           }
-          gh release upload v1.2.1 $target downloads/zen-drift-cruise-android.apk --repo $env:GITHUB_REPOSITORY --clobber
+          gh release upload v1.2.2 $target downloads/zen-drift-cruise-android.apk --repo $env:GITHUB_REPOSITORY --clobber

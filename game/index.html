@@ -4965,9 +4965,26 @@ const leafParticles = [];
 
 // Trees planted all around road
 const trees = [];
-let treeDrawOrder = [];
-let treeDrawOrderDirty = true;
 const visibleTrees = [];
+const TREE_GRID_SIZE = 220;
+const treeSpatialGrid = new Map();
+function treeGridKey(cellX, cellY) { return `${cellX},${cellY}`; }
+function indexTree(tree) {
+  const cellX = Math.floor(tree.x / TREE_GRID_SIZE);
+  const cellY = Math.floor(tree.y / TREE_GRID_SIZE);
+  const key = treeGridKey(cellX, cellY);
+  let cell = treeSpatialGrid.get(key);
+  if (!cell) treeSpatialGrid.set(key, cell = []);
+  cell.push(tree);
+}
+function addTree(tree) {
+  trees.push(tree);
+  indexTree(tree);
+}
+function rebuildTreeSpatialGrid() {
+  treeSpatialGrid.clear();
+  for (let i = 0; i < trees.length; i++) indexTree(trees[i]);
+}
 const forestCanopySheet = new Image();
 forestCanopySheet.src = 'assets/forest-canopy-sprites.png';
 const desertCactusSheet = new Image();
@@ -4977,6 +4994,8 @@ let preparedCanopyFilterKey = '';
 
 // Procedural Road spline
 const roadNodes = [];
+let roadPath = new Path2D();
+let roadPathNeedsRebuild = true;
 const ROAD_NODE_DIST = 44;
 const ROAD_HALF_WIDTH = 150;
 let curveMultiplier = 1.7;
@@ -5000,14 +5019,13 @@ initStars();
 
 function generateTreesForNode(index, x, y, angle) {
   if (index < 4) return;
-  treeDrawOrderDirty = true;
   const nx = -Math.sin(angle);
   const ny = Math.cos(angle);
 
   function spawnBands(sideSign) {
     if (Math.random() < 0.72) {
       const dist = sideSign * (ROAD_HALF_WIDTH + 20 + Math.random() * 42);
-      trees.push({
+      addTree({
         x: x + nx * dist,
         y: y + ny * dist,
         r: 16 + Math.random() * 9,
@@ -5022,7 +5040,7 @@ function generateTreesForNode(index, x, y, angle) {
 
     if (Math.random() < 0.88) {
       const dist = sideSign * (ROAD_HALF_WIDTH + 70 + Math.random() * 150);
-      trees.push({
+      addTree({
         x: x + nx * dist,
         y: y + ny * dist,
         r: 22 + Math.random() * 14,
@@ -5037,7 +5055,7 @@ function generateTreesForNode(index, x, y, angle) {
 
     if (Math.random() < 0.92) {
       const dist = sideSign * (ROAD_HALF_WIDTH + 230 + Math.random() * 310);
-      trees.push({
+      addTree({
         x: x + nx * dist,
         y: y + ny * dist,
         r: 28 + Math.random() * 20,
@@ -5052,7 +5070,7 @@ function generateTreesForNode(index, x, y, angle) {
 
     if (Math.random() < 0.65) {
       const dist = sideSign * (ROAD_HALF_WIDTH + 550 + Math.random() * 300);
-      trees.push({
+      addTree({
         x: x + nx * dist,
         y: y + ny * dist,
         r: 34 + Math.random() * 24,
@@ -5071,6 +5089,7 @@ function generateTreesForNode(index, x, y, angle) {
 }
 
 function extendRoad(targetCount) {
+  const previousLength = roadNodes.length;
   while (roadNodes.length < targetCount) {
     const i = roadNodes.length;
     let prevX = 0;
@@ -5093,6 +5112,7 @@ function extendRoad(targetCount) {
       generateTreesForNode(i, newNode.x, newNode.y, angle);
     }
   }
+  if (roadNodes.length !== previousLength) roadPathNeedsRebuild = true;
 }
 
 extendRoad(1400);
@@ -6445,42 +6465,50 @@ function loop(frameTime) {
     }
   }
 
-  for (let i = 0; i < trees.length; i++) {
-    const tree = trees[i];
-    if (tree.tier > 1) continue;
-    if (Math.abs(tree.x - car.x) > 65 || Math.abs(tree.y - car.y) > 65) continue;
-    const dx = car.x - tree.x;
-    const dy = car.y - tree.y;
-    const dist = Math.hypot(dx, dy);
-    const minDist = (tree.trunkR || 4) + 13;
-    if (dist < minDist && dist > 0) {
-      const nx = dx / dist;
-      const ny = dy / dist;
-      const overlap = minDist - dist;
-      car.x += nx * overlap;
-      car.y += ny * overlap;
+  const collisionCellX = Math.floor(car.x / TREE_GRID_SIZE);
+  const collisionCellY = Math.floor(car.y / TREE_GRID_SIZE);
+  for (let cellX = collisionCellX - 1; cellX <= collisionCellX + 1; cellX++) {
+    for (let cellY = collisionCellY - 1; cellY <= collisionCellY + 1; cellY++) {
+      const nearbyTrees = treeSpatialGrid.get(treeGridKey(cellX, cellY));
+      if (!nearbyTrees) continue;
+      for (let i = 0; i < nearbyTrees.length; i++) {
+        const tree = nearbyTrees[i];
+        if (tree.tier > 1) continue;
+        if (Math.abs(tree.x - car.x) > 65 || Math.abs(tree.y - car.y) > 65) continue;
+        const dx = car.x - tree.x;
+        const dy = car.y - tree.y;
+        const dist = Math.hypot(dx, dy);
+        const minDist = (tree.trunkR || 4) + 13;
+        if (dist < minDist && dist > 0) {
+          const nx = dx / dist;
+          const ny = dy / dist;
+          const overlap = minDist - dist;
+          car.x += nx * overlap;
+          car.y += ny * overlap;
 
-      const dot = car.vx * nx + car.vy * ny;
-      if (dot < 0) {
-        const impactDamping = Math.pow(0.7, frameScale);
-        car.vx = (car.vx - 1.4 * dot * nx) * impactDamping;
-        car.vy = (car.vy - 1.4 * dot * ny) * impactDamping;
-      }
-      car.speed *= Math.pow(0.7, frameScale);
+          const dot = car.vx * nx + car.vy * ny;
+          if (dot < 0) {
+            const impactDamping = Math.pow(0.7, frameScale);
+            car.vx = (car.vx - 1.4 * dot * nx) * impactDamping;
+            car.vy = (car.vy - 1.4 * dot * ny) * impactDamping;
+          }
+          car.speed *= Math.pow(0.7, frameScale);
 
-      if (Date.now() - tree.hitCooldown > 300) {
-        tree.hitCooldown = Date.now();
-        playTreeRustle();
-        for (let s = 0; s < 8; s++) {
-          leafParticles.push({
-            x: tree.x + (Math.random() - 0.5) * tree.r,
-            y: tree.y + (Math.random() - 0.5) * tree.r,
-            vx: nx * (Math.random() * 2.5 + 1) + (Math.random() - 0.5) * 2,
-            vy: ny * (Math.random() * 2.5 + 1) + (Math.random() - 0.5) * 2,
-            size: Math.random() * 3 + 2,
-            alpha: 0.9,
-            color: isSunsetActive ? 'rgba(74, 52, 36,' : 'rgba(35, 85, 55,'
-          });
+          if (Date.now() - tree.hitCooldown > 300) {
+            tree.hitCooldown = Date.now();
+            playTreeRustle();
+            for (let s = 0; s < 8; s++) {
+              leafParticles.push({
+                x: tree.x + (Math.random() - 0.5) * tree.r,
+                y: tree.y + (Math.random() - 0.5) * tree.r,
+                vx: nx * (Math.random() * 2.5 + 1) + (Math.random() - 0.5) * 2,
+                vy: ny * (Math.random() * 2.5 + 1) + (Math.random() - 0.5) * 2,
+                size: Math.random() * 3 + 2,
+                alpha: 0.9,
+                color: isSunsetActive ? 'rgba(74, 52, 36,' : 'rgba(35, 85, 55,'
+              });
+            }
+          }
         }
       }
     }
@@ -6576,7 +6604,7 @@ function loop(frameTime) {
 
   if (trees.length > 1200 && trees[0].y > car.y + 2800) {
     trees.splice(0, 80);
-    treeDrawOrderDirty = true;
+    rebuildTreeSpatialGrid();
   }
 
   if (currentFrameTime - lastHudUpdateTime >= 100) {
@@ -6705,31 +6733,34 @@ function loop(frameTime) {
     (isSunsetActive
       ? (isRainActive ? '#120b12' : '#140c14')
       : (isRainActive ? '#050c09' : '#040907'));
-  ctx.beginPath();
-  roadNodes.forEach((node, i) => {
-    if (i === 0) ctx.moveTo(node.x, node.y);
-    else ctx.lineTo(node.x, node.y);
-  });
-  ctx.stroke();
+  if (roadPathNeedsRebuild) {
+    roadPath = new Path2D();
+    roadNodes.forEach((node, i) => {
+      if (i === 0) roadPath.moveTo(node.x, node.y);
+      else roadPath.lineTo(node.x, node.y);
+    });
+    roadPathNeedsRebuild = false;
+  }
+  ctx.stroke(roadPath);
 
   ctx.lineWidth = 790;
   ctx.strokeStyle = landscapeMode === 'desert' ? '#d9b45e' : landscapeMode === 'snow' ? '#d5e2e9' :
     (isSunsetActive
       ? (isRainActive ? '#190e16' : '#1b1018')
       : (isRainActive ? '#08140f' : '#07110d'));
-  ctx.stroke();
+  ctx.stroke(roadPath);
 
   ctx.lineWidth = 470;
   ctx.strokeStyle = landscapeMode === 'desert' ? '#c99e4e' : landscapeMode === 'snow' ? '#b7c9d4' : '#221410';
-  ctx.stroke();
+  ctx.stroke(roadPath);
 
   ctx.lineWidth = 394;
   ctx.strokeStyle = landscapeMode === 'desert' ? '#b98b3e' : landscapeMode === 'snow' ? '#91a8b6' : '#2d1a12';
-  ctx.stroke();
+  ctx.stroke(roadPath);
 
   ctx.lineWidth = 335;
   ctx.strokeStyle = landscapeMode === 'desert' ? '#e9ca7a' : landscapeMode === 'snow' ? '#dce8ee' : '#1e120c';
-  ctx.stroke();
+  ctx.stroke(roadPath);
 
   // Asphalt Main Track
   ctx.lineWidth = ROAD_HALF_WIDTH * 2;
@@ -6737,13 +6768,13 @@ function loop(frameTime) {
     (isSunsetActive
       ? (isRainActive ? '#1b1319' : '#22181d')
       : (isRainActive ? '#111720' : '#181e28'));
-  ctx.stroke();
+  ctx.stroke(roadPath);
 
   if (isRainActive) {
     ctx.lineWidth = ROAD_HALF_WIDTH * 2 - 14;
     ctx.strokeStyle = landscapeMode === 'desert' ? '#806438' : landscapeMode === 'snow' ? '#a8bbc7' :
       (isSunsetActive ? '#261821' : '#141d29');
-    ctx.stroke();
+    ctx.stroke(roadPath);
   }
 
   // Edge road marking lines
@@ -6752,14 +6783,14 @@ function loop(frameTime) {
     (isSunsetActive
       ? (isRainActive ? 'rgba(255, 215, 175, 0.28)' : 'rgba(255, 230, 200, 0.38)')
       : (isRainActive ? 'rgba(255, 255, 255, 0.22)' : 'rgba(255, 255, 255, 0.32)'));
-  ctx.stroke();
+  ctx.stroke(roadPath);
 
   ctx.lineWidth = ROAD_HALF_WIDTH * 2 - 36;
   ctx.strokeStyle = landscapeMode === 'desert' ? '#98763d' : landscapeMode === 'snow' ? '#aebfca' :
     (isSunsetActive
       ? (isRainActive ? '#181116' : '#1d1519')
       : (isRainActive ? '#121822' : '#171c26'));
-  ctx.stroke();
+  ctx.stroke(roadPath);
 
   // Centerline Dashed Strip
   ctx.lineWidth = 4;
@@ -6767,12 +6798,7 @@ function loop(frameTime) {
     ? (isRainActive ? 'rgba(255, 175, 45, 0.85)' : 'rgba(255, 195, 60, 0.92)')
     : (isRainActive ? 'rgba(240, 186, 48, 0.7)' : 'rgba(245, 196, 62, 0.85)');
   ctx.setLineDash([20, 24]);
-  ctx.beginPath();
-  roadNodes.forEach((node, i) => {
-    if (i === 0) ctx.moveTo(node.x, node.y);
-    else ctx.lineTo(node.x, node.y);
-  });
-  ctx.stroke();
+  ctx.stroke(roadPath);
   ctx.setLineDash([]);
 
   // Mud Tracks & Skids
@@ -6801,18 +6827,24 @@ function loop(frameTime) {
   drawTimeAttackGate();
 
   // Render Trees
-  if (treeDrawOrderDirty) {
-    treeDrawOrder = trees.slice().sort((a, b) => b.tier - a.tier || a.y - b.y);
-    treeDrawOrderDirty = false;
-  }
   visibleTrees.length = 0;
-  for (let i = 0; i < treeDrawOrder.length; i++) {
-    const tree = treeDrawOrder[i];
-    if (Math.abs(tree.x - camX) > w / 2 + 100 || Math.abs(tree.y - camY) > h / 2 + 100) {
-      continue;
+  const minTreeCellX = Math.floor((camX - w / 2 - 100) / TREE_GRID_SIZE);
+  const maxTreeCellX = Math.floor((camX + w / 2 + 100) / TREE_GRID_SIZE);
+  const minTreeCellY = Math.floor((camY - h / 2 - 100) / TREE_GRID_SIZE);
+  const maxTreeCellY = Math.floor((camY + h / 2 + 100) / TREE_GRID_SIZE);
+  for (let cellX = minTreeCellX; cellX <= maxTreeCellX; cellX++) {
+    for (let cellY = minTreeCellY; cellY <= maxTreeCellY; cellY++) {
+      const cellTrees = treeSpatialGrid.get(treeGridKey(cellX, cellY));
+      if (!cellTrees) continue;
+      for (let i = 0; i < cellTrees.length; i++) {
+        const tree = cellTrees[i];
+        if (Math.abs(tree.x - camX) <= w / 2 + 100 && Math.abs(tree.y - camY) <= h / 2 + 100) {
+          visibleTrees.push(tree);
+        }
+      }
     }
-    visibleTrees.push(tree);
   }
+  visibleTrees.sort((a, b) => b.tier - a.tier || a.y - b.y);
 
   for (let i = 0; i < visibleTrees.length; i++) {
     const tree = visibleTrees[i];
