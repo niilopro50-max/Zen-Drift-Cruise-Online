@@ -8,6 +8,7 @@ on:
     paths:
       - "desktop/**"
       - "game/**"
+      - "downloads/zen-drift-cruise-android.apk"
       - "server.ts"
       - "widgetKit.ts"
       - "package.json"
@@ -62,4 +63,4 @@ jobs:
           Move-Item $installer.FullName $target -Force
           gh release view v1.1.7 --repo $env:GITHUB_REPOSITORY *> $null
           if ($LASTEXITCODE -ne 0) { gh release create v1.1.7 --repo $env:GITHUB_REPOSITORY --title "Zen Drift Cruise 1.1.7" --notes "Auto-drive now drifts through corners, with refreshed menus and backgrounds." }
-          gh release upload v1.1.7 $target --repo $env:GITHUB_REPOSITORY --clobber
+          gh release upload v1.1.7 $target downloads/zen-drift-cruise-android.apk --repo $env:GITHUB_REPOSITORY --clobber
