@@ -1,4 +1,4 @@
-const CACHE_NAME = "zen-cruise-v2";
+const CACHE_NAME = "zen-cruise-v4";
 
 const APP_FILES = [
   "/",
@@ -6,7 +6,9 @@ const APP_FILES = [
   "/manifest.json",
   "/icons/icon-192.png",
   "/icons/icon-512.png",
-  "/icons/apple-touch-icon.png"
+  "/icons/apple-touch-icon.png",
+  "/assets/forest-canopy-sprites.png",
+  "/assets/desert-cactus-sprites.png"
 ];
 
 self.addEventListener("install", (event) => {

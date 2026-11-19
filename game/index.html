@@ -4965,6 +4965,10 @@ const leafParticles = [];
 
 // Trees planted all around road
 const trees = [];
+const forestCanopySheet = new Image();
+forestCanopySheet.src = 'assets/forest-canopy-sprites.png';
+const desertCactusSheet = new Image();
+desertCactusSheet.src = 'assets/desert-cactus-sprites.png';
 
 // Procedural Road spline
 const roadNodes = [];
@@ -5988,136 +5992,140 @@ function drawLushTree(c, tree, inHeadlights, distToCar, beamDiff) {
 
   if (landscapeMode === 'desert') {
     if (tree.tier > 1) return;
-    const height = tree.r * (1.8 + (tree.species % 3) * 0.25);
-    const x = tree.x + swayX * 0.25;
-    const y = tree.y;
     c.save();
-    c.fillStyle = '#477044';
-    c.strokeStyle = '#263f2b';
-    c.lineWidth = Math.max(2, tree.r * 0.12);
-    c.beginPath();
-    c.moveTo(x - tree.r * 0.25, y);
-    c.lineTo(x - tree.r * 0.25, y - height);
-    c.lineTo(x + tree.r * 0.25, y - height);
-    c.lineTo(x + tree.r * 0.25, y);
-    c.closePath();
-    c.fill();
-    c.stroke();
-    c.beginPath();
-    c.moveTo(x - tree.r * 0.15, y - height * 0.55);
-    c.lineTo(x - tree.r * 0.8, y - height * 0.55);
-    c.lineTo(x - tree.r * 0.8, y - height * 0.9);
-    c.moveTo(x + tree.r * 0.15, y - height * 0.38);
-    c.lineTo(x + tree.r * 0.75, y - height * 0.38);
-    c.lineTo(x + tree.r * 0.75, y - height * 0.72);
-    c.stroke();
+    c.translate(tree.x + swayX * 0.22, tree.y + swayY * 0.22);
+    const desertVariant = Math.floor((tree.sway * 4.5 + tree.species * 1.7) % 4);
+    if (desertCactusSheet.complete && desertCactusSheet.naturalWidth > 0) {
+      const cellWidth = desertCactusSheet.naturalWidth / 2;
+      const cellHeight = desertCactusSheet.naturalHeight / 2;
+      const sourceX = (desertVariant % 2) * cellWidth;
+      const sourceY = Math.floor(desertVariant / 2) * cellHeight;
+      const size = tree.r * (tree.tier === 1 ? 2.95 : 2.65);
+      c.rotate((tree.sway - Math.PI) * 0.08);
+      c.globalAlpha = tree.tier === 1 ? 0.88 : 1;
+      c.drawImage(
+        desertCactusSheet,
+        sourceX, sourceY, cellWidth, cellHeight,
+        -size * 0.5, -size * 0.5, size, size
+      );
+    } else {
+      const height = tree.r * 1.9;
+      c.strokeStyle = '#66854a';
+      c.lineCap = 'round';
+      c.lineWidth = Math.max(5, tree.r * 0.42);
+      c.beginPath();
+      c.moveTo(0, 0);
+      c.bezierCurveTo(-tree.r * 0.14, -height * 0.34, tree.r * 0.12, -height * 0.67, 0, -height);
+      c.stroke();
+      c.lineWidth = Math.max(4, tree.r * 0.30);
+      c.beginPath();
+      c.moveTo(-tree.r * 0.04, -height * 0.44);
+      c.bezierCurveTo(-tree.r * 0.34, -height * 0.43, -tree.r * 0.70, -height * 0.48, -tree.r * 0.68, -height * 0.86);
+      c.moveTo(tree.r * 0.04, -height * 0.60);
+      c.bezierCurveTo(tree.r * 0.34, -height * 0.59, tree.r * 0.66, -height * 0.53, tree.r * 0.64, -height * 0.82);
+      c.stroke();
+    }
     c.restore();
     return;
   }
-  if (tree.tier === 3) {
-    c.fillStyle = isSunsetActive
-      ? (isRainActive ? 'rgba(28, 14, 20, 0.45)' : 'rgba(32, 16, 22, 0.4)')
-      : (isRainActive ? 'rgba(8, 18, 16, 0.42)' : 'rgba(10, 22, 18, 0.35)');
-    c.beginPath();
-    c.arc(tree.x, tree.y, tree.r, 0, Math.PI * 2);
-    c.fill();
-    return;
-  }
-
-  const shadowAlpha = tree.tier === 0 ? 0.75 : 0.45;
-  c.fillStyle = isSunsetActive ? 'rgba(18, 8, 12, ' + shadowAlpha + ')' : 'rgba(8, 10, 14, ' + shadowAlpha + ')';
+  c.save();
+  c.translate(tree.x + swayX * 0.32, tree.y + swayY * 0.32);
+  const shadowAlpha = tree.tier === 0 ? 0.22 : (tree.tier === 3 ? 0.08 : 0.15);
+  const shadowTone = landscapeMode === 'snow' || landscapeMode === 'fog'
+    ? `rgba(14, 25, 32, ${shadowAlpha})`
+    : isSunsetActive
+      ? `rgba(22, 13, 9, ${shadowAlpha})`
+      : `rgba(5, 13, 11, ${shadowAlpha})`;
+  c.fillStyle = shadowTone;
   c.beginPath();
-  c.ellipse(tree.x + 3, tree.y + 4, tree.r * 1.15, tree.r * 0.95, 0, 0, Math.PI * 2);
+  c.ellipse(tree.r * 0.12, tree.r * 0.28, tree.r * 0.92, tree.r * 0.72, -0.16, 0, Math.PI * 2);
   c.fill();
 
-  if (tree.tier <= 1) {
-    c.fillStyle = tree.shade === 0 ? '#18100c' : '#221410';
-    c.beginPath();
-    c.arc(tree.x, tree.y, tree.trunkR * 1.4, 0, Math.PI * 2);
-    c.fill();
+  if (forestCanopySheet.complete && forestCanopySheet.naturalWidth > 0) {
+    const columns = 2;
+    const rows = 2;
+    const cellWidth = forestCanopySheet.naturalWidth / columns;
+    const cellHeight = forestCanopySheet.naturalHeight / rows;
+    const sprite = Math.floor((tree.sway * 11.2 + tree.species * 2.1) % 4);
+    const sourceX = (sprite % columns) * cellWidth;
+    const sourceY = Math.floor(sprite / columns) * cellHeight;
+    const scale = tree.tier === 3
+      ? 1.05
+      : tree.species === 1 ? 1.04 : (tree.species === 2 ? 0.96 : 1);
+    const biomeFilter = landscapeMode === 'snow'
+      ? 'grayscale(0.20) brightness(1.24) saturate(0.55)'
+      : landscapeMode === 'fog'
+        ? 'grayscale(0.22) brightness(0.91) saturate(0.72)'
+        : landscapeMode === 'night'
+          ? 'brightness(0.68) saturate(0.76) hue-rotate(8deg)'
+          : landscapeMode === 'sunset' || isSunsetActive
+            ? 'sepia(0.16) saturate(1.10) brightness(1.03)'
+            : 'none';
+    c.save();
+    c.rotate((tree.sway - Math.PI) * 0.10);
+    c.filter = biomeFilter;
+    c.globalAlpha = tree.tier === 3 ? 0.68 : (landscapeMode === 'fog' ? 0.82 : 1);
+    c.drawImage(
+      forestCanopySheet,
+      sourceX, sourceY, cellWidth, cellHeight,
+      -tree.r * 1.18 * scale, -tree.r * 1.16 * scale,
+      tree.r * 2.36 * scale, tree.r * 2.32 * scale
+    );
+    c.restore();
 
-    c.fillStyle = isSunsetActive ? 'rgba(54, 38, 24, 0.6)' : 'rgba(32, 54, 40, 0.55)';
+    if (landscapeMode === 'snow') {
+      c.save();
+      c.beginPath();
+      c.ellipse(0, 0, tree.r * 0.88, tree.r * 0.82, 0, 0, Math.PI * 2);
+      c.clip();
+      for (let patch = 0; patch < 14; patch++) {
+        const angle = tree.sway * 0.22 + patch * 2.399;
+        const distance = tree.r * (0.08 + ((patch * 17 + tree.species * 11) % 8) * 0.075);
+        const px = Math.cos(angle) * distance;
+        const py = Math.sin(angle) * distance * 0.82 - tree.r * 0.12;
+        c.fillStyle = patch % 4 === 0 ? 'rgba(250, 253, 255, 0.94)'
+          : patch % 3 === 0 ? 'rgba(239, 248, 253, 0.90)'
+            : 'rgba(219, 235, 245, 0.82)';
+        c.beginPath();
+        const patchSize = tree.r * (0.11 + (patch % 3) * 0.025);
+        c.ellipse(px, py, patchSize, patchSize * 0.62, angle, 0, Math.PI * 2);
+        c.fill();
+      }
+      c.restore();
+    }
+
+    if (landscapeMode === 'fog') {
+      const mist = c.createRadialGradient(0, 0, tree.r * 0.48, 0, 0, tree.r * 1.22);
+      mist.addColorStop(0, 'rgba(202, 214, 213, 0)');
+      mist.addColorStop(0.76, 'rgba(202, 214, 213, 0.12)');
+      mist.addColorStop(1, 'rgba(202, 214, 213, 0)');
+      c.fillStyle = mist;
+      c.beginPath();
+      c.arc(0, 0, tree.r * 1.22, 0, Math.PI * 2);
+      c.fill();
+    }
+  } else {
+    // Keep a soft natural placeholder until the textured tree artwork loads.
+    const fallback = c.createRadialGradient(-tree.r * 0.28, -tree.r * 0.34, tree.r * 0.08, 0, 0, tree.r);
+    fallback.addColorStop(0, '#9aa94b');
+    fallback.addColorStop(0.48, '#496f32');
+    fallback.addColorStop(1, '#173b25');
+    c.fillStyle = fallback;
     c.beginPath();
-    c.arc(tree.x - 1, tree.y - 1, tree.trunkR * 0.8, 0, Math.PI * 2);
+    c.arc(0, 0, tree.r * 0.9, 0, Math.PI * 2);
     c.fill();
   }
 
-  const palettesByLandscape = {
-    sunset: [
-      ['#140d12','#1c1618','#262420','#3b3226','#524332'],
-      ['#120c10','#1a1416','#221f1c','#332c22','#4a3d2c'],
-      ['#160e14','#1e181b','#2a2722','#3e3528','#5a4836']
-    ],
-    day: [
-      ['#17452c','#21613a','#2e7844','#438e50','#63a85d'],
-      ['#123d29','#1c5736','#286d42','#39834e','#55a05b'],
-      ['#1c4a30','#28653d','#357b48','#4a9253','#69ad65']
-    ],
-    snow: [
-      ['#263b4c','#40596b','#60798a','#8ba0ad','#dce8ed'],
-      ['#203747','#3a5365','#587184','#8099aa','#e6eef2'],
-      ['#30495a','#4b6577','#6c8494','#9aafbb','#edf4f6']
-    ],
-    fog: [
-      ['#303b3d','#465354','#5b6969','#778483','#a0aaa5'],
-      ['#293638','#3e4d4e','#536263','#71807e','#9ba7a1'],
-      ['#364344','#4b5a5a','#647271','#84918d','#b1bbb2']
-    ],
-    night: [
-      ['#07140e','#0b2418','#103322','#184730','#256344'],
-      ['#06110c','#091d15','#0e2b20','#143c2c','#1f543e'],
-      ['#081610','#0e261c','#13392a','#1c4e3a','#2c6d52']
-    ],
-    desert: [
-      ['#66502b','#806238','#9b7743','#b18a4e','#d0a65f'],
-      ['#594526','#745832','#927044','#ad8751','#d5ad70'],
-      ['#72552d','#8c6838','#a98248','#c59a58','#e0ba79']
-    ]
-  };
-  const palettes = palettesByLandscape[landscapeMode] || palettesByLandscape.sunset;
-  const p = palettes[tree.species % 3];
-
-  const layerConfigs = [
-    { scale: 1.0, pts: 12, color: p[0], innerRatio: 0.76 },
-    { scale: 0.78, pts: 10, color: p[1], innerRatio: 0.74 },
-    { scale: 0.54, pts: 8, color: p[2], innerRatio: 0.72 },
-    { scale: 0.32, pts: 6, color: p[3], innerRatio: 0.70 },
-    { scale: 0.16, pts: 5, color: p[4], innerRatio: 0.68 }
-  ];
-
-  layerConfigs.forEach((layer, lIdx) => {
-    c.save();
-    const lSway = (lIdx * 0.22 + 0.1);
-    c.translate(tree.x + swayX * lSway, tree.y + swayY * lSway);
-    c.fillStyle = layer.color;
-    c.beginPath();
-
-    const count = layer.pts;
-    const baseR = tree.r * layer.scale;
-
-    for (let i = 0; i < count * 2; i++) {
-      const a = (i / (count * 2)) * Math.PI * 2;
-      const rad = (i % 2 === 0) ? baseR : baseR * layer.innerRatio;
-      const px = Math.cos(a) * rad;
-      const py = Math.sin(a) * rad;
-      if (i === 0) c.moveTo(px, py);
-      else c.lineTo(px, py);
-    }
-    c.closePath();
-    c.fill();
-
-    if (isSunsetActive && lIdx >= 2) {
-      c.fillStyle = 'rgba(245, 140, 50, 0.16)';
+  if (inHeadlights && distToCar > 0) {
+    const litFactor = Math.min(0.28, (1 - distToCar / 380) * (1 - beamDiff / 0.48) * 0.34);
+    if (litFactor > 0) {
+      c.fillStyle = `rgba(255, 235, 185, ${litFactor})`;
+      c.beginPath();
+      c.ellipse(0, 0, tree.r * 0.84, tree.r * 0.82, 0, 0, Math.PI * 2);
       c.fill();
     }
-
-    if (inHeadlights && distToCar > 0) {
-      const litFactor = Math.min(0.55, (1 - distToCar / 380) * (1 - beamDiff / 0.48) * 0.62);
-      c.fillStyle = 'rgba(255, 238, 190, ' + (litFactor * (0.8 + lIdx * 0.1)) + ')';
-      c.fill();
-    }
-    c.restore();
-  });
+  }
+  c.restore();
 
   if (isRainActive && tree.tier === 0) {
     c.fillStyle = isSunsetActive ? 'rgba(255, 205, 160, 0.5)' : 'rgba(200, 230, 255, 0.55)';
@@ -6126,7 +6134,6 @@ function drawLushTree(c, tree, inHeadlights, distToCar, beamDiff) {
     c.fill();
   }
 }
-
 function drawTimeAttackGate() {
   if (gameMode !== 'timeAttack' ||
       !['countdown', 'racing'].includes(timeAttackState)) return;

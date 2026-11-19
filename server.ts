@@ -52,6 +52,16 @@ const PWA_ASSETS = {
     contentType: "image/png",
     cacheControl: "public, max-age=86400",
   },
+  "/assets/forest-canopy-sprites.png": {
+    body: readFileSync(new URL("./game/assets/forest-canopy-sprites.png", import.meta.url)),
+    contentType: "image/png",
+    cacheControl: "public, max-age=31536000, immutable",
+  },
+  "/assets/desert-cactus-sprites.png": {
+    body: readFileSync(new URL("./game/assets/desert-cactus-sprites.png", import.meta.url)),
+    contentType: "image/png",
+    cacheControl: "public, max-age=31536000, immutable",
+  },
   "/robots.txt": {
     body: readFileSync(new URL("./website/robots.txt", import.meta.url), "utf8"),
     contentType: "text/plain; charset=utf-8",
