@@ -4019,7 +4019,12 @@ function syncGarageLivePreview(enabled = true) {
     if (frame.getAttribute('src') !== 'about:blank') frame.src = 'about:blank';
     return;
   }
-  const previewUrl = new URL('/play', location.origin);
+  // Android loads the game from a bundled file URL, where location.origin is
+  // "null" and the web server's /play route does not exist. Reuse the bundled
+  // game page there; web and desktop builds use the normal /play route.
+  const previewUrl = location.protocol === 'file:'
+    ? new URL(location.href)
+    : new URL('/play', location.origin);
   previewUrl.searchParams.set('garagePreview', '1');
   previewUrl.searchParams.set('car', selectedCarType);
   previewUrl.searchParams.set('paint', selectedCarColor);

@@ -27,6 +27,7 @@ public final class MainActivity extends Activity {
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
         settings.setAllowFileAccess(true);
+        settings.setAllowFileAccessFromFileURLs(true);
         settings.setMediaPlaybackRequiresUserGesture(false);
         gameView.setWebChromeClient(new WebChromeClient());
         gameView.setWebViewClient(new WebViewClient());
