@@ -653,6 +653,10 @@
     pointer-events: auto;
   }
 
+  #touch-steering-buttons[hidden] {
+    display: none !important;
+  }
+
   .touch-steer-btn {
     width: clamp(72px, 20vw, 94px);
     height: clamp(88px, 18vh, 108px);
@@ -666,6 +670,24 @@
 
   #touch-buttons {
     gap: 9px;
+  }
+
+  #touch-controls.tilt-steering #touch-buttons {
+    display: contents;
+  }
+
+  #touch-controls.tilt-steering #touch-brake,
+  #touch-controls.tilt-steering #touch-accelerate {
+    position: absolute;
+    bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  }
+
+  #touch-controls.tilt-steering #touch-brake {
+    left: 12px;
+  }
+
+  #touch-controls.tilt-steering #touch-accelerate {
+    right: 12px;
   }
 
   #touch-accelerate {
@@ -3618,6 +3640,62 @@ body {
   letter-spacing: 1px;
 }
 
+#menu-settings-page .steering-setting-card {
+  max-width: 620px;
+  padding: 20px;
+  border: 1px solid rgba(121,184,238,.5);
+  border-radius: 9px 18px 9px 18px;
+  background: linear-gradient(110deg, rgba(29,62,91,.78), rgba(12,20,31,.88));
+  box-shadow: 0 10px 28px rgba(0,0,0,.3), 0 0 18px rgba(76,155,219,.12);
+}
+
+#menu-settings-page .steering-setting-title {
+  color: #e7f3ff;
+  font-family: "Arial Black", Impact, sans-serif;
+  font-size: 14px;
+  font-style: italic;
+  letter-spacing: 1.2px;
+}
+
+.steering-mode-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.steering-mode-option {
+  min-height: 48px;
+  padding: 10px 12px;
+  border: 1px solid rgba(188,218,243,.3);
+  border-radius: 6px 12px 6px 12px;
+  background: rgba(5,13,22,.74);
+  color: #dceeff;
+  font: 900 10px/1.3 "Arial Black", Impact, sans-serif;
+  letter-spacing: .8px;
+  cursor: pointer;
+  transition: background .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+
+.steering-mode-option[aria-pressed="true"] {
+  border-color: #8bc8f7;
+  background: linear-gradient(110deg, rgba(48,106,151,.7), rgba(24,54,81,.85));
+  box-shadow: inset 3px 0 #8bc8f7, 0 0 15px rgba(76,155,219,.18);
+}
+
+.steering-mode-option:hover,
+.steering-mode-option:focus-visible {
+  border-color: #b6e0ff;
+}
+
+#steering-mode-status {
+  min-height: 1.4em;
+  margin: 12px 0 0;
+  color: #aac9e4;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
 #menu-settings-page .menu-back {
   border-color: rgba(121,184,238,.58);
   color: #dcedfc;
@@ -3635,6 +3713,9 @@ body {
   #menu-settings-page { width: 100%; }
   #menu-modes-page .menu-mode-card { min-height: 72px; padding: 13px 15px; }
   #menu-modes-page { gap: 10px; }
+  #menu-settings-page .steering-setting-card { padding: 16px; }
+  .steering-mode-options { gap: 8px; }
+  .steering-mode-option { padding: 9px 7px; font-size: 9px; }
 }
 
 #menu-home .ov-sub {
@@ -4237,13 +4318,14 @@ body {
     <section id="menu-settings-page" class="ov-page" hidden>
       <div class="menu-eyebrow">PERSONALISE YOUR DRIVE</div>
       <div class="ov-page-title">SETTINGS</div>
-      <p class="ov-page-copy">
-        Sound, graphics and control settings will be available here
-        in a future update.
-      </p>
-      <div class="menu-mode-card">
-        GAME SETTINGS
-        <small>MORE OPTIONS COMING SOON</small>
+      <p class="ov-page-copy">Choose how you want to steer while playing on a phone or tablet.</p>
+      <div id="mobile-steering-setting" class="steering-setting-card" hidden>
+        <div class="steering-setting-title">MOBILE STEERING</div>
+        <div class="steering-mode-options" role="group" aria-label="Mobile steering method">
+          <button id="steering-mode-buttons" class="steering-mode-option" type="button" aria-pressed="true">TOUCH BUTTONS</button>
+          <button id="steering-mode-tilt" class="steering-mode-option" type="button" aria-pressed="false">TILT PHONE</button>
+        </div>
+        <p id="steering-mode-status" aria-live="polite">Tap the left and right buttons to steer.</p>
       </div>
       <button class="menu-back" data-menu-back type="button">← BACK TO MENU</button>
     </section>
@@ -4317,8 +4399,20 @@ window.addEventListener('resize', () => {
 let gameStarted = false;
 let gamePaused = false;
 const garagePreviewMode = new URLSearchParams(window.location.search).has('garagePreview');
+const MOBILE_STEERING_STORAGE_KEY = 'zen-drift-mobile-steering';
 const keys = { up: false, down: false, left: false, right: false, handbrake: false };
 let autoDriveEnabled = false;
+let mobileSteeringMode = (() => {
+  try {
+    return localStorage.getItem(MOBILE_STEERING_STORAGE_KEY) === 'tilt' ? 'tilt' : 'buttons';
+  } catch {
+    return 'buttons';
+  }
+})();
+let tiltSteeringInput = 0;
+let tiltNeutralValue = null;
+let tiltSensorListening = false;
+let tiltAxisAngle = null;
 window.addEventListener('keydown', (e) => {
   if (e.code === 'Escape' && !e.repeat && gameStarted) {
     e.preventDefault();
@@ -4390,6 +4484,189 @@ setupTouchButton('touch-left', 'left');
 setupTouchButton('touch-right', 'right');
 setupTouchButton('touch-accelerate', 'up');
 setupTouchButton('touch-brake', 'down');
+
+const mobileSteeringSetting = document.getElementById('mobile-steering-setting');
+const steeringButtonsOption = document.getElementById('steering-mode-buttons');
+const steeringTiltOption = document.getElementById('steering-mode-tilt');
+const steeringModeStatus = document.getElementById('steering-mode-status');
+const touchSteeringButtons = document.getElementById('touch-steering-buttons');
+const touchControls = document.getElementById('touch-controls');
+
+function isMobileSteeringDevice() {
+  return window.matchMedia('(pointer: coarse)').matches || window.innerWidth <= 700;
+}
+
+function setSteeringModeStatus(message) {
+  if (steeringModeStatus) steeringModeStatus.textContent = message;
+}
+
+function updateMobileSteeringUI() {
+  const mobileDevice = isMobileSteeringDevice();
+  const tiltActive = mobileDevice && mobileSteeringMode === 'tilt';
+  if (mobileSteeringSetting) mobileSteeringSetting.hidden = !mobileDevice;
+  if (steeringButtonsOption) steeringButtonsOption.setAttribute('aria-pressed', String(mobileSteeringMode === 'buttons'));
+  if (steeringTiltOption) steeringTiltOption.setAttribute('aria-pressed', String(mobileSteeringMode === 'tilt'));
+  if (touchSteeringButtons) touchSteeringButtons.hidden = tiltActive;
+  if (touchControls) touchControls.classList.toggle('tilt-steering', tiltActive);
+}
+
+function saveMobileSteeringMode() {
+  try {
+    localStorage.setItem(MOBILE_STEERING_STORAGE_KEY, mobileSteeringMode);
+  } catch {
+    // Keep the choice for this session when storage is unavailable.
+  }
+}
+
+function getScreenLateralTilt(event) {
+  const rawAngle = Number.isFinite(window.screen?.orientation?.angle)
+    ? window.screen.orientation.angle
+    : (Number.isFinite(window.orientation) ? window.orientation : 0);
+  const angle = ((rawAngle % 360) + 360) % 360;
+  if (angle === 90) return { value: event.beta, axis: angle };
+  if (angle === 180) return { value: -event.gamma, axis: angle };
+  if (angle === 270) return { value: -event.beta, axis: angle };
+  return { value: event.gamma, axis: 0 };
+}
+
+function wrapTiltDelta(value) {
+  return ((value + 180) % 360 + 360) % 360 - 180;
+}
+
+function onDeviceOrientation(event) {
+  const lateralTilt = getScreenLateralTilt(event);
+  if (!Number.isFinite(lateralTilt.value)) {
+    tiltSteeringInput = 0;
+    setSteeringModeStatus('Motion data is unavailable. Choose Touch Buttons instead.');
+    return;
+  }
+
+  if (tiltAxisAngle !== lateralTilt.axis) {
+    tiltAxisAngle = lateralTilt.axis;
+    tiltNeutralValue = null;
+  }
+
+  if (tiltNeutralValue === null) {
+    tiltNeutralValue = lateralTilt.value;
+    tiltSteeringInput = 0;
+    setSteeringModeStatus('Ready. Tilt the phone left or right to steer.');
+    return;
+  }
+
+  const delta = wrapTiltDelta(lateralTilt.value - tiltNeutralValue);
+  const deadZone = 4;
+  const fullSteerAngle = 25;
+  const magnitude = Math.max(0, (Math.abs(delta) - deadZone) / (fullSteerAngle - deadZone));
+  const targetInput = Math.sign(delta) * Math.min(1, magnitude);
+  tiltSteeringInput += (targetInput - tiltSteeringInput) * 0.24;
+  if (Math.abs(tiltSteeringInput) < 0.035) tiltSteeringInput = 0;
+
+  if (!gameStarted || gamePaused) tiltSteeringInput = 0;
+  if (autoDriveEnabled && Math.abs(tiltSteeringInput) > 0.16) setAutoDrive(false);
+
+}
+
+function startTiltSensor() {
+  if (!('DeviceOrientationEvent' in window)) return false;
+  if (!tiltSensorListening) {
+    window.addEventListener('deviceorientation', onDeviceOrientation, { passive: true });
+    tiltSensorListening = true;
+  }
+  tiltNeutralValue = null;
+  tiltAxisAngle = null;
+  tiltSteeringInput = 0;
+  return true;
+}
+
+function stopTiltSensor() {
+  if (tiltSensorListening) {
+    window.removeEventListener('deviceorientation', onDeviceOrientation);
+    tiltSensorListening = false;
+  }
+  tiltNeutralValue = null;
+  tiltSteeringInput = 0;
+}
+
+async function chooseMobileSteeringMode(mode) {
+  if (mode === 'buttons') {
+    mobileSteeringMode = 'buttons';
+    saveMobileSteeringMode();
+    stopTiltSensor();
+    keys.left = false;
+    keys.right = false;
+    updateMobileSteeringUI();
+    setSteeringModeStatus('Tap the left and right buttons to steer.');
+    return;
+  }
+
+  if (!isMobileSteeringDevice()) return;
+  if (!('DeviceOrientationEvent' in window)) {
+    mobileSteeringMode = 'buttons';
+    updateMobileSteeringUI();
+    setSteeringModeStatus('This device has no motion sensor. Touch Buttons are still selected.');
+    return;
+  }
+
+  const requestPermission = window.DeviceOrientationEvent.requestPermission;
+  if (typeof requestPermission === 'function') {
+    try {
+      const permission = await requestPermission.call(window.DeviceOrientationEvent);
+      if (permission !== 'granted') {
+        mobileSteeringMode = 'buttons';
+        saveMobileSteeringMode();
+        stopTiltSensor();
+        updateMobileSteeringUI();
+        setSteeringModeStatus('Motion access was not allowed. Touch Buttons remain selected.');
+        return;
+      }
+    } catch {
+      mobileSteeringMode = 'buttons';
+      saveMobileSteeringMode();
+      stopTiltSensor();
+      updateMobileSteeringUI();
+      setSteeringModeStatus('Could not access motion. Touch Buttons remain selected.');
+      return;
+    }
+  }
+
+  mobileSteeringMode = 'tilt';
+  saveMobileSteeringMode();
+  keys.left = false;
+  keys.right = false;
+  updateMobileSteeringUI();
+  if (!startTiltSensor()) {
+    mobileSteeringMode = 'buttons';
+    saveMobileSteeringMode();
+    updateMobileSteeringUI();
+    setSteeringModeStatus('Could not start the motion sensor. Touch Buttons remain selected.');
+    return;
+  }
+  setSteeringModeStatus('Hold the phone at a comfortable angle, then tilt left or right to steer.');
+}
+
+steeringButtonsOption?.addEventListener('click', () => chooseMobileSteeringMode('buttons'));
+steeringTiltOption?.addEventListener('click', () => chooseMobileSteeringMode('tilt'));
+updateMobileSteeringUI();
+if (mobileSteeringMode === 'tilt') {
+  if (typeof window.DeviceOrientationEvent?.requestPermission === 'function') {
+    // iOS requires a fresh user gesture after each page load. Keep touch
+    // steering available until the player grants motion access in Settings.
+    mobileSteeringMode = 'buttons';
+    updateMobileSteeringUI();
+    setSteeringModeStatus('Tap Tilt Phone to allow motion access on this iPhone.');
+  } else if (startTiltSensor()) {
+    setSteeringModeStatus('Tilt the phone left or right to steer.');
+  } else {
+    mobileSteeringMode = 'buttons';
+    updateMobileSteeringUI();
+  }
+}
+window.addEventListener('resize', updateMobileSteeringUI);
+window.addEventListener('orientationchange', () => {
+  tiltNeutralValue = null;
+  tiltAxisAngle = null;
+  tiltSteeringInput = 0;
+});
 
 const overlay = document.getElementById('overlay');
 
@@ -6399,7 +6676,11 @@ function loop(frameTime) {
   const steerSmooth = mobileDrivingMode ? 0.075 : 0.14;
   const autoSteerLimit = mobileDrivingMode ? 0.12 : 0.10;
 
-  let targetSteer = keys.left ? -steerLimit : (keys.right ? steerLimit : 0);
+  const buttonSteerInput = keys.left === keys.right ? 0 : (keys.left ? -1 : 1);
+  const manualSteerInput = mobileDrivingMode && mobileSteeringMode === 'tilt'
+    ? tiltSteeringInput
+    : buttonSteerInput;
+  let targetSteer = manualSteerInput * steerLimit;
   const activeSteerSmooth = autoDriveEnabled ? (mobileDrivingMode ? 0.18 : 0.22) : steerSmooth;
   let autoThrottle = false;
   let autoBrake = false;
