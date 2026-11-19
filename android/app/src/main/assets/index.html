@@ -4965,10 +4965,17 @@ const leafParticles = [];
 
 // Trees planted all around road
 const trees = [];
+let treeDrawOrder = [];
+let treeDrawOrderDirty = true;
+const visibleTrees = [];
 const forestCanopySheet = new Image();
 forestCanopySheet.src = 'assets/forest-canopy-sprites.png';
 const desertCactusSheet = new Image();
 desertCactusSheet.src = 'assets/desert-cactus-sprites.png';
+let preparedCanopySprites = null;
+let preparedCanopyFilterKey = '';
+let roadPath = new Path2D();
+let roadPathNeedsRebuild = true;
 
 // Procedural Road spline
 const roadNodes = [];
@@ -4995,6 +5002,7 @@ initStars();
 
 function generateTreesForNode(index, x, y, angle) {
   if (index < 4) return;
+  treeDrawOrderDirty = true;
   const nx = -Math.sin(angle);
   const ny = Math.cos(angle);
 
@@ -5065,6 +5073,7 @@ function generateTreesForNode(index, x, y, angle) {
 }
 
 function extendRoad(targetCount) {
+  const previousLength = roadNodes.length;
   while (roadNodes.length < targetCount) {
     const i = roadNodes.length;
     let prevX = 0;
@@ -5087,6 +5096,7 @@ function extendRoad(targetCount) {
       generateTreesForNode(i, newNode.x, newNode.y, angle);
     }
   }
+  if (roadNodes.length !== previousLength) roadPathNeedsRebuild = true;
 }
 
 extendRoad(1400);
@@ -6047,8 +6057,6 @@ function drawLushTree(c, tree, inHeadlights, distToCar, beamDiff) {
     const cellWidth = forestCanopySheet.naturalWidth / columns;
     const cellHeight = forestCanopySheet.naturalHeight / rows;
     const sprite = Math.floor((tree.sway * 11.2 + tree.species * 2.1) % 4);
-    const sourceX = (sprite % columns) * cellWidth;
-    const sourceY = Math.floor(sprite / columns) * cellHeight;
     const scale = tree.tier === 3
       ? 1.05
       : tree.species === 1 ? 1.04 : (tree.species === 2 ? 0.96 : 1);
@@ -6061,13 +6069,33 @@ function drawLushTree(c, tree, inHeadlights, distToCar, beamDiff) {
           : landscapeMode === 'sunset' || isSunsetActive
             ? 'sepia(0.16) saturate(1.10) brightness(1.03)'
             : 'none';
+    if (preparedCanopyFilterKey !== biomeFilter) {
+      const targetScale = Math.min(1, 256 / cellWidth, 256 / cellHeight);
+      const targetWidth = Math.round(cellWidth * targetScale);
+      const targetHeight = Math.round(cellHeight * targetScale);
+      preparedCanopySprites = Array.from({ length: 4 }, (_, spriteIndex) => {
+        const spriteCanvas = document.createElement('canvas');
+        spriteCanvas.width = targetWidth;
+        spriteCanvas.height = targetHeight;
+        const spriteContext = spriteCanvas.getContext('2d');
+        spriteContext.filter = biomeFilter;
+        spriteContext.drawImage(
+          forestCanopySheet,
+          (spriteIndex % columns) * cellWidth,
+          Math.floor(spriteIndex / columns) * cellHeight,
+          cellWidth, cellHeight,
+          0, 0, targetWidth, targetHeight
+        );
+        spriteContext.filter = 'none';
+        return spriteCanvas;
+      });
+      preparedCanopyFilterKey = biomeFilter;
+    }
     c.save();
     c.rotate((tree.sway - Math.PI) * 0.10);
-    c.filter = biomeFilter;
     c.globalAlpha = tree.tier === 3 ? 0.68 : (landscapeMode === 'fog' ? 0.82 : 1);
     c.drawImage(
-      forestCanopySheet,
-      sourceX, sourceY, cellWidth, cellHeight,
+      preparedCanopySprites[sprite],
       -tree.r * 1.18 * scale, -tree.r * 1.16 * scale,
       tree.r * 2.36 * scale, tree.r * 2.32 * scale
     );
@@ -6191,6 +6219,7 @@ function drawTimeAttackGate() {
 const desktopFixedFrame = desktopMode;
 const BASE_SIMULATION_FRAME_MS = 1000 / 60;
 let previousSimulationFrameTime = null;
+let lastHudUpdateTime = 0;
 
 function loop(frameTime) {
   const currentFrameTime = Number.isFinite(frameTime) ? frameTime : performance.now();
@@ -6549,12 +6578,18 @@ function loop(frameTime) {
 
   if (trees.length > 1200 && trees[0].y > car.y + 2800) {
     trees.splice(0, 80);
+    treeDrawOrderDirty = true;
   }
 
-  document.getElementById('hud-speed').textContent = Math.round(car.speed * 8);
-  const distEl = document.getElementById('hud-dist');
-  if (distEl) distEl.textContent = totalDistanceKm.toFixed(2) + ' km';
-  document.getElementById('hud-drift').textContent = Math.round(Math.abs(car.driftAngle * 180 / Math.PI)) + '°';
+  if (currentFrameTime - lastHudUpdateTime >= 100) {
+    lastHudUpdateTime = currentFrameTime;
+    const speedEl = document.getElementById('hud-speed');
+    if (speedEl) speedEl.textContent = Math.round(car.speed * 8);
+    const distEl = document.getElementById('hud-dist');
+    if (distEl) distEl.textContent = totalDistanceKm.toFixed(2) + ' km';
+    const driftEl = document.getElementById('hud-drift');
+    if (driftEl) driftEl.textContent = Math.round(Math.abs(car.driftAngle * 180 / Math.PI)) + '°';
+  }
 
   const cameraZoom = mobileDrivingMode ? 0.80 : 1;
   const cameraLookAhead = mobileDrivingMode ? h * 0.18 : 0;
@@ -6672,12 +6707,15 @@ function loop(frameTime) {
     (isSunsetActive
       ? (isRainActive ? '#120b12' : '#140c14')
       : (isRainActive ? '#050c09' : '#040907'));
-  ctx.beginPath();
-  roadNodes.forEach((node, i) => {
-    if (i === 0) ctx.moveTo(node.x, node.y);
-    else ctx.lineTo(node.x, node.y);
-  });
-  ctx.stroke();
+  if (roadPathNeedsRebuild) {
+    roadPath = new Path2D();
+    roadNodes.forEach((node, i) => {
+      if (i === 0) roadPath.moveTo(node.x, node.y);
+      else roadPath.lineTo(node.x, node.y);
+    });
+    roadPathNeedsRebuild = false;
+  }
+  ctx.stroke(roadPath);
 
   ctx.lineWidth = 790;
   ctx.strokeStyle = landscapeMode === 'desert' ? '#d9b45e' : landscapeMode === 'snow' ? '#d5e2e9' :
@@ -6734,12 +6772,7 @@ function loop(frameTime) {
     ? (isRainActive ? 'rgba(255, 175, 45, 0.85)' : 'rgba(255, 195, 60, 0.92)')
     : (isRainActive ? 'rgba(240, 186, 48, 0.7)' : 'rgba(245, 196, 62, 0.85)');
   ctx.setLineDash([20, 24]);
-  ctx.beginPath();
-  roadNodes.forEach((node, i) => {
-    if (i === 0) ctx.moveTo(node.x, node.y);
-    else ctx.lineTo(node.x, node.y);
-  });
-  ctx.stroke();
+  ctx.stroke(roadPath);
   ctx.setLineDash([]);
 
   // Mud Tracks & Skids
@@ -6768,25 +6801,34 @@ function loop(frameTime) {
   drawTimeAttackGate();
 
   // Render Trees
-  const visibleTrees = [];
-  for (let i = 0; i < trees.length; i++) {
-    const tree = trees[i];
+  if (treeDrawOrderDirty) {
+    treeDrawOrder = trees.slice().sort((a, b) => b.tier - a.tier || a.y - b.y);
+    treeDrawOrderDirty = false;
+  }
+  visibleTrees.length = 0;
+  for (let i = 0; i < treeDrawOrder.length; i++) {
+    const tree = treeDrawOrder[i];
     if (Math.abs(tree.x - camX) > w / 2 + 100 || Math.abs(tree.y - camY) > h / 2 + 100) {
       continue;
     }
     visibleTrees.push(tree);
   }
-  visibleTrees.sort((a, b) => b.tier - a.tier || a.y - b.y);
 
   for (let i = 0; i < visibleTrees.length; i++) {
     const tree = visibleTrees[i];
     const toTreeX = tree.x - car.x;
     const toTreeY = tree.y - car.y;
-    const distToCar = Math.hypot(toTreeX, toTreeY);
-    const angleToTree = Math.atan2(toTreeY, toTreeX);
-    let beamDiff = Math.abs(angleToTree - car.angle);
-    while (beamDiff > Math.PI) beamDiff = Math.abs(beamDiff - Math.PI * 2);
-    const inHeadlights = distToCar < 380 && beamDiff < 0.48;
+    const distSq = toTreeX * toTreeX + toTreeY * toTreeY;
+    let distToCar = Infinity;
+    let beamDiff = Math.PI;
+    let inHeadlights = false;
+    if (distSq < 380 * 380) {
+      distToCar = Math.sqrt(distSq);
+      const angleToTree = Math.atan2(toTreeY, toTreeX);
+      beamDiff = Math.abs(angleToTree - car.angle);
+      if (beamDiff > Math.PI) beamDiff = Math.abs(beamDiff - Math.PI * 2);
+      inHeadlights = beamDiff < 0.48;
+    }
     drawLushTree(ctx, tree, inHeadlights, distToCar, beamDiff);
   }
 
