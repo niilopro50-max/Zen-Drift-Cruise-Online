@@ -4941,11 +4941,11 @@ if (desktopMode) {
 }
 
 function updateCarPerformance() {
-  const standardMaxSpeed = desktopMode ? 8 : (mobileDrivingMode ? 4.375 : 15.0);
+  const standardMaxSpeed = 8;
   car.maxSpeed = standardMaxSpeed * (selectedCarType === 'f1' ? 1.15 : 1);
 }
 
-// Apply the desktop speed cap to the default car too, before the first drive.
+// Apply the shared speed cap to the default car before the first drive.
 updateCarPerformance();
 
 
