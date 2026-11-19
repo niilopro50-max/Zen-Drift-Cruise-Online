@@ -4316,6 +4316,7 @@ window.addEventListener('resize', () => {
 // Controls
 let gameStarted = false;
 let gamePaused = false;
+const garagePreviewMode = new URLSearchParams(window.location.search).has('garagePreview');
 const keys = { up: false, down: false, left: false, right: false, handbrake: false };
 let autoDriveEnabled = false;
 window.addEventListener('keydown', (e) => {
@@ -4864,7 +4865,7 @@ function updateGarageSelection() {
 }
 
 function syncGarageLivePreview(enabled = true) {
-  if (new URLSearchParams(location.search).has('garagePreview')) return;
+  if (garagePreviewMode) return;
   const frame = document.getElementById('garage-live-preview');
   if (!frame) return;
   if (!enabled) {
@@ -4918,7 +4919,7 @@ document.getElementById('garage-drive').addEventListener('click', () => {
 updateGarageSelection();
 
 // The garage preview runs the same game canvas in a quiet, UI-free auto-drive mode.
-if (new URLSearchParams(location.search).has('garagePreview')) {
+if (garagePreviewMode) {
   window.addEventListener('load', () => {
     const previewParams = new URLSearchParams(location.search);
     const previewCar = previewParams.get('car');
@@ -6653,8 +6654,10 @@ function loop(frameTime) {
     if (driftEl) driftEl.textContent = Math.round(Math.abs(car.driftAngle * 180 / Math.PI)) + '°';
   }
 
-  const cameraZoom = mobileDrivingMode ? 0.80 : 1;
-  const cameraLookAhead = mobileDrivingMode ? h * 0.18 : 0;
+  const cameraZoom = garagePreviewMode ? 0.96 : (mobileDrivingMode ? 0.80 : 1);
+  const cameraLookAhead = mobileDrivingMode
+    ? h * (garagePreviewMode ? 0.06 : 0.18)
+    : 0;
 
   camX += (car.x - camX) * 0.08;
   camY += (car.y + cameraLookAhead - camY) * 0.08;
@@ -6758,7 +6761,7 @@ function loop(frameTime) {
     ctx.scale(cameraZoom, cameraZoom);
     ctx.translate(-camX, -camY);
   } else {
-    ctx.translate(w / 2 - camX, h / 2 - camY);
+    ctx.translate(w / 2 - camX, (garagePreviewMode ? h * 0.68 : h / 2) - camY);
   }
 
   // Road underlayers
