@@ -703,14 +703,14 @@
 }
 
 @media (pointer: coarse) and (orientation: landscape) and (max-height: 600px) {
-  /* Keep the open menu in the center lane between steering and GAS controls. */
+  /* The script anchors this menu below the odometer and above the GAS control. */
   #touch-utility-buttons {
-    top: 150px;
+    top: auto;
     right: auto;
     left: 50%;
-    transform: translateX(-50%);
-    max-height: calc(100vh - 166px - env(safe-area-inset-bottom, 0px));
-    max-height: calc(100dvh - 166px - env(safe-area-inset-bottom, 0px));
+    bottom: calc(141px + env(safe-area-inset-bottom, 0px));
+    transform: none;
+    max-height: none;
     width: min(220px, calc(100vw - 180px));
     min-width: 0;
     gap: 4px;
@@ -5021,12 +5021,41 @@ document.getElementById('touch-auto-drive')
 const touchToolsToggle = document.getElementById('touch-tools-toggle');
 const touchUtilityButtons = document.getElementById('touch-utility-buttons');
 
+function positionTouchToolsPanel() {
+  if (!touchUtilityButtons) return;
+
+  const mobileLandscape = window.matchMedia(
+    '(pointer: coarse) and (orientation: landscape) and (max-height: 600px)'
+  ).matches;
+  if (!mobileLandscape) {
+    touchUtilityButtons.style.removeProperty('left');
+    touchUtilityButtons.style.removeProperty('top');
+    return;
+  }
+
+  const odometer = document.getElementById('hud-dist')?.closest('.stat-box');
+  if (!odometer) return;
+
+  const odometerBounds = odometer.getBoundingClientRect();
+  const panelWidth = touchUtilityButtons.getBoundingClientRect().width ||
+    Math.min(220, Math.max(0, window.innerWidth - 180));
+  const left = Math.max(10, Math.min(
+    odometerBounds.left + odometerBounds.width / 2 - panelWidth / 2,
+    window.innerWidth - panelWidth - 10
+  ));
+
+  touchUtilityButtons.style.left = `${Math.round(left)}px`;
+  touchUtilityButtons.style.top = `${Math.ceil(odometerBounds.bottom + 8)}px`;
+}
+
 touchToolsToggle?.addEventListener('click', () => {
   const isExpanded = touchToolsToggle.getAttribute('aria-expanded') === 'true';
   touchToolsToggle.setAttribute('aria-expanded', String(!isExpanded));
   touchToolsToggle.textContent = isExpanded ? '☰ TOOLS' : '✕ CLOSE';
   touchUtilityButtons?.classList.toggle('collapsed', isExpanded);
+  if (!isExpanded) positionTouchToolsPanel();
 });
+window.addEventListener('resize', positionTouchToolsPanel);
 
 const sunsetBtn = document.getElementById('sunset-toggle-btn');
 if (sunsetBtn) {
