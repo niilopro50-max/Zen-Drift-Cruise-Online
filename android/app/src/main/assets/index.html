@@ -662,6 +662,13 @@
     gap: 6px;
     width: max-content;
     max-width: calc(100vw - 24px);
+    max-height: calc(100vh - 164px - env(safe-area-inset-bottom, 0px));
+    max-height: calc(100dvh - 164px - env(safe-area-inset-bottom, 0px));
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
     pointer-events: auto;
     z-index: 90;
   }
@@ -671,7 +678,7 @@
   }
 
   .touch-utility-btn {
-    padding: 9px 11px;
+    padding: 8px 10px;
     border: 1px solid rgba(255,255,255,0.24);
     border-radius: 12px;
     background: rgba(18,14,24,0.88);
@@ -682,11 +689,11 @@
   }
 
   .touch-rain-intensity {
-    width: 190px;
+    width: 176px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    padding: 10px 12px;
+    gap: 6px;
+    padding: 8px 10px;
     border: 1px solid rgba(56,189,248,0.38);
     border-radius: 12px;
     background: rgba(18,14,24,0.94);
@@ -700,6 +707,40 @@
   .touch-rain-intensity input { width: 100%; accent-color: #38bdf8; touch-action: pan-x; }
 
   #touch-restart { border-color: rgba(244,63,94,0.65); }
+}
+
+@media (pointer: coarse) and (orientation: landscape) and (max-height: 520px),
+       (max-width: 700px) and (orientation: landscape) and (max-height: 520px) {
+  .touch-utility-toggle {
+    top: 8px;
+    right: 10px;
+    padding: 7px 10px;
+  }
+
+  #touch-utility-buttons {
+    top: 48px;
+    right: 10px;
+    max-height: calc(100vh - 56px - env(safe-area-inset-bottom, 0px));
+    max-height: calc(100dvh - 56px - env(safe-area-inset-bottom, 0px));
+    width: min(220px, calc(100vw - 20px));
+    gap: 4px;
+    padding: 2px 4px 4px 2px;
+  }
+
+  .touch-utility-btn {
+    padding: 7px 9px;
+    border-radius: 9px;
+    font-size: 9px;
+  }
+
+  .touch-rain-intensity {
+    width: auto;
+    min-width: 0;
+    gap: 4px;
+    padding: 7px 9px;
+    border-radius: 9px;
+    font-size: 9px;
+  }
 }
 
 @media (pointer: coarse), (max-width: 700px) {
