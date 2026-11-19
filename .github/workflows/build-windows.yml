@@ -59,8 +59,8 @@ jobs:
         run: |
           $installer = Get-ChildItem -Path release-build -Filter "*.exe" | Select-Object -First 1
           if (-not $installer) { throw "Windows installer was not created." }
-          $target = Join-Path $installer.DirectoryName "Zen.Drift.Cruise.Setup.1.1.7.exe"
+          $target = Join-Path $installer.DirectoryName "Zen.Drift.Cruise.Setup.1.1.8.exe"
           Move-Item $installer.FullName $target -Force
-          gh release view v1.1.7 --repo $env:GITHUB_REPOSITORY *> $null
-          if ($LASTEXITCODE -ne 0) { gh release create v1.1.7 --repo $env:GITHUB_REPOSITORY --title "Zen Drift Cruise 1.1.7" --notes "Auto-drive now drifts through corners, with refreshed menus and backgrounds." }
-          gh release upload v1.1.7 $target downloads/zen-drift-cruise-android.apk --repo $env:GITHUB_REPOSITORY --clobber
+          gh release view v1.1.8 --repo $env:GITHUB_REPOSITORY *> $null
+          if ($LASTEXITCODE -ne 0) { gh release create v1.1.8 --repo $env:GITHUB_REPOSITORY --title "Zen Drift Cruise 1.1.8" --notes "Driving speed is now consistent across devices and refresh rates, with hard speed limits." }
+          gh release upload v1.1.8 $target downloads/zen-drift-cruise-android.apk --repo $env:GITHUB_REPOSITORY --clobber

@@ -6182,8 +6182,16 @@ function drawTimeAttackGate() {
 }
 
 const desktopFixedFrame = desktopMode;
+const BASE_SIMULATION_FRAME_MS = 1000 / 60;
+let previousSimulationFrameTime = null;
 
-function loop() {
+function loop(frameTime) {
+  const currentFrameTime = Number.isFinite(frameTime) ? frameTime : performance.now();
+  const elapsedFrameMs = previousSimulationFrameTime === null
+    ? BASE_SIMULATION_FRAME_MS
+    : Math.max(0, Math.min(50, currentFrameTime - previousSimulationFrameTime));
+  previousSimulationFrameTime = currentFrameTime;
+  const frameScale = elapsedFrameMs / BASE_SIMULATION_FRAME_MS;
   if (desktopFixedFrame) {
     setTimeout(loop, 1000 / 60);
   } else {
@@ -6350,7 +6358,8 @@ function loop() {
     autoBrake = car.speed > targetSpeed + 0.35;
   }
 
-  car.steer += (targetSteer - car.steer) * steerSmooth;
+  const steerBlend = 1 - Math.pow(1 - steerSmooth, frameScale);
+  car.steer += (targetSteer - car.steer) * steerBlend;
 
   const baseAccel = car.accel * (1 - mudDepth * 0.35) * (selectedCarType === 'f1' ? 1.15 : 1);
   const accel = autoDriveEnabled
@@ -6359,8 +6368,8 @@ function loop() {
   const fwdX = Math.cos(car.angle);
   const fwdY = Math.sin(car.angle);
 
-  car.vx += fwdX * accel;
-  car.vy += fwdY * accel;
+  car.vx += fwdX * accel * frameScale;
+  car.vy += fwdY * accel * frameScale;
 
   const forwardVel = car.vx * fwdX + car.vy * fwdY;
   const rightX = -fwdY;
@@ -6372,23 +6381,23 @@ function loop() {
     : (keys.handbrake ? 0.96 : (isCarInMud
       ? 0.68
       : Math.max(0.56, car.lateralGrip - autoDriftStrength * 0.24) * (1 - autoRecoveryStrength * 0.55)));
-  lateralVel *= currentGrip;
-
-  car.vx = (fwdX * forwardVel * car.friction) + (rightX * lateralVel);
-  car.vy = (fwdY * forwardVel * car.friction) + (rightY * lateralVel);
+  const frameFriction = Math.pow(car.friction, frameScale);
+  const frameGrip = Math.pow(currentGrip, frameScale);
+  car.vx = (fwdX * forwardVel * frameFriction) + (rightX * lateralVel * frameGrip);
+  car.vy = (fwdY * forwardVel * frameFriction) + (rightY * lateralVel * frameGrip);
 
   if (autoDriveEnabled && autoRecoveryStrength > 0 && Math.abs(signedRoadOffset) > 0) {
     const roadSide = Math.sign(signedRoadOffset);
     const outwardVelocity = roadSide * (car.vx * roadNormalX + car.vy * roadNormalY);
     if (outwardVelocity > 0) {
-      const gripCorrection = outwardVelocity * autoRecoveryStrength * 0.65;
+      const gripCorrection = outwardVelocity * autoRecoveryStrength * 0.65 * frameScale;
       car.vx -= roadNormalX * roadSide * gripCorrection;
       car.vy -= roadNormalY * roadSide * gripCorrection;
     }
   }
 
   if (isCarInMud) {
-    const mudDrag = 0.994 - (mudDepth * 0.004);
+    const mudDrag = Math.pow(0.994 - (mudDepth * 0.004), frameScale);
     car.vx *= mudDrag;
     car.vy *= mudDrag;
     car.speed = Math.sqrt(car.vx * car.vx + car.vy * car.vy);
@@ -6419,10 +6428,11 @@ function loop() {
 
       const dot = car.vx * nx + car.vy * ny;
       if (dot < 0) {
-        car.vx = (car.vx - 1.4 * dot * nx) * 0.7;
-        car.vy = (car.vy - 1.4 * dot * ny) * 0.7;
+        const impactDamping = Math.pow(0.7, frameScale);
+        car.vx = (car.vx - 1.4 * dot * nx) * impactDamping;
+        car.vy = (car.vy - 1.4 * dot * ny) * impactDamping;
       }
-      car.speed *= 0.7;
+      car.speed *= Math.pow(0.7, frameScale);
 
       if (Date.now() - tree.hitCooldown > 300) {
         tree.hitCooldown = Date.now();
@@ -6442,26 +6452,26 @@ function loop() {
     }
   }
 
-  car.x += car.vx;
-  car.y += car.vy;
   car.speed = Math.sqrt(car.vx * car.vx + car.vy * car.vy);
-  if (desktopMode && car.speed > car.maxSpeed) {
+  if (car.speed > car.maxSpeed) {
     const speedScale = car.maxSpeed / car.speed;
     car.vx *= speedScale;
     car.vy *= speedScale;
     car.speed = car.maxSpeed;
   }
+  car.x += car.vx * frameScale;
+  car.y += car.vy * frameScale;
 
   // Accumulate distance in kilometers (km)
   if (car.speed > 0.05) {
-    // car.speed * 8 is in mph; 1 mph = 1.60934 km/h; at 60fps dt = 1/60s:
-    // km/frame = (car.speed * 8 * 1.60934) / (3600 * 60)
-    totalDistanceKm += (car.speed * 8 * 1.60934) / 216000;
+    // car.speed * 8 is in mph; normalize frame distance to 60fps.
+    // km/frame = (car.speed * 8 * 1.60934) / (3600 * 60) * frameScale
+    totalDistanceKm += ((car.speed * 8 * 1.60934) / 216000) * frameScale;
   }
 
   if (car.speed > 0.4) {
     const turnStrength = mobileDrivingMode ? 0.72 : 0.90;
-    car.angle += car.steer * (car.speed / car.maxSpeed) * turnStrength;
+    car.angle += car.steer * (car.speed / car.maxSpeed) * turnStrength * frameScale;
     const moveAngle = Math.atan2(car.vy, car.vx);
     let diff = car.angle - moveAngle;
     while (diff > Math.PI) diff -= Math.PI * 2;
