@@ -5356,6 +5356,7 @@ if (validGaragePaint(savedGaragePreferences.paint) && !savedGaragePaints[selecte
 let selectedCarColor = garageCarColors[selectedCarType];
 let garageSelectionRevision = 0;
 let garagePaintRevision = 0;
+let garageChangedThisSession = false;
 const CAR_TUNING = {
   drift: { maxSpeed: 1, acceleration: 1 },
   f1: { maxSpeed: 1, acceleration: 1 },
@@ -5460,6 +5461,7 @@ document.querySelectorAll('[data-car-select]').forEach((button) => {
     selectedCarType = carType;
     selectedCarColor = garageCarColors[selectedCarType] || garageDefaultColors[selectedCarType];
     garageSelectionRevision += 1;
+    garageChangedThisSession = true;
     updateGarageSelection();
     syncGarageLivePreview();
     updateCarPerformance();
@@ -5476,6 +5478,7 @@ document.querySelectorAll('[data-car-color]').forEach((button) => {
     savedGaragePaints[selectedCarType] = selectedCarColor;
     garagePaintRevision += 1;
     garageSelectionRevision += 1;
+    garageChangedThisSession = true;
     updateGarageSelection();
     syncGarageLivePreview();
     saveLocalGaragePreferences();
@@ -5487,6 +5490,7 @@ document.querySelectorAll('[data-drift-skin]').forEach((button) => {
   button.addEventListener('click', () => {
     selectedDriftSkin = button.dataset.driftSkin === 'widebody' ? 'widebody' : 'classic';
     garageSelectionRevision += 1;
+    garageChangedThisSession = true;
     updateGarageSelection();
     syncGarageLivePreview();
     saveLocalGaragePreferences();
@@ -5658,6 +5662,14 @@ async function syncCloudProgress(user = cloudAccountUser) {
     merged.paintByCar[local.car] = local.paint;
   } else {
     merged.paint = merged.paintByCar[merged.car] || merged.paint || localAtStart.paint;
+  }
+  // Once the player changes the garage this session, local choices stay authoritative
+  // for the rest of the session, including against later or overlapping cloud reads.
+  if (garageChangedThisSession) {
+    merged.car = local.car;
+    merged.skin = local.skin;
+    merged.paint = local.paint;
+    merged.paintByCar = { ...(remote?.paintByCar || {}), ...(local.paintByCar || {}) };
   }
   const localBest = Number(local.bestTimeAttackMs);
   const remoteBest = Number(remote?.bestTimeAttackMs);
