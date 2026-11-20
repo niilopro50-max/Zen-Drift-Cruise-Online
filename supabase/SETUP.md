@@ -6,7 +6,7 @@ put a `service_role` key in the browser or in this repository.
 
 1. Create a Supabase project.
 2. In **SQL Editor**, run `game_saves.sql`.
-3. To enable public Time Attack rankings, also run `leaderboard.sql`. Rankings show only each player's public driver name and best time. Players must opt in under **Settings → Online Leaderboard** before their score is shared; switching it off while signed in removes their entry.
+3. To enable public Time Attack and Endless rankings, also run `leaderboard.sql`. Signed-in players' driver names and scores are shared by default. Players can turn sharing off under **Settings → Online Leaderboard**; switching it off while signed in removes their entries.
 4. In **Project Settings → API**, copy the Project URL and publishable key
    (or legacy anon key).
 5. Add these environment variables to the Render web service and redeploy:
@@ -24,8 +24,9 @@ put a `service_role` key in the browser or in this repository.
    Google sign-in and password-reset links return to the game.
 
 No Supabase `service_role` key is needed. Database row policies restrict each
-signed-in player to their own save. The leaderboard intentionally exposes only
-the opted-in driver names and times; public reads cannot see account IDs. Until
+signed-in player to their own save. The leaderboard exposes only driver names
+and scores for accounts with sharing enabled; public reads cannot see account IDs.
+Sharing is on by default and can be disabled in game Settings. Until
 the two Render variables are set, the game keeps local saves and shows cloud
 accounts as unavailable. The project uses Supabase's hosted Auth and database
 APIs; it does not write user data to Render's local filesystem.

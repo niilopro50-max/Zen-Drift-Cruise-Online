@@ -1,5 +1,5 @@
 -- Run once in Supabase SQL Editor to enable both public mode leaderboards.
--- Player names and scores are public only for players who opt in in game Settings.
+-- Signed-in players share names and scores by default; they can opt out in game Settings.
 create table if not exists public.time_attack_leaderboard (
   user_id uuid primary key references auth.users (id) on delete cascade,
   driver_name text not null check (char_length(driver_name) between 1 and 16),

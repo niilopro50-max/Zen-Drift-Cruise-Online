@@ -4655,8 +4655,8 @@ body {
       </div>
       <div class="steering-setting-card game-settings-card leaderboard-consent-card">
         <div class="steering-setting-title">ONLINE LEADERBOARD</div>
-        <label class="game-setting-toggle"><span><b>Share my leaderboard scores</b><small>Your driver name, fastest Time Attack time and Endless playtime will be visible to everyone.</small></span><input id="leaderboard-opt-in" type="checkbox"></label>
-        <p id="leaderboard-opt-status" class="game-setting-help" aria-live="polite">Off by default. Sign in to submit a score.</p>
+        <label class="game-setting-toggle"><span><b>Share my leaderboard scores</b><small>On by default. Your driver name, fastest Time Attack time and Endless playtime are public. Turn it off to keep them private.</small></span><input id="leaderboard-opt-in" type="checkbox"></label>
+        <p id="leaderboard-opt-status" class="game-setting-help" aria-live="polite">On by default. Sign in to publish a score.</p>
       </div>
       <button class="menu-back" data-menu-back type="button">← BACK TO MENU</button>
     </section>
@@ -5515,8 +5515,8 @@ function finishTimeAttack() {
       }
     }).catch((error) => {
       console.error('Leaderboard submission failed:', error);
-      document.getElementById('leaderboard-opt-status').textContent = 'Could not share yet. The online leaderboard may need setup.';
-      shareStatus.textContent = 'Your time was saved here, but could not be shared. Check the account and leaderboard setup.';
+      document.getElementById('leaderboard-opt-status').textContent = `Could not share yet: ${getLeaderboardErrorText(error)}`;
+      shareStatus.textContent = `Your time was saved here, but could not be shared: ${getLeaderboardErrorText(error)}`;
     });
   } else if (!cloudAccountUser) {
     shareStatus.textContent = 'Your time is saved on this device. Sign in and enable leaderboard sharing to publish it.';
@@ -6076,8 +6076,20 @@ let cloudSaveRetryDelay = 3000;
 let cloudSavePending = false;
 
 function hasLeaderboardOptIn() {
-  try { return localStorage.getItem(LEADERBOARD_OPT_IN_KEY) === '1'; }
-  catch (_) { return false; }
+  try {
+    let choice = localStorage.getItem(LEADERBOARD_OPT_IN_KEY);
+    if (choice === null) {
+      choice = '1';
+      localStorage.setItem(LEADERBOARD_OPT_IN_KEY, choice);
+    }
+    return choice === '1';
+  } catch (_) { return true; }
+}
+
+function getLeaderboardErrorText(error) {
+  return String(error?.message || error || 'Unknown leaderboard error')
+    .replace(/\s+/g, ' ')
+    .slice(0, 180);
 }
 
 function updateLeaderboardOptStatus() {
@@ -6088,8 +6100,8 @@ function updateLeaderboardOptStatus() {
   status.textContent = !hasLeaderboardOptIn()
     ? 'Off. Your results stay private.'
     : !cloudAccountUser
-      ? 'Enabled. Sign in to submit your scores.'
-      : 'Enabled. Your driver name and both mode scores can appear publicly.';
+      ? 'On by default. Sign in to publish your scores.'
+      : 'On. Your driver name and both mode scores can appear publicly.';
 }
 
 function setLeaderboardMode(mode) {
@@ -6131,7 +6143,7 @@ async function loadLeaderboard() {
         try { await submitLeaderboardTime(cloudAccountUser, best, playerName); }
         catch (submitError) {
           console.error('Leaderboard recovery submission failed:', submitError);
-          status.textContent = 'Could not submit your saved record. Check your account and leaderboard setup.';
+          status.textContent = `Could not submit your saved record: ${getLeaderboardErrorText(submitError)}`;
         }
       }
     }
@@ -6249,7 +6261,7 @@ document.getElementById('leaderboard-opt-in')?.addEventListener('change', async 
   }
   catch (error) {
     console.error('Leaderboard submission failed:', error);
-    document.getElementById('leaderboard-opt-status').textContent = 'Could not share yet. The online leaderboard may need setup.';
+    document.getElementById('leaderboard-opt-status').textContent = `Could not share yet: ${getLeaderboardErrorText(error)}`;
   }
 });
 updateLeaderboardOptStatus();
