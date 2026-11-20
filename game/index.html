@@ -4125,6 +4125,7 @@ body {
 #menu-account-page .account-google-button { width:100%; min-height:48px; display:flex; align-items:center; justify-content:center; gap:10px; border:1px solid rgba(255,255,255,.18); border-radius:9px; background:#f8fafc; color:#202124; font-weight:800; letter-spacing:.6px; cursor:pointer; }
 #menu-account-page .account-google-button b { color:#4285f4; font-size:19px; }
 #menu-account-page .account-text-button { margin:11px 0 0; border:0; background:transparent; color:#ffc18b; text-decoration:underline; cursor:pointer; }
+#menu-account-page .account-recovery-help { margin:7px 0 0; color:rgba(235,238,245,.52); font-size:11px; line-height:1.45; }
 #menu-account-page .account-status { min-height:22px; margin:14px 0 8px; color:rgba(235,238,245,.65); font-size:12px; line-height:1.5; }
 #menu-account-page .account-privacy-link { margin:4px 0 10px; text-align:center; font-size:11px; }
 #menu-account-page .account-privacy-link a { color:rgba(235,238,245,.68); text-underline-offset:3px; }
@@ -4430,13 +4431,15 @@ body {
         </div>
         <div class="account-or"><span>OR</span></div>
         <button id="account-google" class="account-google-button" type="button"><b>G</b> CONTINUE WITH GOOGLE</button>
-        <button id="account-reset-password" class="account-text-button" type="button">Forgot password?</button>
+        <button id="account-reset-password" class="account-text-button" type="button">EMAIL ME A RESET LINK</button>
+        <p class="account-recovery-help">Enter your email above. We’ll send a secure link to choose a new password.</p>
       </div>
       <div id="account-signed-in" hidden>
         <div class="account-user-card"><span class="account-online-dot"></span><div><small>SIGNED IN AS</small><strong id="account-user-email"></strong></div></div>
         <button id="account-sign-out" class="menu-back" type="button">SIGN OUT</button>
       </div>
       <div id="account-reset-panel" hidden>
+        <p class="ov-page-copy">Open the password reset link from your email, then choose a new password below.</p>
         <label class="account-field-label" for="account-new-password">NEW PASSWORD</label>
         <div class="account-password-wrap">
           <input id="account-new-password" class="account-field" type="password" minlength="8" autocomplete="new-password" placeholder="At least 8 characters">
@@ -5579,22 +5582,45 @@ document.getElementById('account-google').addEventListener('click', async () => 
   const { error } = await cloudClient.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: `${location.origin}/play` } });
   if (error) setCloudAccountMessage(error.message, 'error');
 });
-document.getElementById('account-reset-password').addEventListener('click', async () => {
+const accountResetButton = document.getElementById('account-reset-password');
+accountResetButton.addEventListener('click', async () => {
   if (!cloudClient) return setCloudAccountMessage('Online accounts are not configured yet.', 'error');
   const email = document.getElementById('account-email').value.trim();
   if (!email) return setCloudAccountMessage('Enter your email address first.', 'error');
-  const { error } = await cloudClient.auth.resetPasswordForEmail(email, { redirectTo: `${location.origin}/play` });
-  setCloudAccountMessage(error ? error.message : 'If an account exists for that address, a reset link is on its way.', error ? 'error' : 'good');
+  accountResetButton.disabled = true;
+  accountResetButton.textContent = 'SENDING RESET LINK…';
+  setCloudAccountMessage('Sending a secure password reset email…');
+  try {
+    const { error } = await cloudClient.auth.resetPasswordForEmail(email, { redirectTo: `${location.origin}/play` });
+    if (error) throw error;
+    setCloudAccountMessage('If an account exists for that email, a reset link has been sent. Check your inbox and spam folder.', 'good');
+  } catch (error) {
+    console.error('Password reset email failed:', error);
+    setCloudAccountMessage('Could not send the reset email. Check your connection and try again.', 'error');
+  } finally {
+    accountResetButton.disabled = false;
+    accountResetButton.textContent = 'EMAIL ME A RESET LINK';
+  }
 });
 document.getElementById('account-update-password').addEventListener('click', async () => {
   const password = document.getElementById('account-new-password').value;
   if (password.length < 8) return setCloudAccountMessage('Choose a password with at least 8 characters.', 'error');
-  const { error } = await cloudClient.auth.updateUser({ password });
-  if (error) setCloudAccountMessage(error.message, 'error');
-  else {
+  const updateButton = document.getElementById('account-update-password');
+  updateButton.disabled = true;
+  updateButton.textContent = 'UPDATING PASSWORD…';
+  setCloudAccountMessage('Updating your password…');
+  try {
+    const { error } = await cloudClient.auth.updateUser({ password });
+    if (error) throw error;
     document.getElementById('account-reset-panel').hidden = true;
     renderCloudAccount(cloudAccountUser);
-    setCloudAccountMessage('Password updated.', 'good');
+    setCloudAccountMessage('Password updated. You can now sign in with your new password.', 'good');
+  } catch (error) {
+    console.error('Password update failed:', error);
+    setCloudAccountMessage('Could not update the password. Reopen the reset link and try again.', 'error');
+  } finally {
+    updateButton.disabled = false;
+    updateButton.textContent = 'SAVE NEW PASSWORD';
   }
 });
 document.getElementById('account-sign-out').addEventListener('click', async () => {
