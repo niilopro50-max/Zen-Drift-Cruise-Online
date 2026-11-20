@@ -11,6 +11,16 @@ const GAME_HTML = readFileSync(new URL("./game/index.html", import.meta.url), "u
 const WEBSITE_HTML = readFileSync(new URL("./website/index.html", import.meta.url), "utf8");
 const DOWNLOAD_HTML = readFileSync(new URL("./website/download.html", import.meta.url), "utf8");
 
+function getGameHtml() {
+  const cloudConfig = process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY
+    ? { url: process.env.SUPABASE_URL.replace(/\/$/, ""), anonKey: process.env.SUPABASE_ANON_KEY }
+    : null;
+  const safeConfig = JSON.stringify(cloudConfig).replace(/</g, "\\u003c");
+  const clientScript = cloudConfig ? '<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>' : "";
+  const bootstrap = `<script>window.ZEN_SUPABASE_CONFIG = ${safeConfig};</script>${clientScript}`;
+  return GAME_HTML.replace("<!-- ZEN_SUPABASE_CONFIG -->", bootstrap);
+}
+
 const PWA_ASSETS = {
   "/manifest.json": {
     body: readFileSync(new URL("./manifest.json", import.meta.url), "utf8"),
@@ -136,8 +146,11 @@ export function startHttpServer(): Promise<{ server: http.Server; port: number }
     }
 
     if (req.method === "GET" && (url.pathname === "/play" || url.pathname === "/play/")) {
-      res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
-      res.end(GAME_HTML);
+      res.writeHead(200, {
+        "Content-Type": "text/html; charset=utf-8",
+        "Cache-Control": "no-cache",
+      });
+      res.end(getGameHtml());
       return;
     }
 

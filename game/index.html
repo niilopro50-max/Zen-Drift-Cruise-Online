@@ -4087,6 +4087,45 @@ body {
   }
 }
 
+#menu-home .menu-account-button {
+  width: min(100%, 520px);
+  min-height: 54px;
+  margin: 12px auto 0;
+  padding: 10px 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  border: 1px solid rgba(255,173,112,.25);
+  border-radius: 12px;
+  background: rgba(255,255,255,.035);
+  color: #ffe7d3;
+  cursor: pointer;
+  letter-spacing: 1.2px;
+  font-weight: 850;
+}
+#menu-home .menu-account-button:hover { border-color: rgba(249,115,22,.58); background: rgba(249,115,22,.09); }
+#menu-home .menu-account-button small { color: rgba(235,238,245,.58); font-size: 10px; font-weight: 500; letter-spacing: .2px; }
+#menu-account-page .account-field-label { display:block; margin: 13px 0 6px; color:#f8b77f; font-size:10px; font-weight:800; letter-spacing:1.4px; }
+#menu-account-page .account-field { width:100%; min-height:48px; padding:0 13px; border:1px solid rgba(255,173,112,.25); border-radius:9px; background:rgba(5,9,16,.72); color:#fff; font:inherit; font-size:15px; user-select:text; }
+#menu-account-page .account-field:focus { outline:2px solid rgba(249,115,22,.62); outline-offset:1px; }
+#menu-account-page .account-form-actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:16px; }
+#menu-account-page .account-form-actions button { min-height:48px; padding:8px; font-size:11px; }
+#menu-account-page .account-or { display:flex; align-items:center; gap:10px; margin:14px 0; color:rgba(235,238,245,.42); font-size:10px; }
+#menu-account-page .account-or::before, #menu-account-page .account-or::after { content:""; height:1px; flex:1; background:rgba(255,255,255,.12); }
+#menu-account-page .account-google-button { width:100%; min-height:48px; display:flex; align-items:center; justify-content:center; gap:10px; border:1px solid rgba(255,255,255,.18); border-radius:9px; background:#f8fafc; color:#202124; font-weight:800; letter-spacing:.6px; cursor:pointer; }
+#menu-account-page .account-google-button b { color:#4285f4; font-size:19px; }
+#menu-account-page .account-text-button { margin:11px 0 0; border:0; background:transparent; color:#ffc18b; text-decoration:underline; cursor:pointer; }
+#menu-account-page .account-status { min-height:22px; margin:14px 0 8px; color:rgba(235,238,245,.65); font-size:12px; line-height:1.5; }
+#menu-account-page .account-status[data-tone="error"] { color:#ff9d8e; }
+#menu-account-page .account-status[data-tone="good"] { color:#8ce2ae; }
+#menu-account-page .account-user-card { display:flex; align-items:center; gap:12px; margin:18px 0; padding:15px; border:1px solid rgba(140,226,174,.24); border-radius:12px; background:rgba(17,45,35,.38); }
+#menu-account-page .account-online-dot { width:10px; height:10px; flex:none; border-radius:50%; background:#6ee7a3; box-shadow:0 0 14px #6ee7a3; }
+#menu-account-page .account-user-card div { min-width:0; display:grid; gap:4px; }
+#menu-account-page .account-user-card small { color:rgba(235,238,245,.6); font-size:9px; letter-spacing:1.2px; }
+#menu-account-page .account-user-card strong { overflow-wrap:anywhere; font-size:14px; }
+#menu-account-page #account-sign-out { width:100%; }
+
 
 </style>
 <link rel="manifest" href="/manifest.json">
@@ -4095,6 +4134,7 @@ body {
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Zen Cruise">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<!-- ZEN_SUPABASE_CONFIG -->
 </head>
 <body>
 <canvas id="c"></canvas>
@@ -4221,6 +4261,10 @@ body {
     <button id="menu-modes" type="button">GAME MODES</button>
     <button id="menu-settings" type="button">SETTINGS</button>
   </div>
+  <button id="menu-account" class="menu-account-button" type="button">
+    <span id="account-button-title">SIGN IN TO SAVE PROGRESS</span>
+    <small id="account-button-subtitle">Sync your garage and race bests across devices</small>
+  </button>
 </section>
 
 
@@ -4352,6 +4396,36 @@ body {
         </div>
         <p id="steering-mode-status" aria-live="polite">Tap the left and right buttons to steer.</p>
       </div>
+      <button class="menu-back" data-menu-back type="button">← BACK TO MENU</button>
+    </section>
+
+    <section id="menu-account-page" class="ov-page" hidden>
+      <div class="menu-eyebrow">YOUR CLOUD GARAGE</div>
+      <div class="ov-page-title">PLAYER ACCOUNT</div>
+      <p class="ov-page-copy">Sign in to keep your driver name, car setup and Time Attack record with your account.</p>
+      <div id="account-signed-out">
+        <label class="account-field-label" for="account-email">EMAIL</label>
+        <input id="account-email" class="account-field" type="email" maxlength="254" autocomplete="email" placeholder="you@example.com">
+        <label class="account-field-label" for="account-password">PASSWORD</label>
+        <input id="account-password" class="account-field" type="password" minlength="8" autocomplete="current-password" placeholder="At least 8 characters">
+        <div class="account-form-actions">
+          <button id="account-sign-in" class="ov-btn" type="button">SIGN IN</button>
+          <button id="account-create" class="menu-back" type="button">CREATE ACCOUNT</button>
+        </div>
+        <div class="account-or"><span>OR</span></div>
+        <button id="account-google" class="account-google-button" type="button"><b>G</b> CONTINUE WITH GOOGLE</button>
+        <button id="account-reset-password" class="account-text-button" type="button">Forgot password?</button>
+      </div>
+      <div id="account-signed-in" hidden>
+        <div class="account-user-card"><span class="account-online-dot"></span><div><small>SIGNED IN AS</small><strong id="account-user-email"></strong></div></div>
+        <button id="account-sign-out" class="menu-back" type="button">SIGN OUT</button>
+      </div>
+      <div id="account-reset-panel" hidden>
+        <label class="account-field-label" for="account-new-password">NEW PASSWORD</label>
+        <input id="account-new-password" class="account-field" type="password" minlength="8" autocomplete="new-password" placeholder="At least 8 characters">
+        <button id="account-update-password" class="ov-btn" type="button" style="width:100%;margin-top:12px">SAVE NEW PASSWORD</button>
+      </div>
+      <p id="account-status" class="account-status" aria-live="polite">Your save stays on this device until you sign in.</p>
       <button class="menu-back" data-menu-back type="button">← BACK TO MENU</button>
     </section>
 
@@ -4702,6 +4776,7 @@ function showMenuPage(page) {
     'garage-page',
     'modes-page',
     'settings-page',
+    'account-page',
     'pause-page',
     'time-attack-results-page'
   ].forEach((name) => {
@@ -4957,6 +5032,7 @@ function finishTimeAttack() {
       }
 } catch (_) {}
   }
+  scheduleCloudProgressSave();
 
   document.getElementById('race-result-time').textContent =
     formatRaceTime(timeAttackFinishMs);
@@ -5030,13 +5106,14 @@ document.getElementById('race-home-btn').addEventListener('click', returnToHome)
 document.getElementById('menu-garage').addEventListener('click', () => showMenuPage('garage-page'));
 document.getElementById('menu-modes').addEventListener('click', () => showMenuPage('modes-page'));
 document.getElementById('menu-settings').addEventListener('click', () => showMenuPage('settings-page'));
+document.getElementById('menu-account').addEventListener('click', () => showMenuPage('account-page'));
 
 document.querySelectorAll('[data-menu-back]').forEach((button) => {
   button.addEventListener('click', () => showMenuPage('home'));
 });
 
 
-// Local player identity — foundation for future online multiplayer
+// Local player identity and account-backed cloud saves.
 const PLAYER_NAME_KEY = 'zen-drift-player-name';
 const PLAYER_ID_KEY = 'zen-drift-player-id';
 
@@ -5085,6 +5162,7 @@ playerNameInput.addEventListener('change', () => {
   if (cleaned.length >= 3) {
     playerName = cleaned;
     localStorage.setItem(PLAYER_NAME_KEY, playerName);
+    scheduleCloudProgressSave();
   }
   updatePlayerNameDisplay();
 });
@@ -5098,10 +5176,13 @@ playerNameInput.addEventListener('keydown', (event) => {
 updatePlayerNameDisplay();
 
 // Garage vehicle selection and per-car paint presets.
-let selectedCarType = 'drift';
-let selectedDriftSkin = 'classic';
+let savedGaragePreferences = {};
+try { savedGaragePreferences = JSON.parse(localStorage.getItem('zen-drift-garage-save') || '{}') || {}; } catch (_) {}
+let selectedCarType = ['drift', 'f1', 'rally', 'hyper'].includes(savedGaragePreferences.car) ? savedGaragePreferences.car : 'drift';
+let selectedDriftSkin = savedGaragePreferences.skin === 'widebody' ? 'widebody' : 'classic';
 const garageCarColors = { drift: '#f8fafc', f1: '#f97316', rally: '#84cc16', hyper: '#38bdf8' };
-let selectedCarColor = garageCarColors.drift;
+let selectedCarColor = /^#[0-9a-f]{6}$/i.test(savedGaragePreferences.paint || '') ? savedGaragePreferences.paint : garageCarColors[selectedCarType];
+garageCarColors[selectedCarType] = selectedCarColor;
 const CAR_TUNING = {
   drift: { maxSpeed: 1, acceleration: 1 },
   f1: { maxSpeed: 1, acceleration: 1 },
@@ -5206,6 +5287,8 @@ document.querySelectorAll('[data-car-select]').forEach((button) => {
     updateGarageSelection();
     syncGarageLivePreview();
     updateCarPerformance();
+    saveLocalGaragePreferences();
+    scheduleCloudProgressSave();
   });
 });
 
@@ -5215,6 +5298,8 @@ document.querySelectorAll('[data-car-color]').forEach((button) => {
     garageCarColors[selectedCarType] = selectedCarColor;
     updateGarageSelection();
     syncGarageLivePreview();
+    saveLocalGaragePreferences();
+    scheduleCloudProgressSave();
   });
 });
 
@@ -5223,6 +5308,8 @@ document.querySelectorAll('[data-drift-skin]').forEach((button) => {
     selectedDriftSkin = button.dataset.driftSkin === 'widebody' ? 'widebody' : 'classic';
     updateGarageSelection();
     syncGarageLivePreview();
+    saveLocalGaragePreferences();
+    scheduleCloudProgressSave();
   });
 });
 
@@ -5231,6 +5318,218 @@ document.getElementById('garage-drive').addEventListener('click', () => {
 });
 
 updateGarageSelection();
+
+function saveLocalGaragePreferences() {
+  try {
+    localStorage.setItem('zen-drift-garage-save', JSON.stringify({
+      car: selectedCarType,
+      paint: selectedCarColor,
+      skin: selectedDriftSkin,
+    }));
+  } catch (_) {}
+}
+
+function getLocalCloudProgress() {
+  let ghost = null;
+  try { ghost = JSON.parse(localStorage.getItem('zen-drift-time-attack-ghost') || 'null'); } catch (_) {}
+  return {
+    driverName: playerName,
+    car: selectedCarType,
+    paint: selectedCarColor,
+    skin: selectedDriftSkin,
+    bestTimeAttackMs: getTimeAttackBest(),
+    timeAttackGhost: ghost && ghost.v === 1 && Array.isArray(ghost.samples) ? ghost : null,
+  };
+}
+
+const cloudAccountStatus = document.getElementById('account-status');
+const cloudConfig = window.ZEN_SUPABASE_CONFIG;
+const cloudClient = cloudConfig?.url && cloudConfig?.anonKey && window.supabase?.createClient
+  ? window.supabase.createClient(cloudConfig.url, cloudConfig.anonKey)
+  : null;
+let cloudAccountUser = null;
+let cloudSaveTimer = 0;
+
+function setCloudAccountMessage(message, tone = '') {
+  cloudAccountStatus.textContent = message;
+  cloudAccountStatus.dataset.tone = tone;
+}
+
+function renderCloudAccount(user) {
+  cloudAccountUser = user || null;
+  const configured = Boolean(cloudClient);
+  document.getElementById('account-signed-out').hidden = !configured || Boolean(user);
+  document.getElementById('account-signed-in').hidden = !user;
+  document.getElementById('account-user-email').textContent = user?.email || '';
+  const title = document.getElementById('account-button-title');
+  const subtitle = document.getElementById('account-button-subtitle');
+  title.textContent = user ? 'ACCOUNT • SIGNED IN' : 'SIGN IN TO SAVE PROGRESS';
+  subtitle.textContent = user ? (user.email || 'Cloud save is active') : 'Sync your garage and race bests across devices';
+  if (!configured) {
+    setCloudAccountMessage('Online accounts are not configured yet. Your progress still saves on this device.', '');
+  } else if (user) {
+    setCloudAccountMessage('Loading your cloud save…');
+  } else {
+    setCloudAccountMessage('Your save stays on this device until you sign in.');
+  }
+}
+
+function applyCloudProgress(progress = {}) {
+  if (typeof progress.driverName === 'string') {
+    const name = cleanPlayerName(progress.driverName);
+    if (name.length >= 3) {
+      playerName = name;
+      localStorage.setItem(PLAYER_NAME_KEY, name);
+      updatePlayerNameDisplay();
+    }
+  }
+  if (['drift', 'f1', 'rally', 'hyper'].includes(progress.car)) selectedCarType = progress.car;
+  if (progress.skin === 'widebody' || progress.skin === 'classic') selectedDriftSkin = progress.skin;
+  if (typeof progress.paint === 'string' && /^#[0-9a-f]{6}$/i.test(progress.paint)) {
+    selectedCarColor = progress.paint;
+    garageCarColors[selectedCarType] = selectedCarColor;
+  }
+
+  const localBest = getTimeAttackBest();
+  const remoteBest = Number(progress.bestTimeAttackMs);
+  if (Number.isFinite(remoteBest) && remoteBest > 0 && (localBest === null || remoteBest < localBest)) {
+    localStorage.setItem('zen-drift-time-attack-best', String(remoteBest));
+    if (progress.timeAttackGhost?.v === 1 && Array.isArray(progress.timeAttackGhost.samples)) {
+      localStorage.setItem('zen-drift-time-attack-ghost', JSON.stringify(progress.timeAttackGhost));
+    }
+  }
+
+  saveLocalGaragePreferences();
+  updateGarageSelection();
+  syncGarageLivePreview();
+  updateCarPerformance();
+  updateTimeAttackHUD(true);
+}
+
+async function syncCloudProgress(user = cloudAccountUser) {
+  if (!cloudClient || !user) return;
+  const { data, error } = await cloudClient.from('game_saves').select('progress').maybeSingle();
+  if (error) throw error;
+  const local = getLocalCloudProgress();
+  const remote = data?.progress && typeof data.progress === 'object' ? data.progress : null;
+  const merged = remote ? { ...local, ...remote } : { ...local };
+  const localBest = Number(local.bestTimeAttackMs);
+  const remoteBest = Number(remote?.bestTimeAttackMs);
+  if (Number.isFinite(localBest) && localBest > 0 && (!Number.isFinite(remoteBest) || remoteBest <= 0 || localBest < remoteBest)) {
+    merged.bestTimeAttackMs = localBest;
+    merged.timeAttackGhost = local.timeAttackGhost;
+  } else if (Number.isFinite(remoteBest) && remoteBest > 0) {
+    merged.bestTimeAttackMs = remoteBest;
+    merged.timeAttackGhost = remote.timeAttackGhost || null;
+  }
+  if (remote) applyCloudProgress(merged);
+  const { error: saveError } = await cloudClient.from('game_saves').upsert({
+    user_id: user.id,
+    progress: merged,
+    updated_at: new Date().toISOString(),
+  }, { onConflict: 'user_id' });
+  if (saveError) throw saveError;
+  setCloudAccountMessage('Cloud save synced. Your garage and race record are linked to this account.', 'good');
+}
+
+function scheduleCloudProgressSave() {
+  if (!cloudAccountUser || !cloudClient) return;
+  clearTimeout(cloudSaveTimer);
+  cloudSaveTimer = setTimeout(async () => {
+    try {
+      const { error } = await cloudClient.from('game_saves').upsert({
+        user_id: cloudAccountUser.id,
+        progress: getLocalCloudProgress(),
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'user_id' });
+      if (error) throw error;
+      setCloudAccountMessage('Cloud save synced.', 'good');
+    } catch (error) {
+      console.error('Cloud save failed:', error);
+      setCloudAccountMessage('Could not sync right now. Your local save is safe; try again later.', 'error');
+    }
+  }, 900);
+}
+
+async function runAccountAction(action, successMessage) {
+  if (!cloudClient) {
+    setCloudAccountMessage('Online accounts are not configured yet. Your local progress is safe.', 'error');
+    return;
+  }
+  const email = document.getElementById('account-email').value.trim();
+  const password = document.getElementById('account-password').value;
+  if (!email) return setCloudAccountMessage('Enter your email address first.', 'error');
+  setCloudAccountMessage('Connecting securely…');
+  try {
+    const result = await action(email, password);
+    if (result.error) setCloudAccountMessage(result.error.message || 'Could not complete this request.', 'error');
+    else setCloudAccountMessage(successMessage, 'good');
+  } catch (error) {
+    console.error('Account request failed:', error);
+    setCloudAccountMessage('Could not connect. Check your connection and try again.', 'error');
+  }
+}
+
+document.getElementById('account-sign-in').addEventListener('click', () => runAccountAction(
+  (email, password) => cloudClient.auth.signInWithPassword({ email, password }),
+  'Signed in. Loading your save…',
+));
+document.getElementById('account-create').addEventListener('click', () => runAccountAction(
+  (email, password) => password.length >= 8
+    ? cloudClient.auth.signUp({ email, password, options: { emailRedirectTo: `${location.origin}/play` } })
+    : Promise.resolve({ error: { message: 'Choose a password with at least 8 characters.' } }),
+  'Account created. Check your email to confirm it, then sign in.',
+));
+document.getElementById('account-google').addEventListener('click', async () => {
+  if (!cloudClient) return setCloudAccountMessage('Online accounts are not configured yet.', 'error');
+  const { error } = await cloudClient.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: `${location.origin}/play` } });
+  if (error) setCloudAccountMessage(error.message, 'error');
+});
+document.getElementById('account-reset-password').addEventListener('click', async () => {
+  if (!cloudClient) return setCloudAccountMessage('Online accounts are not configured yet.', 'error');
+  const email = document.getElementById('account-email').value.trim();
+  if (!email) return setCloudAccountMessage('Enter your email address first.', 'error');
+  const { error } = await cloudClient.auth.resetPasswordForEmail(email, { redirectTo: `${location.origin}/play` });
+  setCloudAccountMessage(error ? error.message : 'If an account exists for that address, a reset link is on its way.', error ? 'error' : 'good');
+});
+document.getElementById('account-update-password').addEventListener('click', async () => {
+  const password = document.getElementById('account-new-password').value;
+  if (password.length < 8) return setCloudAccountMessage('Choose a password with at least 8 characters.', 'error');
+  const { error } = await cloudClient.auth.updateUser({ password });
+  if (error) setCloudAccountMessage(error.message, 'error');
+  else {
+    document.getElementById('account-reset-panel').hidden = true;
+    renderCloudAccount(cloudAccountUser);
+    setCloudAccountMessage('Password updated.', 'good');
+  }
+});
+document.getElementById('account-sign-out').addEventListener('click', async () => {
+  const { error } = await cloudClient.auth.signOut();
+  if (error) setCloudAccountMessage(error.message, 'error');
+  else setCloudAccountMessage('Signed out. Your local save remains on this device.');
+});
+
+if (cloudClient) {
+  cloudClient.auth.onAuthStateChange((event, session) => {
+    if (event === 'PASSWORD_RECOVERY' && session?.user) {
+      cloudAccountUser = session.user;
+      document.getElementById('account-signed-out').hidden = true;
+      document.getElementById('account-signed-in').hidden = true;
+      document.getElementById('account-reset-panel').hidden = false;
+      setCloudAccountMessage('Choose a new password for your account.');
+      showMenuPage('account-page');
+      return;
+    }
+    document.getElementById('account-reset-panel').hidden = true;
+    renderCloudAccount(session?.user || null);
+    if (session?.user) setTimeout(() => syncCloudProgress(session.user).catch((error) => {
+      console.error('Cloud save sync failed:', error);
+      setCloudAccountMessage('Signed in, but the save could not sync. Check the cloud setup.', 'error');
+    }), 0);
+  });
+} else {
+  renderCloudAccount(null);
+}
 
 // The garage preview runs the same game canvas in a quiet, UI-free auto-drive mode.
 if (garagePreviewMode) {
