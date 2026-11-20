@@ -6680,7 +6680,8 @@ function loop(frameTime) {
   const manualSteerInput = mobileDrivingMode && mobileSteeringMode === 'tilt'
     ? tiltSteeringInput
     : buttonSteerInput;
-  let targetSteer = manualSteerInput * steerLimit;
+  const tiltSteerGain = mobileDrivingMode && mobileSteeringMode === 'tilt' ? 1.2 : 1;
+  let targetSteer = manualSteerInput * steerLimit * tiltSteerGain;
   const activeSteerSmooth = autoDriveEnabled ? (mobileDrivingMode ? 0.18 : 0.22) : steerSmooth;
   let autoThrottle = false;
   let autoBrake = false;

@@ -4,296 +4,205 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#090909">
-<meta name="description" content="Discover Zen Drift Cruise, a relaxing driving and drifting game. Play online or download the standalone game for desktop.">
+<meta name="description" content="Find your flow in Zen Drift Cruise. Take a quiet mountain road, chase the sunset and drift at your own pace. Play online or download the game.">
 <link rel="canonical" href="https://zen-drift-cruise-online.onrender.com/">
 <meta name="robots" content="index, follow">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Zen Drift Cruise">
 <meta property="og:title" content="Zen Drift Cruise | Find Your Flow">
-<meta property="og:description" content="Escape, drive and drift. Discover Zen Drift Cruise and play online or download the game.">
+<meta property="og:description" content="A quiet road, a setting sun, and nowhere else you need to be. Play Zen Drift Cruise online.">
 <meta property="og:url" content="https://zen-drift-cruise-online.onrender.com/">
-<meta property="og:image" content="https://zen-drift-cruise-online.onrender.com/assets/zen-mclaren.jpg">
+<meta property="og:image" content="https://zen-drift-cruise-online.onrender.com/assets/zen-garage-hero.jpg">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Zen Drift Cruise | Find Your Flow">
-<meta name="twitter:description" content="Escape, drive and drift. Play online or download Zen Drift Cruise.">
-<meta name="twitter:image" content="https://zen-drift-cruise-online.onrender.com/assets/zen-mclaren.jpg">
+<meta name="twitter:description" content="A quiet road, a setting sun, and nowhere else you need to be. Play Zen Drift Cruise online.">
+<meta name="twitter:image" content="https://zen-drift-cruise-online.onrender.com/assets/zen-garage-hero.jpg">
 <script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "WebSite",
-  "name": "Zen Drift Cruise",
-  "url": "https://zen-drift-cruise-online.onrender.com/",
-  "description": "A relaxing driving and drifting game that you can play online or download."
-}
+{"@context":"https://schema.org","@type":"WebSite","name":"Zen Drift Cruise","url":"https://zen-drift-cruise-online.onrender.com/","description":"A relaxing driving and drifting game that you can play online or download."}
 </script>
 <title>Zen Drift Cruise | Find Your Flow</title>
 <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512.png">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <style>
-:root {
-  --orange: #f26a21;
-  --black: #090909;
-  --white: #f5f3ef;
-  --muted: #aaa6a1;
-}
-* { box-sizing: border-box; }
-html { scroll-behavior: smooth; }
-body {
-  margin: 0;
-  background: var(--black);
-  color: var(--white);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-}
-a { color: inherit; text-decoration: none; }
-header {
-  height: 78px;
-  padding: 0 7%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 1px solid #ffffff14;
-  position: relative;
-  z-index: 2;
-  background: #090909;
-}
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-weight: 900;
-  letter-spacing: 1.5px;
-  font-size: 15px;
-}
-.brand img { width: 39px; height: 39px; object-fit: contain; }
-nav { display: flex; align-items: center; gap: 32px; font-size: 13px; font-weight: 700; }
-nav a:not(.nav-cta) { color: #c8c5c1; }
-nav a:hover { color: var(--orange); }
-.nav-cta {
-  background: var(--orange);
-  color: #090909;
-  padding: 12px 19px;
-  border-radius: 4px;
-}
-.hero {
-  min-height: 690px;
-  height: calc(100svh - 78px);
-  max-height: 900px;
-  position: relative;
-  display: flex;
-  align-items: center;
-  overflow: hidden;
-  background:
-    linear-gradient(90deg, #090909 0%, #090909e8 34%, #09090970 68%, #09090930 100%),
-    linear-gradient(0deg, #090909 0%, transparent 34%),
-    url("/assets/zen-mclaren.jpg") center 54% / cover no-repeat;
-}
-.hero-content {
-  width: min(650px, 86%);
-  margin-left: 10%;
-  position: relative;
-  z-index: 1;
-  padding: 65px 0;
-}
-.eyebrow {
-  color: var(--orange);
-  font-size: 11px;
-  letter-spacing: 4px;
-  font-weight: 900;
-  text-transform: uppercase;
-}
-h1 {
-  font-size: clamp(55px, 8.5vw, 112px);
-  line-height: .91;
-  letter-spacing: -6px;
-  margin: 23px 0;
-  font-weight: 950;
-  text-transform: uppercase;
-}
-h1 span { color: var(--orange); }
-.hero p {
-  max-width: 430px;
-  color: #c4c0bb;
-  font-size: 16px;
-  line-height: 1.8;
-  margin: 26px 0 34px;
-}
-.actions { display: flex; flex-wrap: wrap; gap: 13px; }
-.btn {
-  min-height: 54px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 27px;
-  border: 1px solid #ffffff55;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 900;
-  letter-spacing: 1.2px;
-  transition: .2s ease;
-}
-.btn-primary { background: var(--orange); border-color: var(--orange); color: #090909; }
-.btn:hover { transform: translateY(-3px); }
-.btn-secondary:hover { border-color: var(--orange); color: var(--orange); }
-.hero-note {
-  position: absolute;
-  right: 7%;
-  bottom: 40px;
-  color: #ffffff9c;
-  font-size: 10px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-}
-section { padding: 105px 9%; }
-.section-label {
-  color: var(--orange);
-  text-transform: uppercase;
-  letter-spacing: 3px;
-  font-size: 11px;
-  font-weight: 900;
-}
-.section-title {
-  font-size: clamp(34px, 5vw, 58px);
-  letter-spacing: -2px;
-  line-height: 1;
-  margin: 17px 0;
-  text-transform: uppercase;
-}
-.intro {
-  max-width: 560px;
-  color: var(--muted);
-  line-height: 1.8;
-  font-size: 15px;
-}
-.features {
-  background: #111;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 18px;
-}
-.feature {
-  border: 1px solid #ffffff18;
-  padding: 31px;
-  min-height: 210px;
-  background: linear-gradient(145deg, #181818, #101010);
-}
-.feature-number { color: var(--orange); font-size: 12px; font-weight: 900; letter-spacing: 2px; }
-.feature h3 { font-size: 19px; text-transform: uppercase; margin: 24px 0 10px; }
-.feature p { color: var(--muted); font-size: 13px; line-height: 1.7; margin: 0; }
-.download-section {
-  text-align: center;
-  background: var(--orange);
-  color: #090909;
-}
-.download-section .section-label { color: #090909b5; }
-.download-section .intro { color: #23150e; margin: 0 auto 28px; }
-.download-section .btn { border-color: #090909; color: #090909; }
-.download-section .btn:hover { background: #090909; color: white; }
-footer {
-  padding: 30px 7%;
-  display: flex;
-  justify-content: space-between;
-  gap: 20px;
-  color: #8e8983;
-  font-size: 11px;
-  letter-spacing: 1px;
-}
-@media (max-width: 700px) {
-  header { height: 68px; padding: 0 5%; }
-  .brand { font-size: 12px; gap: 8px; }
-  .brand img { width: 33px; height: 33px; }
-  nav { gap: 13px; font-size: 11px; }
-  nav a:nth-child(2) { display: none; }
-  .nav-cta { padding: 10px 12px; }
-  .hero {
-    min-height: 700px;
-    height: calc(100svh - 68px);
-    background-position: 58% center;
-  }
-  .hero-content { margin-left: 7%; width: 88%; padding-top: 20px; }
-  h1 { font-size: clamp(53px, 15vw, 85px); letter-spacing: -3px; }
-  .hero p { font-size: 14px; max-width: 330px; }
-  .btn { min-height: 50px; padding: 0 18px; font-size: 10px; }
-  .hero-note { right: 7%; bottom: 22px; font-size: 8px; }
-  section { padding: 75px 7%; }
-  .features { grid-template-columns: 1fr; }
-  .feature { min-height: 170px; }
-  footer { padding: 25px 7%; flex-direction: column; }
-}
+:root{color-scheme:dark;--night:#090b0d;--paper:#f5f0e8;--muted:#b9b4aa;--orange:#ff762b;--sakura:#ffa7be;--line:rgba(245,240,232,.16);--font:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:88px}
+body{margin:0;background:var(--night);color:var(--paper);font-family:var(--font);-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+button,a{-webkit-tap-highlight-color:transparent}
+.site-header{height:82px;position:absolute;inset:0 0 auto;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:0 clamp(22px,6.5vw,104px);border-bottom:1px solid rgba(255,255,255,.15);background:linear-gradient(180deg,rgba(5,7,9,.56),transparent);backdrop-filter:blur(9px)}
+.brand{display:inline-flex;align-items:center;gap:12px;font-size:13px;font-weight:900;letter-spacing:1.5px}
+.brand img{width:38px;height:38px;object-fit:contain}
+.brand-word{display:grid;gap:2px}
+.brand-word small{font-size:10px;font-weight:700;letter-spacing:3px;color:#d9d0c6}
+.site-nav{display:flex;align-items:center;gap:clamp(20px,3vw,44px);font-size:13px;font-weight:700;letter-spacing:.06em}
+.site-nav>a:not(.nav-play){color:#e1ddd5;transition:color .2s}
+.site-nav>a:not(.nav-play):hover{color:var(--orange)}
+.nav-play{padding:13px 19px;border:1px solid rgba(255,118,43,.65);background:rgba(13,12,11,.52);color:#fff1e7;border-radius:2px;transition:background .2s,border-color .2s}
+.nav-play:hover{background:var(--orange);border-color:var(--orange);color:#160c06}
+.hero{min-height:max(740px,100svh);position:relative;isolation:isolate;display:flex;align-items:center;overflow:hidden;background:#111 url('/assets/zen-garage-hero.jpg') center 55%/cover no-repeat;animation:garage-pan 12s ease-in-out infinite alternate}
+.hero::before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(7,8,10,.86) 0%,rgba(7,8,10,.64) 37%,rgba(7,8,10,.14) 78%),linear-gradient(0deg,rgba(7,8,10,.84) 0%,transparent 36%,rgba(7,8,10,.16) 100%)}
+.hero::after{content:"";position:absolute;inset:82px 0 0;z-index:-1;opacity:.2;pointer-events:none;background:repeating-linear-gradient(118deg,transparent 0 76px,rgba(255,238,228,.17) 77px,transparent 79px 104px),radial-gradient(ellipse at 82% 33%,rgba(255,118,43,.28),transparent 43%);mask-image:linear-gradient(90deg,transparent,black 70%);animation:light-trails 8s ease-in-out infinite alternate}
+.hero-inner{width:min(1320px,88%);margin:38px auto 0;position:relative;display:grid;grid-template-columns:minmax(0,1fr) 300px;align-items:end;gap:40px}
+.hero-copy{max-width:820px;padding:70px 0 106px}
+.eyebrow{display:flex;align-items:center;gap:12px;color:#ffd2b4;font-size:12px;font-weight:800;letter-spacing:.25em;text-transform:uppercase}
+.eyebrow::before{content:"";width:33px;height:1px;background:var(--orange);box-shadow:0 0 14px var(--orange)}
+h1{font-size:clamp(68px,10.2vw,146px);line-height:.82;letter-spacing:-.085em;margin:27px 0 23px;text-transform:uppercase;font-weight:950}
+h1 span{display:block;width:max-content;max-width:100%;position:relative;color:var(--orange);font-style:italic;letter-spacing:-.095em;text-shadow:0 8px 42px rgba(255,102,31,.3)}
+h1 span::after{content:"";position:absolute;left:3%;right:-5%;bottom:-.08em;height:.11em;border-radius:60% 20% 55% 35%;background:linear-gradient(90deg,var(--sakura),var(--orange),transparent);transform:rotate(-2deg) scaleX(0);transform-origin:left center;opacity:.8;animation:accent-draw .9s .55s cubic-bezier(.2,.7,.2,1) forwards}
+.hero-lede{max-width:515px;margin:0;color:#e0d9cf;font-size:18px;line-height:1.75}
+.hero-actions{display:flex;flex-wrap:wrap;align-items:center;gap:13px;margin-top:32px}
+.button{min-height:56px;display:inline-flex;align-items:center;justify-content:center;padding:0 24px;border:1px solid var(--line);font-size:13px;font-weight:900;letter-spacing:.11em;text-transform:uppercase;transition:transform .24s cubic-bezier(.2,.7,.2,1),background .24s,border-color .24s,color .24s,box-shadow .24s}
+.button:hover{transform:translateY(-3px)}
+.button-primary{background:var(--orange);border-color:var(--orange);color:#160c06;box-shadow:0 10px 34px rgba(255,103,32,.24)}
+.button-primary:hover{background:#ff965c;border-color:#ff965c;box-shadow:0 14px 38px rgba(255,103,32,.32)}
+.button:active{transform:translateY(0) scale(.98)}
+.button-quiet{background:rgba(10,12,13,.36);color:var(--paper)}
+.button-quiet:hover{border-color:#fff;color:#fff;background:rgba(10,12,13,.62)}
+.hero-side{align-self:end;margin-bottom:55px;padding:23px 22px 25px;border:1px solid rgba(255,255,255,.26);border-top-color:rgba(255,118,43,.8);background:linear-gradient(145deg,rgba(13,15,16,.76),rgba(14,13,12,.46));backdrop-filter:blur(12px)}
+.side-label{font-size:11px;color:#ffb487;font-weight:900;letter-spacing:.2em;text-transform:uppercase}
+.side-title{margin:15px 0 9px;font-size:25px;line-height:1.1;font-weight:850;letter-spacing:-.04em}
+.side-copy{margin:0;color:#d0c8bd;font-size:15px;line-height:1.6}
+.side-divider{height:1px;margin:21px 0;background:var(--line)}
+.side-meta{display:flex;align-items:center;justify-content:space-between;font-size:12px;font-weight:800;letter-spacing:.11em;text-transform:uppercase}
+.side-meta span:last-child{color:var(--orange)}
+.hero-bottom{position:absolute;left:6%;right:6%;bottom:0;min-height:62px;display:flex;align-items:center;justify-content:space-between;border-top:1px solid rgba(255,255,255,.23);color:#d3cec6;font-size:11px;font-weight:800;letter-spacing:.18em;text-transform:uppercase}
+.hero-bottom span:last-child{color:#ffbd95}
+.section-shell{width:min(1210px,86%);margin-inline:auto}
+.intro-section{padding:118px 0 98px;display:grid;grid-template-columns:.8fr 1.2fr;gap:10%;align-items:start}
+.section-kicker{margin:0 0 17px;color:var(--orange);font-size:12px;font-weight:900;letter-spacing:.23em;text-transform:uppercase}
+.section-title{max-width:570px;margin:0;font-size:clamp(40px,6vw,74px);line-height:.98;letter-spacing:-.065em;text-transform:uppercase}
+.section-title em{font-style:normal;color:#9f9b95}
+.intro-copy{max-width:560px;margin:4px 0 0;color:#c3beb5;font-size:17px;line-height:1.85}
+.intro-note{margin:26px 0 0;padding-left:18px;border-left:2px solid var(--orange);color:#f5e4d6;font-size:14px;font-weight:700;line-height:1.6}
+.modes-section{padding:95px 0 112px;background:#101214;border-block:1px solid rgba(255,255,255,.08)}
+.modes-heading{display:flex;justify-content:space-between;gap:40px;align-items:end;margin-bottom:38px}
+.modes-heading .section-title{font-size:clamp(39px,5.7vw,66px)}
+.modes-heading p{max-width:365px;margin:0;color:#b9b4aa;font-size:16px;line-height:1.7}
+.mode-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.mode-card{min-height:257px;position:relative;overflow:hidden;padding:26px;display:flex;flex-direction:column;justify-content:space-between;border:1px solid rgba(255,255,255,.14);background:linear-gradient(155deg,#1b1c1c,#111314 68%);transition:transform .32s cubic-bezier(.2,.7,.2,1),border-color .32s,box-shadow .32s}
+.mode-card:hover,.mode-card:focus-within{transform:translateY(-7px) scale(1.012);border-color:rgba(255,118,43,.82);box-shadow:0 20px 44px rgba(0,0,0,.3),0 0 26px rgba(255,118,43,.08)}
+.mode-card::after{content:"";position:absolute;width:210px;height:210px;right:-75px;top:-90px;border:1px solid rgba(255,118,43,.3);border-radius:50%;box-shadow:0 0 0 22px rgba(255,118,43,.05),0 0 0 48px rgba(255,167,190,.035)}
+.mode-top{display:flex;justify-content:space-between;gap:16px;position:relative;z-index:1}
+.mode-index{color:#ffad7d;font-size:12px;font-weight:900;letter-spacing:.2em}
+.mode-mark{color:rgba(255,255,255,.46);font-size:12px;font-weight:800;letter-spacing:.1em}
+.mode-card h3{position:relative;z-index:1;margin:0 0 9px;font-size:clamp(22px,2.5vw,30px);line-height:1;letter-spacing:-.04em;text-transform:uppercase}
+.mode-card p{position:relative;z-index:1;max-width:290px;margin:0;color:#b7b2aa;font-size:15px;line-height:1.65}
+.mode-link{position:relative;z-index:1;display:inline-flex;align-items:center;gap:9px;width:max-content;margin-top:23px;color:#ffb487;font-size:12px;font-weight:900;letter-spacing:.14em;text-transform:uppercase}
+.mode-link span{width:22px;height:1px;background:currentColor;transition:width .2s}
+.mode-link:hover span{width:34px}
+.play-section{padding:92px 0 105px}
+.play-panel{position:relative;overflow:hidden;display:grid;grid-template-columns:1.2fr .8fr;align-items:center;gap:40px;padding:clamp(30px,6vw,74px);border:1px solid rgba(255,255,255,.16);background:linear-gradient(115deg,#1b1714 0%,#111315 60%,#181411 100%)}
+.play-panel::after{content:"";position:absolute;width:340px;height:340px;right:-100px;bottom:-180px;border:1px solid rgba(255,118,43,.38);border-radius:50%;box-shadow:0 0 0 26px rgba(255,118,43,.05),0 0 0 57px rgba(255,118,43,.035),0 0 80px rgba(255,118,43,.08);animation:soft-orbit 12s ease-in-out infinite alternate}
+.play-panel .section-title{font-size:clamp(42px,6vw,68px)}
+.play-panel p{max-width:540px;margin:20px 0 0;color:#c2bdb5;font-size:16px;line-height:1.75}
+.play-panel-action{position:relative;z-index:1;justify-self:end}
+.play-panel-action .button{min-width:218px}
+footer{min-height:90px;padding:22px 7%;display:flex;align-items:center;justify-content:space-between;gap:20px;border-top:1px solid rgba(255,255,255,.12);color:#aaa59c;font-size:12px;letter-spacing:.1em;text-transform:uppercase}
+.footer-brand{display:flex;align-items:center;gap:10px;color:#e7e1d7;font-weight:850}
+.footer-brand img{width:26px;height:26px;object-fit:contain}
+.scroll-progress{position:fixed;z-index:30;inset:0 auto auto 0;width:100%;height:3px;pointer-events:none;background:linear-gradient(90deg,var(--orange),var(--sakura));transform:scaleX(0);transform-origin:left center;box-shadow:0 0 14px rgba(255,118,43,.75)}
+.reveal-ready [data-reveal]{opacity:0;transform:translateY(46px) scale(.975);transition:opacity .95s cubic-bezier(.2,.7,.2,1),transform .95s cubic-bezier(.2,.7,.2,1);transition-delay:var(--reveal-delay,0ms)}
+.reveal-ready [data-reveal].is-visible{opacity:1;transform:translateY(0) scale(1)}
+.hero-copy,.hero-side{animation:hero-arrive .85s cubic-bezier(.2,.7,.2,1) both}.hero-side{animation-delay:.18s}
+.hero-copy>.eyebrow,.hero-copy>h1,.hero-copy>.hero-lede,.hero-copy>.hero-actions{animation:hero-arrive .7s cubic-bezier(.2,.7,.2,1) both}
+.hero-copy>.eyebrow{animation-delay:.08s}.hero-copy>h1{animation-delay:.16s}.hero-copy>.hero-lede{animation-delay:.24s}.hero-copy>.hero-actions{animation-delay:.32s}
+@keyframes hero-arrive{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes accent-draw{to{transform:rotate(-2deg) scaleX(1)}}
+@keyframes garage-pan{from{background-position:50% 55%}to{background-position:54% 52%}}
+@keyframes light-trails{from{opacity:.12;background-position:0 0,100% 50%}to{opacity:.34;background-position:28px 18px,76% 44%}}
+@keyframes soft-orbit{from{transform:translate3d(0,0,0)}to{transform:translate3d(-15px,-12px,0)}}
+@media(max-width:850px){.hero-inner{grid-template-columns:1fr;gap:0}.hero-copy{padding:65px 0 130px}.hero-side{display:none}.intro-section{grid-template-columns:1fr;gap:24px}.modes-heading{align-items:start;flex-direction:column;gap:16px}.mode-grid{grid-template-columns:1fr}.mode-card{min-height:215px}.play-panel{grid-template-columns:1fr;gap:26px}.play-panel-action{justify-self:start}}
+@media(max-width:600px){.site-header{height:70px;padding:0 19px}.brand{font-size:11px;gap:8px;letter-spacing:1px}.brand img{width:32px;height:32px}.brand-word small{font-size:9px;letter-spacing:2.2px}.site-nav{gap:14px;font-size:11px}.site-nav>a:first-child{display:none}.nav-play{padding:11px 13px}.hero{min-height:790px;min-height:100svh;background-position:60% center}.hero::before{background:linear-gradient(90deg,rgba(7,8,10,.79),rgba(7,8,10,.25)),linear-gradient(0deg,rgba(7,8,10,.89),transparent 54%,rgba(7,8,10,.2))}.hero-inner{width:88%;margin:37px auto 0}.hero-copy{padding:45px 0 120px}.eyebrow{font-size:10px;letter-spacing:.2em}.hero h1{font-size:clamp(66px,17vw,98px);letter-spacing:-.085em;margin:25px 0 19px}.hero-lede{max-width:365px;font-size:16px;line-height:1.7}.hero-actions{gap:10px;margin-top:26px}.button{min-height:52px;padding:0 17px;font-size:11px}.hero-bottom{left:6%;right:6%;min-height:54px;font-size:9px;letter-spacing:.1em}.section-shell{width:88%}.intro-section{padding:78px 0 72px}.section-title{font-size:clamp(40px,12vw,59px)}.intro-copy{font-size:16px}.modes-section{padding:74px 0 80px}.modes-heading .section-title{font-size:clamp(38px,11vw,54px)}.mode-card{min-height:205px;padding:22px}.play-section{padding:72px 0}.play-panel{padding:29px 23px}.play-panel .section-title{font-size:clamp(40px,11vw,54px)}footer{align-items:flex-start;flex-direction:column;padding:23px 6%;font-size:10px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important}}
 </style>
-  <meta name="google-site-verification" content="yUCIkCLUnPr4_LZoTfQ1xcRxaUKxt1SxEzT2cBMwgI4" />
+<meta name="google-site-verification" content="yUCIkCLUnPr4_LZoTfQ1xcRxaUKxt1SxEzT2cBMwgI4">
 </head>
 <body>
-<header>
-  <a class="brand" href="/">
-    <img src="/icons/icon-192.png" alt="Zen Drift Cruise">
-    <span>ZEN DRIFT CRUISE</span>
+<div class="scroll-progress" aria-hidden="true"></div>
+<header class="site-header">
+  <a class="brand" href="/" aria-label="Zen Drift Cruise home">
+    <img src="/icons/icon-192.png" alt="">
+    <span class="brand-word">ZEN DRIFT<small>CRUISE</small></span>
   </a>
-  <nav>
-    <a href="#experience">EXPERIENCE</a>
+  <nav class="site-nav" aria-label="Main navigation">
+    <a href="#experience">THE EXPERIENCE</a>
     <a href="/download">DOWNLOAD</a>
-    <a class="nav-cta" href="/play">PLAY NOW ↗</a>
+    <a class="nav-play" href="/play">PLAY ONLINE</a>
   </nav>
 </header>
-
 <main>
-  <section class="hero">
-    <div class="hero-content">
-      <div class="eyebrow">Your road. Your rhythm.</div>
-      <h1>FIND<br>YOUR <span>FLOW.</span></h1>
-      <p>
-        Leave the noise behind. Get behind the wheel, explore the road
-        and enjoy the freedom of Zen Drift Cruise.
-      </p>
-      <div class="actions">
-        <a class="btn btn-primary" href="/play">▶ &nbsp; PLAY ONLINE</a>
-        <a class="btn btn-secondary" href="/download">DOWNLOAD GAME</a>
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="hero-inner">
+      <div class="hero-copy">
+        <div class="eyebrow">A little further from the noise</div>
+        <h1 id="hero-title">Find your<span>flow.</span></h1>
+        <p class="hero-lede">A quiet mountain road. The last light of the day. Take the long way home in Zen Drift Cruise.</p>
+        <div class="hero-actions">
+          <a class="button button-primary" href="/play">Play online</a>
+          <a class="button button-quiet" href="/download">Explore downloads</a>
+        </div>
+      </div>
+      <aside class="hero-side" aria-label="Tonight's drive">
+        <div class="side-label">Tonight's drive</div>
+        <h2 class="side-title">Golden hour.<br>Open road.</h2>
+        <p class="side-copy">Set your own pace and let the mountain road unwind.</p>
+        <div class="side-divider"></div>
+        <div class="side-meta"><span>Zen Drift Cruise</span><span>01 / 03</span></div>
+      </aside>
+    </div>
+    <div class="hero-bottom"><span>Free to play in your browser</span><span>Take a breath. Take the road.</span></div>
+  </section>
+
+  <section class="intro-section section-shell" id="experience" data-reveal>
+    <div>
+      <p class="section-kicker">The feeling</p>
+      <h2 class="section-title">Nothing to chase.<br><em>Nowhere to be.</em></h2>
+    </div>
+    <div>
+      <p class="intro-copy">Zen Drift Cruise is a small escape built around the simple joy of driving. Follow the curves, watch the light change and find a rhythm that feels like yours.</p>
+      <p class="intro-note">Start instantly in your browser. No account, no setup, just the road.</p>
+    </div>
+  </section>
+
+  <section class="modes-section" aria-labelledby="modes-title">
+    <div class="section-shell">
+      <div class="modes-heading" data-reveal>
+        <div><p class="section-kicker">Choose your atmosphere</p><h2 class="section-title" id="modes-title">Same road.<br>Different feeling.</h2></div>
+        <p>Pick a mood, settle in and let the scenery do the talking.</p>
+      </div>
+      <div class="mode-grid">
+        <article class="mode-card" data-reveal style="--reveal-delay:0ms">
+          <div class="mode-top"><span class="mode-index">01</span><span class="mode-mark">ENDLESS TOUGE</span></div>
+          <div><h3>Keep on cruising</h3><p>One more bend. Then another. Follow the mountain road for as long as you like.</p><a class="mode-link" href="/play">Take the road <span></span></a></div>
+        </article>
+        <article class="mode-card" data-reveal style="--reveal-delay:160ms">
+          <div class="mode-top"><span class="mode-index">02</span><span class="mode-mark">GOLDEN SUNSET</span></div>
+          <div><h3>Chase the last light</h3><p>Warm skies, winding asphalt and a softer kind of drive through the evening.</p><a class="mode-link" href="/play">Find the sunset <span></span></a></div>
+        </article>
+        <article class="mode-card" data-reveal style="--reveal-delay:320ms">
+          <div class="mode-top"><span class="mode-index">03</span><span class="mode-mark">RAIN EXPERIENCE</span></div>
+          <div><h3>Listen to the rain</h3><p>Let the road glisten, ease into the corners and make the weather part of the ride.</p><a class="mode-link" href="/play">Feel the rain <span></span></a></div>
+        </article>
       </div>
     </div>
-    <div class="hero-note">DRIVE • EXPLORE • RELAX</div>
   </section>
 
-  <section id="experience">
-    <div class="section-label">The experience</div>
-    <h2 class="section-title">More than a drive.</h2>
-    <p class="intro">
-      A place to slow down, find your rhythm and enjoy the road.
-      Start playing directly in your browser whenever you want.
-    </p>
-  </section>
-
-  <section class="features">
-    <article class="feature">
-      <div class="feature-number">01 / FREEDOM</div>
-      <h3>Your own journey</h3>
-      <p>Take the wheel and enjoy the open road at your own pace.</p>
-    </article>
-    <article class="feature">
-      <div class="feature-number">02 / ATMOSPHERE</div>
-      <h3>Find your mood</h3>
-      <p>Enjoy the atmosphere and make every drive your own experience.</p>
-    </article>
-    <article class="feature">
-      <div class="feature-number">03 / ACCESS</div>
-      <h3>Play your way</h3>
-      <p>Launch the game online or explore the available download options.</p>
-    </article>
-  </section>
-
-  <section class="download-section">
-    <div class="section-label">Ready when you are</div>
-    <h2 class="section-title">The road is waiting.</h2>
-    <p class="intro">Download the desktop app for macOS or Windows and get on the road.</p>
-    <div class="actions" style="justify-content:center">
-      <a class="btn" href="/play">PLAY ONLINE ↗</a>
-      <a class="btn" href="/download">DOWNLOAD DESKTOP APPS</a>
+  <section class="play-section section-shell">
+    <div class="play-panel" data-reveal>
+      <div><p class="section-kicker">Your next quiet moment</p><h2 class="section-title">The road is<br>already open.</h2><p>Jump in for a minute or stay for the whole sunset. The drive is yours.</p></div>
+      <div class="play-panel-action"><a class="button button-primary" href="/play">Start your drive</a></div>
     </div>
   </section>
 </main>
-
 <footer>
-  <span>© 2026 ZEN DRIFT CRUISE</span>
-  <span>BUILT FOR THE LOVE OF THE DRIVE.</span>
+  <a class="footer-brand" href="/"><img src="/icons/icon-192.png" alt="">ZEN DRIFT CRUISE</a>
+  <span>© 2026 Zen Drift Cruise</span>
+  <a href="/download">Downloads</a>
 </footer>
+<script>
+(()=>{const bar=document.querySelector(".scroll-progress");const update=()=>{const max=document.documentElement.scrollHeight-innerHeight;bar.style.transform=`scaleX(${max>0?scrollY/max:0})`};addEventListener("scroll",update,{passive:true});addEventListener("resize",update);update();if(!matchMedia("(prefers-reduced-motion: reduce)").matches&&"IntersectionObserver"in window){document.documentElement.classList.add("reveal-ready");const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add("is-visible");observer.unobserve(entry.target)}}),{threshold:.12,rootMargin:"0px 0px -35px 0px"});document.querySelectorAll("[data-reveal]").forEach(element=>observer.observe(element))}else{document.querySelectorAll("[data-reveal]").forEach(element=>element.classList.add("is-visible"))}})();
+</script>
 </body>
 </html>

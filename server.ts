@@ -47,6 +47,11 @@ const PWA_ASSETS = {
     contentType: "image/jpeg",
     cacheControl: "public, max-age=86400",
   },
+  "/assets/zen-garage-hero.jpg": {
+    body: readFileSync(new URL("./game/assets/zen-garage-hero.jpg", import.meta.url)),
+    contentType: "image/jpeg",
+    cacheControl: "public, max-age=31536000, immutable",
+  },
   "/assets/home-screen-logo.png": {
     body: readFileSync(new URL("./game/assets/home-screen-logo.png", import.meta.url)),
     contentType: "image/png",
