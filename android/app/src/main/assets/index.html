@@ -2361,6 +2361,21 @@
   background: #ff8a1c;
   box-shadow: 0 0 12px #ff6800;
 }
+
+#garage-showroom.is-rally .garage-showroom-kicker,
+#garage-showroom.is-rally .garage-showroom-live i,
+#garage-showroom.is-rally #garage-preview-type,
+#garage-showroom.is-rally .garage-stage-caption b { color: #a3e635; }
+#garage-showroom.is-rally .garage-showroom-live i { background: #a3e635; box-shadow: 0 0 12px #84cc16; }
+#garage-showroom.is-rally .garage-stage-glow { background: rgba(132,204,22,.2); }
+#garage-showroom.is-rally .garage-stage-ring { border-color: rgba(163,230,53,.26); }
+#garage-showroom.is-hyper .garage-showroom-kicker,
+#garage-showroom.is-hyper .garage-showroom-live i,
+#garage-showroom.is-hyper #garage-preview-type,
+#garage-showroom.is-hyper .garage-stage-caption b { color: #7dd3fc; }
+#garage-showroom.is-hyper .garage-showroom-live i { background: #38bdf8; box-shadow: 0 0 12px #0ea5e9; }
+#garage-showroom.is-hyper .garage-stage-glow { background: rgba(14,165,233,.19); }
+#garage-showroom.is-hyper .garage-stage-ring { border-color: rgba(56,189,248,.26); }
 .garage-showroom-bottom {
   border-top-color: rgba(255,255,255,.07);
   color: #697381;
@@ -4249,6 +4264,16 @@ body {
           <span>F1 CAR</span>
           <small>VORTEX SPRINTER</small>
         </button>
+        <button class="garage-car-option" data-car-select="rally" type="button">
+          <span class="garage-car-icon">🏁</span>
+          <span>RALLY RS</span>
+          <small>GRAVEL ALL-ROUNDER</small>
+        </button>
+        <button class="garage-car-option" data-car-select="hyper" type="button">
+          <span class="garage-car-icon">⚡</span>
+          <span>HYPER GT</span>
+          <small>APEX PERFORMANCE</small>
+        </button>
       </div>
 
       <div class="garage-skin-selector" id="garage-drift-skins">
@@ -5075,8 +5100,14 @@ updatePlayerNameDisplay();
 // Garage vehicle selection and per-car paint presets.
 let selectedCarType = 'drift';
 let selectedDriftSkin = 'classic';
-const garageCarColors = { drift: '#f8fafc', f1: '#f97316' };
+const garageCarColors = { drift: '#f8fafc', f1: '#f97316', rally: '#84cc16', hyper: '#38bdf8' };
 let selectedCarColor = garageCarColors.drift;
+const CAR_TUNING = {
+  drift: { maxSpeed: 1, acceleration: 1 },
+  f1: { maxSpeed: 1.15, acceleration: 1.15 },
+  rally: { maxSpeed: .94, acceleration: 1.08 },
+  hyper: { maxSpeed: 1.08, acceleration: 1.1 }
+};
 
 const garageColorNames = {
   '#ef4444': 'RED',
@@ -5111,13 +5142,13 @@ function updateGarageSelection() {
   const label = document.getElementById('garage-current-label');
   const dot = document.querySelector('.garage-current-dot');
 
-  if (label) {
-    label.textContent =
-      (selectedCarType === 'f1'
-        ? 'F1 CAR'
-        : 'DRIFT GT' + (selectedDriftSkin === 'widebody' ? ' • WIDEBODY' : '')) +
-      ' • ' + garageColorNames[selectedCarColor];
-  }
+  const vehicleLabels = {
+    drift: 'DRIFT GT' + (selectedDriftSkin === 'widebody' ? ' • WIDEBODY' : ''),
+    f1: 'F1 CAR',
+    rally: 'RALLY RS',
+    hyper: 'HYPER GT'
+  };
+  if (label) label.textContent = vehicleLabels[selectedCarType] + ' • ' + (garageColorNames[selectedCarColor] || 'CUSTOM');
 
   if (dot) dot.style.background = selectedCarColor;
 
@@ -5127,18 +5158,24 @@ function updateGarageSelection() {
   if (showroom) {
     showroom.style.setProperty('--garage-paint', selectedCarColor);
     showroom.classList.toggle('is-f1', selectedCarType === 'f1');
+    showroom.classList.toggle('is-rally', selectedCarType === 'rally');
+    showroom.classList.toggle('is-hyper', selectedCarType === 'hyper');
     showroom.classList.toggle('is-widebody', selectedCarType === 'drift' && selectedDriftSkin === 'widebody');
   }
-  if (previewName) {
-    previewName.textContent = selectedCarType === 'f1'
-      ? 'VORTEX SPRINTER'
-      : 'ZEN GT COUPE' + (selectedDriftSkin === 'widebody' ? ' WIDEBODY' : '');
-  }
-  if (previewType) {
-    previewType.textContent = selectedCarType === 'f1'
-      ? 'FORMULA AERO'
-      : selectedDriftSkin === 'widebody' ? 'WIDEBODY KIT' : 'GT DRIFT SPEC';
-  }
+  const showroomNames = {
+    drift: 'ZEN GT COUPE' + (selectedDriftSkin === 'widebody' ? ' WIDEBODY' : ''),
+    f1: 'VORTEX SPRINTER',
+    rally: 'ZEN RALLY RS',
+    hyper: 'ZEN APEX GT'
+  };
+  const showroomTypes = {
+    drift: selectedDriftSkin === 'widebody' ? 'WIDEBODY KIT' : 'GT DRIFT SPEC',
+    f1: 'FORMULA AERO',
+    rally: 'GRAVEL SPEC',
+    hyper: 'APEX ROAD SPEC'
+  };
+  if (previewName) previewName.textContent = showroomNames[selectedCarType];
+  if (previewType) previewType.textContent = showroomTypes[selectedCarType];
 }
 
 function syncGarageLivePreview(enabled = true) {
@@ -5200,7 +5237,7 @@ if (garagePreviewMode) {
   window.addEventListener('load', () => {
     const previewParams = new URLSearchParams(location.search);
     const previewCar = previewParams.get('car');
-    selectedCarType = previewCar === 'f1' ? 'f1' : 'drift';
+    selectedCarType = ['f1', 'rally', 'hyper'].includes(previewCar) ? previewCar : 'drift';
     selectedDriftSkin = previewParams.get('skin') === 'widebody' ? 'widebody' : 'classic';
     const previewPaint = previewParams.get('paint');
     if (/^#[0-9a-f]{6}$/i.test(previewPaint || '')) {
@@ -5273,7 +5310,7 @@ if (desktopMode) {
 
 function updateCarPerformance() {
   const standardMaxSpeed = 8;
-  car.maxSpeed = standardMaxSpeed * (selectedCarType === 'f1' ? 1.15 : 1);
+  car.maxSpeed = standardMaxSpeed * (CAR_TUNING[selectedCarType] || CAR_TUNING.drift).maxSpeed;
 }
 
 // Apply the shared speed cap to the default car before the first drive.
@@ -6797,7 +6834,7 @@ function loop(frameTime) {
   const steerBlend = 1 - Math.pow(1 - activeSteerSmooth, frameScale);
   car.steer += (targetSteer - car.steer) * steerBlend;
 
-  const baseAccel = car.accel * (1 - mudDepth * 0.35) * (selectedCarType === 'f1' ? 1.15 : 1);
+  const baseAccel = car.accel * (1 - mudDepth * 0.35) * (CAR_TUNING[selectedCarType] || CAR_TUNING.drift).acceleration;
   const accel = autoDriveEnabled
     ? (autoThrottle ? baseAccel : (autoBrake ? -baseAccel * 0.55 : 0))
     : (keys.up ? baseAccel : (keys.down ? -baseAccel * 0.55 : 0));
@@ -6814,9 +6851,13 @@ function loop(frameTime) {
 
   const currentGrip = selectedCarType === 'f1'
     ? (autoDriveEnabled ? 0.08 + autoDriftStrength * 0.16 : 0.08)
-    : (keys.handbrake ? 0.96 : (isCarInMud
-      ? 0.68
-      : Math.max(0.56, car.lateralGrip - autoDriftStrength * 0.24) * (1 - autoRecoveryStrength * 0.55)));
+    : selectedCarType === 'rally'
+      ? (keys.handbrake ? 0.96 : (isCarInMud ? 0.78 : Math.max(0.68, 0.9 - autoDriftStrength * 0.18)))
+      : selectedCarType === 'hyper'
+        ? (keys.handbrake ? 0.96 : (isCarInMud ? 0.68 : Math.max(0.55, 0.76 - autoDriftStrength * 0.22)))
+        : (keys.handbrake ? 0.96 : (isCarInMud
+          ? 0.68
+          : Math.max(0.56, car.lateralGrip - autoDriftStrength * 0.24) * (1 - autoRecoveryStrength * 0.55)));
   const frameFriction = Math.pow(car.friction, frameScale);
   const frameGrip = Math.pow(currentGrip, frameScale);
   car.vx = (fwdX * forwardVel * frameFriction) + (rightX * lateralVel * frameGrip);
@@ -7298,18 +7339,78 @@ function loop(frameTime) {
   // Selected vehicle body — refined Zen Motorsport silhouettes.
   const paintColor = isCarInMud ? '#55545a' : selectedCarColor;
   const paintOutline = isCarInMud ? '#c27c32' : 'rgba(255,255,255,.72)';
+  const paintRgb = /^#([0-9a-f]{6})$/i.exec(paintColor);
+  const mixPaint = (target, amount) => {
+    if (!paintRgb) return paintColor;
+    const source = [0, 2, 4].map((offset) => parseInt(paintRgb[1].slice(offset, offset + 2), 16));
+    const dest = target === 'light' ? 255 : 0;
+    return `rgb(${source.map((channel) => Math.round(channel + (dest - channel) * amount)).join(',')})`;
+  };
+  const bodyPaint = ctx.createLinearGradient(0, -14, 0, 14);
+  bodyPaint.addColorStop(0, mixPaint('light', .48));
+  bodyPaint.addColorStop(.16, mixPaint('light', .2));
+  bodyPaint.addColorStop(.48, paintColor);
+  bodyPaint.addColorStop(.82, mixPaint('dark', .22));
+  bodyPaint.addColorStop(1, mixPaint('dark', .42));
 
   const drawTyre = (x, y, w, h) => {
-    ctx.fillStyle = '#080a0e';
+    ctx.fillStyle = '#07090d';
     ctx.beginPath();
-    ctx.roundRect(x, y, w, h, 2.5);
+    ctx.roundRect(x, y, w, h, 2.8);
     ctx.fill();
-    ctx.strokeStyle = 'rgba(180,190,205,.3)';
+    ctx.strokeStyle = 'rgba(205,215,228,.32)';
     ctx.lineWidth = .8;
     ctx.stroke();
-    ctx.fillStyle = 'rgba(160,170,185,.28)';
-    ctx.fillRect(x + w * .25, y + h * .18, w * .5, h * .64);
+
+    // Subtle tread cuts catch the light as the car turns.
+    ctx.save();
+    ctx.beginPath();
+    ctx.roundRect(x + .7, y + .7, w - 1.4, h - 1.4, 2);
+    ctx.clip();
+    ctx.strokeStyle = 'rgba(210,220,232,.2)';
+    ctx.lineWidth = .65;
+    ctx.beginPath();
+    for (let groove = 1; groove <= 3; groove++) {
+      const grooveX = x + (w * groove) / 4;
+      ctx.moveTo(grooveX, y + 1);
+      ctx.lineTo(grooveX, y + h - 1);
+    }
+    ctx.stroke();
+
+    // Forged alloy face with a hub and five slim spokes.
+    const cx = x + w * .5;
+    const cy = y + h * .5;
+    const rx = w * .3;
+    const ry = h * .34;
+    ctx.fillStyle = '#202733';
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(226,232,240,.7)';
+    ctx.lineWidth = .65;
+    ctx.beginPath();
+    for (let spoke = 0; spoke < 5; spoke++) {
+      const angle = (Math.PI * 2 * spoke) / 5 + (car.speed || 0) * .018;
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(cx + Math.cos(angle) * rx * .8, cy + Math.sin(angle) * ry * .8);
+    }
+    ctx.stroke();
+    ctx.fillStyle = '#cbd5e1';
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, Math.max(1, rx * .22), Math.max(.8, ry * .24), 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
   };
+
+  // Soft contact shadow separates the chassis from the road surface.
+  const chassisShadow = ctx.createRadialGradient(0, 2, 4, 0, 2, 41);
+  chassisShadow.addColorStop(0, 'rgba(0,0,0,.55)');
+  chassisShadow.addColorStop(.7, 'rgba(0,0,0,.27)');
+  chassisShadow.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = chassisShadow;
+  ctx.beginPath();
+  ctx.ellipse(0, 2, 41, 22, 0, 0, Math.PI * 2);
+  ctx.fill();
 
   if (selectedCarType === 'f1') {
     // Formula racing tyres and aerodynamic wings.
@@ -7327,7 +7428,7 @@ function loop(frameTime) {
     ctx.strokeRect(-28, -21, 10, 42);
 
     // Sculpted Formula nose and chassis.
-    ctx.fillStyle = paintColor;
+    ctx.fillStyle = bodyPaint;
     ctx.strokeStyle = paintOutline;
     ctx.lineWidth = 1.1;
     ctx.beginPath();
@@ -7365,6 +7466,192 @@ function loop(frameTime) {
     ctx.stroke();
     ctx.fillStyle = 'rgba(255,255,255,.7)';
     ctx.fillRect(24, -15, 3, 30);
+  } else if (selectedCarType === 'rally') {
+    // Purpose-built rally sports hatch: flared arches, big wing and four pod lamps.
+    drawTyre(8, -18, 16, 10);
+    drawTyre(8, 8, 16, 10);
+    drawTyre(-24, -18, 16, 10);
+    drawTyre(-24, 8, 16, 10);
+
+    // Wide rear wing and front splitter give the rally car a sharper stance.
+    ctx.fillStyle = '#10151d';
+    ctx.fillRect(-34, -17, 7, 34);
+    ctx.fillRect(-36, -19, 11, 3);
+    ctx.fillRect(-36, 16, 11, 3);
+    ctx.fillRect(28, -16, 6, 32);
+    ctx.fillStyle = '#84cc16';
+    ctx.fillRect(-36, -19, 11, 1.4);
+    ctx.fillRect(-36, 17.6, 11, 1.4);
+    ctx.fillRect(32, -13, 2, 26);
+
+    // Squared, compact rally shell with visibly raised wheel arches.
+    ctx.fillStyle = bodyPaint;
+    ctx.strokeStyle = paintOutline;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(33, 0);
+    ctx.lineTo(29, -9);
+    ctx.lineTo(23, -13);
+    ctx.lineTo(-18, -13);
+    ctx.lineTo(-27, -10);
+    ctx.lineTo(-31, -6);
+    ctx.lineTo(-31, 6);
+    ctx.lineTo(-27, 10);
+    ctx.lineTo(-18, 13);
+    ctx.lineTo(23, 13);
+    ctx.lineTo(29, 9);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Tall cabin and angled glass make it read as a compact rally hatch.
+    ctx.fillStyle = '#101820';
+    ctx.beginPath();
+    ctx.moveTo(17, -7);
+    ctx.lineTo(10, -10);
+    ctx.lineTo(-12, -10);
+    ctx.lineTo(-20, -6);
+    ctx.lineTo(-20, 6);
+    ctx.lineTo(-12, 10);
+    ctx.lineTo(10, 10);
+    ctx.lineTo(17, 7);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(210,225,238,.66)';
+    ctx.lineWidth = .8;
+    ctx.beginPath();
+    ctx.moveTo(7, -9.5);
+    ctx.lineTo(7, 9.5);
+    ctx.moveTo(-18, 0);
+    ctx.lineTo(15, 0);
+    ctx.stroke();
+
+    // Roof scoop, numbered door panel and high-contrast competition livery.
+    ctx.fillStyle = '#111820';
+    ctx.fillRect(-1, -12.8, 10, 2.2);
+    ctx.fillRect(-1, 10.6, 10, 2.2);
+    ctx.fillStyle = '#d9f99d';
+    ctx.fillRect(1, -12.6, 6, 1.2);
+    ctx.fillRect(1, 11.4, 6, 1.2);
+    ctx.fillStyle = '#f8fafc';
+    ctx.fillRect(-7, -12.1, 3, 24.2);
+    ctx.fillStyle = '#84cc16';
+    ctx.fillRect(-11, -12.1, 2, 24.2);
+    ctx.fillStyle = '#101820';
+    ctx.fillRect(19, -6, 8, 12);
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 6px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('27', 23, 0);
+    // Four auxiliary rally lamps across the nose.
+    ctx.fillStyle = '#fff0bd';
+    ctx.shadowColor = 'rgba(255,224,150,.85)';
+    ctx.shadowBlur = 3;
+    [-6, -2, 2, 6].forEach((lampY) => {
+      ctx.beginPath();
+      ctx.arc(29, lampY, 1.25, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.shadowBlur = 0;
+  } else if (selectedCarType === 'hyper') {
+    // Closed-wheel endurance hypercar: long arrow nose, deep side tunnels and rear wing.
+    drawTyre(12, -18, 18, 10);
+    drawTyre(12, 8, 18, 10);
+    drawTyre(-27, -18, 18, 10);
+    drawTyre(-27, 8, 18, 10);
+
+    // Broad aero wings frame the low body at both ends.
+    ctx.fillStyle = '#10151d';
+    ctx.fillRect(35, -22, 5, 44);
+    ctx.fillRect(32, -24, 11, 3);
+    ctx.fillRect(32, 21, 11, 3);
+    ctx.fillRect(-37, -20, 6, 40);
+    ctx.fillRect(-40, -22, 12, 3);
+    ctx.fillRect(-40, 19, 12, 3);
+    ctx.fillStyle = '#38bdf8';
+    ctx.fillRect(39, -20, 2, 40);
+    ctx.fillRect(-40, -22, 12, 1.2);
+    ctx.fillRect(-40, 20.8, 12, 1.2);
+
+    // Long, narrow centre body with wide front and rear fenders.
+    ctx.fillStyle = bodyPaint;
+    ctx.strokeStyle = paintOutline;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(38, 0);
+    ctx.lineTo(31, -5);
+    ctx.lineTo(23, -10);
+    ctx.lineTo(13, -14);
+    ctx.lineTo(-19, -14);
+    ctx.lineTo(-31, -10);
+    ctx.lineTo(-36, -5);
+    ctx.lineTo(-38, 0);
+    ctx.lineTo(-36, 5);
+    ctx.lineTo(-31, 10);
+    ctx.lineTo(-19, 14);
+    ctx.lineTo(13, 14);
+    ctx.lineTo(23, 10);
+    ctx.lineTo(31, 5);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Tiny fighter-jet canopy and central spine distinguish the prototype.
+    ctx.fillStyle = '#0a1623';
+    ctx.beginPath();
+    ctx.moveTo(21, -4);
+    ctx.lineTo(15, -8);
+    ctx.lineTo(4, -10);
+    ctx.lineTo(-13, -9);
+    ctx.lineTo(-22, -5);
+    ctx.lineTo(-25, 0);
+    ctx.lineTo(-22, 5);
+    ctx.lineTo(-13, 9);
+    ctx.lineTo(4, 10);
+    ctx.lineTo(15, 8);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(190,220,240,.7)';
+    ctx.lineWidth = .8;
+    ctx.beginPath();
+    ctx.moveTo(8, -9.5);
+    ctx.lineTo(8, 9.5);
+    ctx.moveTo(-23, 0);
+    ctx.lineTo(19, 0);
+    ctx.stroke();
+
+    // Deep side channels, twin cockpit-side fins and cyan aero blades.
+    ctx.fillStyle = '#101720';
+    ctx.beginPath();
+    ctx.moveTo(-19, -12);
+    ctx.lineTo(-5, -12);
+    ctx.lineTo(3, -9);
+    ctx.lineTo(-12, -9);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(-19, 12);
+    ctx.lineTo(-5, 12);
+    ctx.lineTo(3, 9);
+    ctx.lineTo(-12, 9);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    ctx.moveTo(20, -12);
+    ctx.lineTo(30, -7);
+    ctx.lineTo(35, -5);
+    ctx.moveTo(20, 12);
+    ctx.lineTo(30, 7);
+    ctx.lineTo(35, 5);
+    ctx.stroke();
+    ctx.fillStyle = '#38bdf8';
+    ctx.fillRect(-14, -14, 15, 1.5);
+    ctx.fillRect(-14, 12.5, 15, 1.5);
+    ctx.fillStyle = '#0b111a';
+    ctx.fillRect(28, -7, 5, 14);
   } else if (selectedDriftSkin === 'widebody') {
     // Optional widebody kit for the Drift GT: a boxier, extra-wide street build.
     drawTyre(7, -18, 17, 10);
@@ -7384,7 +7671,7 @@ function loop(frameTime) {
     ctx.fillRect(31, -15, 2, 30);
 
     // Flared, squared widebody shell.
-    ctx.fillStyle = paintColor;
+    ctx.fillStyle = bodyPaint;
     ctx.strokeStyle = paintOutline;
     ctx.lineWidth = 1.4;
     ctx.beginPath();
@@ -7500,7 +7787,7 @@ function loop(frameTime) {
     ctx.fillRect(-31, 17, 8, 1);
 
     // Squared touring-car body with flat panels and clipped corners.
-    ctx.fillStyle = paintColor;
+    ctx.fillStyle = bodyPaint;
     ctx.strokeStyle = paintOutline;
     ctx.lineWidth = 1.2;
     ctx.beginPath();
@@ -7622,21 +7909,54 @@ function loop(frameTime) {
     ctx.restore();
   }
 
+  // Mirrors, panel seams and a narrow reflected light on the bonnet.
+  const sideWidth = selectedCarType === 'f1' ? 9 : (selectedCarType === 'rally' ? 13 : ((selectedCarType === 'hyper' || selectedDriftSkin === 'widebody') ? 14 : 11));
+  ctx.fillStyle = bodyPaint;
+  ctx.strokeStyle = 'rgba(255,255,255,.58)';
+  ctx.lineWidth = .7;
+  [-1, 1].forEach((side) => {
+    const mirrorY = side * (sideWidth + 2.5);
+    ctx.beginPath();
+    ctx.roundRect(1, mirrorY - 1.4, 5, 2.8, 1.2);
+    ctx.fill();
+    ctx.stroke();
+  });
+  ctx.strokeStyle = 'rgba(255,255,255,.34)';
+  ctx.lineWidth = .65;
+  ctx.beginPath();
+  ctx.moveTo(20, -2.2);
+  ctx.lineTo(27, -1.2);
+  ctx.moveTo(-7, -sideWidth + 1);
+  ctx.lineTo(7, -sideWidth + 1);
+  ctx.moveTo(-7, sideWidth - 1);
+  ctx.lineTo(7, sideWidth - 1);
+  ctx.stroke();
+
   // Headlight lamps.
+  ctx.save();
+  ctx.shadowColor = 'rgba(255,238,190,.9)';
+  ctx.shadowBlur = 5;
   ctx.fillStyle = '#fff4d2';
   const frontLampX = selectedCarType === 'f1' ? 28 :
-    selectedDriftSkin === 'widebody' ? 31 : 23;
+    selectedCarType === 'rally' ? 31 :
+    selectedCarType === 'hyper' ? 36 :
+    selectedDriftSkin === 'widebody' ? 32 : 23;
   ctx.fillRect(frontLampX, -7, 2.5, 4);
   ctx.fillRect(frontLampX, 3, 2.5, 4);
+  ctx.restore();
 
   // Rear lights.
   ctx.fillStyle = '#ff3048';
   const rearLampX = selectedCarType === 'f1' ? -27 :
+    selectedCarType === 'rally' ? -32 :
+    selectedCarType === 'hyper' ? -35 :
     selectedDriftSkin === 'widebody' ? -31 : -24;
   ctx.fillRect(rearLampX, -7, 2, 5);
   ctx.fillRect(rearLampX, 2, 2, 5);
   ctx.fillStyle = '#ff2233';
   ctx.fillRect(selectedCarType === 'f1' ? -25 :
+    selectedCarType === 'rally' ? -30 :
+    selectedCarType === 'hyper' ? -37 :
     selectedDriftSkin === 'widebody' ? -29 : -22, -9, 2, 18);
 
 

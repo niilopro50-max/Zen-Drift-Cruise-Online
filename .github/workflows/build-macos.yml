@@ -49,9 +49,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view v1.2.8 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 || {
-            gh release create v1.2.8 --repo "$GITHUB_REPOSITORY" --title "Zen Drift Cruise 1.2.8" --notes "Adds mobile tilt steering with a touch-button option, and improves the live garage preview framing." || \
-              gh release view v1.2.8 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1
+          gh release view v1.2.9 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 || {
+            gh release create v1.2.9 --repo "$GITHUB_REPOSITORY" --title "Zen Drift Cruise 1.2.9" --notes "Adds Rally RS and Hyper GT sports cars to the garage, with new designs and handling for all versions." || \
+              gh release view v1.2.9 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1
           }
 
       - name: Publish installer to GitHub release
@@ -63,6 +63,17 @@ jobs:
             echo "macOS DMG was not created."
             exit 1
           fi
-          asset="release-build/Zen.Drift.Cruise-1.2.8-arm64.dmg"
+          asset="release-build/Zen.Drift.Cruise-1.2.9-arm64.dmg"
           mv "$dmg" "$asset"
-          gh release upload v1.2.8 "$asset" --repo "$GITHUB_REPOSITORY" --clobber
+          gh release upload v1.2.9 "$asset" --repo "$GITHUB_REPOSITORY" --clobber
+
+      - name: Publish signed Android installer to GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          apk="downloads/zen-drift-cruise-android.apk"
+          if [ ! -f "$apk" ]; then
+            echo "Signed Android APK was not found."
+            exit 1
+          fi
+          gh release upload v1.2.9 "$apk" --repo "$GITHUB_REPOSITORY" --clobber
