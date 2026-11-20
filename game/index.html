@@ -4737,6 +4737,7 @@ body {
         PERSONAL BEST
         <div id="race-result-best" style="font-size:25px;font-weight:900;margin-top:8px;">--:--.--</div>
       </div>
+      <p id="race-result-share-status" class="ov-page-copy" aria-live="polite"></p>
       <button class="ov-btn" id="race-retry-btn" type="button">↻ &nbsp; RACE AGAIN</button>
       <button class="menu-back" id="race-leaderboard-btn" type="button">VIEW LEADERBOARD</button>
       <button class="menu-back" id="race-home-btn" type="button">⌂ &nbsp; BACK TO HOME</button>
@@ -5491,6 +5492,7 @@ function finishTimeAttack() {
   const previousBest = getTimeAttackBest();
   const isNewBest = previousBest === null || timeAttackFinishMs < previousBest;
   const best = isNewBest ? timeAttackFinishMs : previousBest;
+  const shareStatus = document.getElementById('race-result-share-status');
 
   if (isNewBest) {
     try {
@@ -5506,10 +5508,20 @@ function finishTimeAttack() {
   }
   scheduleCloudProgressSave();
   if (cloudAccountUser && hasLeaderboardOptIn()) {
-    submitLeaderboardTime(cloudAccountUser, best, playerName).catch((error) => {
+    shareStatus.textContent = 'Sharing your best time…';
+    submitLeaderboardTime(cloudAccountUser, best, playerName).then(() => {
+      if (shareStatus.textContent === 'Sharing your best time…') {
+        shareStatus.textContent = 'Your best time is shared on the public leaderboard.';
+      }
+    }).catch((error) => {
       console.error('Leaderboard submission failed:', error);
       document.getElementById('leaderboard-opt-status').textContent = 'Could not share yet. The online leaderboard may need setup.';
+      shareStatus.textContent = 'Your time was saved here, but could not be shared. Check the account and leaderboard setup.';
     });
+  } else if (!cloudAccountUser) {
+    shareStatus.textContent = 'Your time is saved on this device. Sign in and enable leaderboard sharing to publish it.';
+  } else {
+    shareStatus.textContent = 'Your time is saved. Enable leaderboard sharing in Settings to publish it.';
   }
 
   document.getElementById('race-result-time').textContent =
@@ -6111,6 +6123,18 @@ async function loadLeaderboard() {
   }
   try {
     const isEndless = currentLeaderboardMode === 'endless';
+    // Recover an existing local/cloud best when the player opens the board.
+    // This still requires sign-in and the player's share setting.
+    if (!isEndless && cloudAccountUser && hasLeaderboardOptIn()) {
+      const best = getTimeAttackBest();
+      if (best !== null) {
+        try { await submitLeaderboardTime(cloudAccountUser, best, playerName); }
+        catch (submitError) {
+          console.error('Leaderboard recovery submission failed:', submitError);
+          status.textContent = 'Could not submit your saved record. Check your account and leaderboard setup.';
+        }
+      }
+    }
     const table = isEndless ? ENDLESS_LEADERBOARD_TABLE : LEADERBOARD_TABLE;
     const scoreColumn = isEndless ? 'play_time_ms' : 'best_time_ms';
     const { data, error } = await cloudClient.from(table)
@@ -6123,8 +6147,14 @@ async function loadLeaderboard() {
       const empty = document.createElement('p');
       empty.className = 'leaderboard-message';
       empty.textContent = isEndless
-        ? 'No shared Endless playtime yet. Sign in, opt in, and play Endless.'
-        : 'No shared times yet. Sign in, opt in, and set a Time Attack record.';
+        ? 'No shared Endless playtime yet. Sign in, enable sharing in Settings, and play Endless.'
+        : !cloudAccountUser
+          ? 'No shared times yet. Sign in, enable sharing in Settings, then finish a Time Attack race.'
+          : !hasLeaderboardOptIn()
+            ? 'Your records are private. Enable leaderboard sharing in Settings to publish them.'
+            : getTimeAttackBest() === null
+              ? 'No Time Attack record saved yet. Finish a race to add your first time.'
+              : 'No shared times yet. Refresh to submit your saved best time.';
       rows.append(empty);
       return;
     }
