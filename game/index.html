@@ -2606,6 +2606,9 @@ html.garage-preview-mode #c { position: fixed; inset: 0; width: 100%; height: 10
 .touch-quick-setting input[type="range"] { width: 100%; accent-color: #fb923c; }
 .touch-quick-setting select { width: 100%; }
 .leaderboard-card { width: min(100%,680px); margin: 18px 0; padding: 14px; border: 1px solid rgba(255,255,255,.14); border-radius: 15px; background: rgba(8,12,18,.72); box-shadow: 0 18px 55px rgba(0,0,0,.32); }
+.leaderboard-mode-tabs { display: flex; gap: 9px; margin-top: 14px; }
+#menu-leaderboard-page .leaderboard-mode-tab { width: auto; flex: 1; min-height: 40px; margin: 0; padding: 8px 12px; }
+#menu-leaderboard-page .leaderboard-mode-tab.is-active { border-color: #fb923c; background: linear-gradient(120deg, rgba(249,115,22,.28), rgba(10,14,20,.86)); color: #fff; box-shadow: 0 0 18px rgba(249,115,22,.19); }
 .leaderboard-heading,
 .leaderboard-row { display: grid; grid-template-columns: 54px minmax(0,1fr) 100px; gap: 12px; align-items: center; }
 .leaderboard-heading { padding: 5px 8px 10px; color: #fb923c; font-size: 9px; font-weight: 900; letter-spacing: 1px; }
@@ -4652,18 +4655,22 @@ body {
       </div>
       <div class="steering-setting-card game-settings-card leaderboard-consent-card">
         <div class="steering-setting-title">ONLINE LEADERBOARD</div>
-        <label class="game-setting-toggle"><span><b>Share my Time Attack best</b><small>Your driver name and best time will be visible to everyone.</small></span><input id="leaderboard-opt-in" type="checkbox"></label>
+        <label class="game-setting-toggle"><span><b>Share my leaderboard scores</b><small>Your driver name, fastest Time Attack time and Endless playtime will be visible to everyone.</small></span><input id="leaderboard-opt-in" type="checkbox"></label>
         <p id="leaderboard-opt-status" class="game-setting-help" aria-live="polite">Off by default. Sign in to submit a score.</p>
       </div>
       <button class="menu-back" data-menu-back type="button">← BACK TO MENU</button>
     </section>
 
     <section id="menu-leaderboard-page" class="ov-page" hidden>
-      <div class="menu-eyebrow">TIME ATTACK • WORLDWIDE</div>
+      <div id="leaderboard-eyebrow" class="menu-eyebrow">TIME ATTACK • WORLDWIDE</div>
       <div class="ov-page-title">LEADERBOARD</div>
-      <p class="ov-page-copy">Fastest shared account records. Sign in and opt in from Settings to share your time.</p>
+      <p id="leaderboard-copy" class="ov-page-copy">Fastest shared account records. Sign in and opt in from Settings to share your scores.</p>
+      <div class="leaderboard-mode-tabs" role="tablist" aria-label="Leaderboard mode">
+        <button class="menu-back leaderboard-mode-tab is-active" type="button" role="tab" aria-selected="true" data-leaderboard-mode="timeAttack">TIME ATTACK</button>
+        <button class="menu-back leaderboard-mode-tab" type="button" role="tab" aria-selected="false" data-leaderboard-mode="endless">ENDLESS</button>
+      </div>
       <div class="leaderboard-card">
-        <div class="leaderboard-heading"><span>RANK</span><span>DRIVER</span><span>BEST TIME</span></div>
+        <div class="leaderboard-heading"><span>RANK</span><span>DRIVER</span><span id="leaderboard-score-heading">BEST TIME</span></div>
         <div id="leaderboard-rows" class="leaderboard-rows" aria-live="polite"><p class="leaderboard-message">Loading the leaderboard…</p></div>
         <p id="leaderboard-status" class="leaderboard-status" aria-live="polite"></p>
       </div>
@@ -5574,6 +5581,7 @@ document.getElementById('mode-time-attack').addEventListener('click', startTimeA
 document.getElementById('race-retry-btn').addEventListener('click', startTimeAttack);
 document.getElementById('race-leaderboard-btn').addEventListener('click', () => {
   showMenuPage('leaderboard-page');
+  setLeaderboardMode('timeAttack');
   loadLeaderboard();
 });
 document.getElementById('race-home-btn').addEventListener('click', returnToHome);
@@ -5583,9 +5591,16 @@ document.getElementById('menu-modes').addEventListener('click', () => showMenuPa
 document.getElementById('menu-settings').addEventListener('click', () => showMenuPage('settings-page'));
 document.getElementById('menu-leaderboard').addEventListener('click', () => {
   showMenuPage('leaderboard-page');
+  setLeaderboardMode('timeAttack');
   loadLeaderboard();
 });
 document.getElementById('leaderboard-refresh').addEventListener('click', loadLeaderboard);
+document.querySelectorAll('[data-leaderboard-mode]').forEach((button) => {
+  button.addEventListener('click', () => {
+    setLeaderboardMode(button.dataset.leaderboardMode);
+    loadLeaderboard();
+  });
+});
 document.getElementById('menu-account').addEventListener('click', () => showMenuPage('account-page'));
 
 const quickStartStorageKey = 'zen-drift-quick-start-complete-v1';
@@ -5696,6 +5711,57 @@ let localPlayerId = localStorage.getItem(PLAYER_ID_KEY);
 if (!localPlayerId) {
   localPlayerId = createLocalPlayerId();
   localStorage.setItem(PLAYER_ID_KEY, localPlayerId);
+}
+
+const ENDLESS_PLAY_MAP_KEY = 'zen-drift-endless-play-by-device';
+let endlessPlayByDevice = {};
+try {
+  const savedPlayMap = JSON.parse(localStorage.getItem(ENDLESS_PLAY_MAP_KEY) || '{}');
+  if (savedPlayMap && typeof savedPlayMap === 'object' && !Array.isArray(savedPlayMap)) {
+    endlessPlayByDevice = Object.fromEntries(Object.entries(savedPlayMap)
+      .filter(([, value]) => Number.isFinite(Number(value)) && Number(value) >= 0)
+      .map(([key, value]) => [key, Math.floor(Number(value))]));
+  }
+} catch (_) {}
+if (!Object.keys(endlessPlayByDevice).length) {
+  try {
+    const legacyPlayMs = Math.max(0, Math.floor(Number(localStorage.getItem('zen-drift-endless-play-ms')) || 0));
+    if (legacyPlayMs) endlessPlayByDevice[localPlayerId] = legacyPlayMs;
+  } catch (_) {}
+}
+let endlessPlaySaveAt = 0;
+let endlessPlayCloudSaveAt = 0;
+
+function totalEndlessPlayMs(playMap = endlessPlayByDevice) {
+  return Object.values(playMap || {}).reduce((total, value) => total + Math.max(0, Number(value) || 0), 0);
+}
+
+function mergeEndlessPlayMaps(...maps) {
+  const merged = {};
+  maps.forEach((map) => {
+    if (!map || typeof map !== 'object' || Array.isArray(map)) return;
+    Object.entries(map).forEach(([deviceId, value]) => {
+      const score = Number(value);
+      if (Number.isFinite(score) && score >= 0) {
+        merged[deviceId] = Math.max(merged[deviceId] || 0, Math.floor(score));
+      }
+    });
+  });
+  return merged;
+}
+
+function persistEndlessPlayMap() {
+  try {
+    localStorage.setItem(ENDLESS_PLAY_MAP_KEY, JSON.stringify(endlessPlayByDevice));
+    localStorage.setItem('zen-drift-endless-play-ms', String(totalEndlessPlayMs()));
+  } catch (_) {}
+}
+
+function formatEndlessPlayTime(milliseconds) {
+  const totalMinutes = Math.floor(Math.max(0, Number(milliseconds) || 0) / 60000);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return hours > 0 ? `${hours}h ${String(minutes).padStart(2, '0')}m` : `${minutes}m`;
 }
 
 function cleanPlayerName(value) {
@@ -5967,6 +6033,7 @@ function getLocalCloudProgress() {
     skin: selectedDriftSkin,
     bestTimeAttackMs: getTimeAttackBest(),
     timeAttackGhost: ghost && ghost.v === 1 && Array.isArray(ghost.samples) ? ghost : null,
+    endlessPlayByDevice: { ...endlessPlayByDevice },
   };
 }
 
@@ -5987,7 +6054,9 @@ const cloudClient = cloudConfig?.url && cloudConfig?.anonKey && window.supabase?
   ? window.supabase.createClient(cloudConfig.url, cloudConfig.anonKey)
   : null;
 const LEADERBOARD_TABLE = 'time_attack_leaderboard';
+const ENDLESS_LEADERBOARD_TABLE = 'endless_leaderboard';
 const LEADERBOARD_OPT_IN_KEY = 'zen-drift-leaderboard-opt-in';
+let currentLeaderboardMode = 'timeAttack';
 let cloudAccountUser = null;
 let cloudSaveTimer = 0;
 let cloudSaveRetryTimer = 0;
@@ -6007,8 +6076,23 @@ function updateLeaderboardOptStatus() {
   status.textContent = !hasLeaderboardOptIn()
     ? 'Off. Your results stay private.'
     : !cloudAccountUser
-      ? 'Enabled. Sign in to submit your best time.'
-      : 'Enabled. Your driver name and best time can appear publicly.';
+      ? 'Enabled. Sign in to submit your scores.'
+      : 'Enabled. Your driver name and both mode scores can appear publicly.';
+}
+
+function setLeaderboardMode(mode) {
+  currentLeaderboardMode = mode === 'endless' ? 'endless' : 'timeAttack';
+  const isEndless = currentLeaderboardMode === 'endless';
+  document.getElementById('leaderboard-eyebrow').textContent = isEndless ? 'ENDLESS • WORLDWIDE' : 'TIME ATTACK • WORLDWIDE';
+  document.getElementById('leaderboard-copy').textContent = isEndless
+    ? 'Longest total Endless playtime from shared account records.'
+    : 'Fastest shared Time Attack records.';
+  document.getElementById('leaderboard-score-heading').textContent = isEndless ? 'PLAYED' : 'BEST TIME';
+  document.querySelectorAll('[data-leaderboard-mode]').forEach((button) => {
+    const active = button.dataset.leaderboardMode === currentLeaderboardMode;
+    button.classList.toggle('is-active', active);
+    button.setAttribute('aria-selected', String(active));
+  });
 }
 
 async function loadLeaderboard() {
@@ -6026,16 +6110,21 @@ async function loadLeaderboard() {
     return;
   }
   try {
-    const { data, error } = await cloudClient.from(LEADERBOARD_TABLE)
-      .select('driver_name,best_time_ms')
-      .order('best_time_ms', { ascending: true })
+    const isEndless = currentLeaderboardMode === 'endless';
+    const table = isEndless ? ENDLESS_LEADERBOARD_TABLE : LEADERBOARD_TABLE;
+    const scoreColumn = isEndless ? 'play_time_ms' : 'best_time_ms';
+    const { data, error } = await cloudClient.from(table)
+      .select(`driver_name,${scoreColumn}`)
+      .order(scoreColumn, { ascending: !isEndless })
       .limit(10);
     if (error) throw error;
     rows.replaceChildren();
     if (!data?.length) {
       const empty = document.createElement('p');
       empty.className = 'leaderboard-message';
-      empty.textContent = 'No shared times yet. Sign in, opt in, and set a Time Attack record.';
+      empty.textContent = isEndless
+        ? 'No shared Endless playtime yet. Sign in, opt in, and play Endless.'
+        : 'No shared times yet. Sign in, opt in, and set a Time Attack record.';
       rows.append(empty);
       return;
     }
@@ -6050,7 +6139,9 @@ async function loadLeaderboard() {
       driver.textContent = typeof entry.driver_name === 'string' ? entry.driver_name : 'DRIVER';
       const time = document.createElement('span');
       time.className = 'leaderboard-time';
-      time.textContent = formatRaceTime(Number(entry.best_time_ms));
+      time.textContent = isEndless
+        ? formatEndlessPlayTime(Number(entry.play_time_ms))
+        : formatRaceTime(Number(entry.best_time_ms));
       row.append(rank, driver, time);
       rows.append(row);
     });
@@ -6085,12 +6176,34 @@ async function submitLeaderboardTime(user, timeMs, name = playerName) {
   if (status) status.textContent = 'Your best time has been shared on the leaderboard.';
 }
 
+async function submitEndlessPlayTime(user, playTimeMs, name = playerName) {
+  if (!cloudClient || !user || !hasLeaderboardOptIn()) return;
+  const score = Math.floor(Number(playTimeMs));
+  if (!Number.isFinite(score) || score < 1) return;
+  const cleanName = cleanPlayerName(String(name || 'Driver')) || 'Driver';
+  const { data: current, error: readError } = await cloudClient.from(ENDLESS_LEADERBOARD_TABLE)
+    .select('play_time_ms').eq('user_id', user.id).maybeSingle();
+  if (readError) throw readError;
+  if (Number(current?.play_time_ms) >= score) return;
+  const { error } = await cloudClient.from(ENDLESS_LEADERBOARD_TABLE).upsert({
+    user_id: user.id,
+    driver_name: cleanName,
+    play_time_ms: score,
+    updated_at: new Date().toISOString(),
+  }, { onConflict: 'user_id' });
+  if (error) throw error;
+}
+
 document.getElementById('leaderboard-opt-in')?.addEventListener('change', async (event) => {
   try { localStorage.setItem(LEADERBOARD_OPT_IN_KEY, event.target.checked ? '1' : '0'); } catch (_) {}
   updateLeaderboardOptStatus();
   if (!cloudAccountUser) return;
   if (!event.target.checked) {
-    const { error } = await cloudClient.from(LEADERBOARD_TABLE).delete().eq('user_id', cloudAccountUser.id);
+    const results = await Promise.all([
+      cloudClient.from(LEADERBOARD_TABLE).delete().eq('user_id', cloudAccountUser.id),
+      cloudClient.from(ENDLESS_LEADERBOARD_TABLE).delete().eq('user_id', cloudAccountUser.id),
+    ]);
+    const error = results.find((result) => result.error)?.error;
     if (error) {
       console.error('Leaderboard removal failed:', error);
       document.getElementById('leaderboard-opt-status').textContent = 'Could not remove the shared entry right now.';
@@ -6100,8 +6213,10 @@ document.getElementById('leaderboard-opt-in')?.addEventListener('change', async 
     return;
   }
   const best = getTimeAttackBest();
-  if (best === null) return;
-  try { await submitLeaderboardTime(cloudAccountUser, best, playerName); }
+  try {
+    if (best !== null) await submitLeaderboardTime(cloudAccountUser, best, playerName);
+    await submitEndlessPlayTime(cloudAccountUser, totalEndlessPlayMs(), playerName);
+  }
   catch (error) {
     console.error('Leaderboard submission failed:', error);
     document.getElementById('leaderboard-opt-status').textContent = 'Could not share yet. The online leaderboard may need setup.';
@@ -6150,6 +6265,8 @@ function renderCloudAccount(user) {
 }
 
 function applyCloudProgress(progress = {}) {
+  endlessPlayByDevice = mergeEndlessPlayMaps(endlessPlayByDevice, progress.endlessPlayByDevice);
+  persistEndlessPlayMap();
   if (typeof progress.driverName === 'string' && !playerNameChangedThisSession) {
     const name = cleanPlayerName(progress.driverName);
     const incomingIsCustom = typeof progress.driverNameIsCustom === 'boolean'
@@ -6211,6 +6328,11 @@ async function syncCloudProgress(user = cloudAccountUser) {
   const local = getLocalCloudProgress();
   const remote = data?.progress && typeof data.progress === 'object' ? data.progress : null;
   const merged = remote ? { ...localAtStart, ...remote } : { ...localAtStart };
+  merged.endlessPlayByDevice = mergeEndlessPlayMaps(
+    localAtStart.endlessPlayByDevice,
+    local.endlessPlayByDevice,
+    remote?.endlessPlayByDevice,
+  );
   if (playerNameChangedThisSession) {
     merged.driverName = local.driverName;
     merged.driverNameIsCustom = true;
@@ -6262,6 +6384,10 @@ async function syncCloudProgress(user = cloudAccountUser) {
     try { await submitLeaderboardTime(user, merged.bestTimeAttackMs, merged.driverName || playerName); }
     catch (error) { console.error('Leaderboard sync failed:', error); }
   }
+  if (hasLeaderboardOptIn() && totalEndlessPlayMs(merged.endlessPlayByDevice) > 0) {
+    try { await submitEndlessPlayTime(user, totalEndlessPlayMs(merged.endlessPlayByDevice), merged.driverName || playerName); }
+    catch (error) { console.error('Endless leaderboard sync failed:', error); }
+  }
   cloudSavePending = false;
   cloudSaveRetryDelay = 3000;
   clearTimeout(cloudSaveRetryTimer);
@@ -6282,12 +6408,25 @@ function scheduleCloudProgressSave() {
   setCloudSyncStatus('saving', 'Saving to cloud…', 'warn');
   cloudSaveTimer = setTimeout(async () => {
     try {
+      const user = cloudAccountUser;
+      if (!user) return;
+      const localProgress = getLocalCloudProgress();
+      const { data: remoteSave, error: readError } = await cloudClient.from('game_saves')
+        .select('progress').eq('user_id', user.id).maybeSingle();
+      if (readError) throw readError;
+      const remoteProgress = remoteSave?.progress && typeof remoteSave.progress === 'object' ? remoteSave.progress : {};
+      endlessPlayByDevice = mergeEndlessPlayMaps(localProgress.endlessPlayByDevice, remoteProgress.endlessPlayByDevice);
+      persistEndlessPlayMap();
+      const progress = { ...localProgress, endlessPlayByDevice: { ...endlessPlayByDevice } };
       const { error } = await cloudClient.from('game_saves').upsert({
-        user_id: cloudAccountUser.id,
-        progress: getLocalCloudProgress(),
+        user_id: user.id,
+        progress: { ...remoteProgress, ...progress },
         updated_at: new Date().toISOString(),
       }, { onConflict: 'user_id' });
       if (error) throw error;
+      if (hasLeaderboardOptIn()) {
+        await submitEndlessPlayTime(user, totalEndlessPlayMs(endlessPlayByDevice), progress.driverName || playerName);
+      }
       cloudSavePending = false;
       cloudSaveRetryDelay = 3000;
       setCloudSyncStatus('synced', 'Synced to cloud', 'good');
@@ -7828,6 +7967,18 @@ function loop(frameTime) {
     requestAnimationFrame(loop);
   }
   if (gamePaused) return;
+
+  if (gameStarted && gameMode === 'endless') {
+    endlessPlayByDevice[localPlayerId] = (endlessPlayByDevice[localPlayerId] || 0) + elapsedFrameMs;
+    if (currentFrameTime - endlessPlaySaveAt >= 5000) {
+      endlessPlaySaveAt = currentFrameTime;
+      persistEndlessPlayMap();
+    }
+    if (cloudAccountUser && currentFrameTime - endlessPlayCloudSaveAt >= 15000) {
+      endlessPlayCloudSaveAt = currentFrameTime;
+      scheduleCloudProgressSave();
+    }
+  }
 
   updateThunder(Date.now());
 
