@@ -5335,9 +5335,27 @@ let savedGaragePreferences = {};
 try { savedGaragePreferences = JSON.parse(localStorage.getItem('zen-drift-garage-save') || '{}') || {}; } catch (_) {}
 let selectedCarType = ['drift', 'f1', 'rally', 'hyper'].includes(savedGaragePreferences.car) ? savedGaragePreferences.car : 'drift';
 let selectedDriftSkin = savedGaragePreferences.skin === 'widebody' ? 'widebody' : 'classic';
-const garageCarColors = { drift: '#f8fafc', f1: '#f97316', rally: '#84cc16', hyper: '#38bdf8' };
-let selectedCarColor = /^#[0-9a-f]{6}$/i.test(savedGaragePreferences.paint || '') ? savedGaragePreferences.paint : garageCarColors[selectedCarType];
-garageCarColors[selectedCarType] = selectedCarColor;
+const garageDefaultColors = { drift: '#f8fafc', f1: '#f97316', rally: '#16a34a', hyper: '#2563eb' };
+const garageCarColors = { ...garageDefaultColors };
+const savedGaragePaints = {};
+const validGaragePaint = (value) => typeof value === 'string' && /^#[0-9a-f]{6}$/i.test(value);
+if (savedGaragePreferences.paintByCar && typeof savedGaragePreferences.paintByCar === 'object') {
+  for (const carType of Object.keys(garageDefaultColors)) {
+    const paint = savedGaragePreferences.paintByCar[carType];
+    if (validGaragePaint(paint)) {
+      savedGaragePaints[carType] = paint;
+      garageCarColors[carType] = paint;
+    }
+  }
+}
+// Migrate the old single-paint save into the selected car's paint slot.
+if (validGaragePaint(savedGaragePreferences.paint) && !savedGaragePaints[selectedCarType]) {
+  savedGaragePaints[selectedCarType] = savedGaragePreferences.paint;
+  garageCarColors[selectedCarType] = savedGaragePreferences.paint;
+}
+let selectedCarColor = garageCarColors[selectedCarType];
+let garageSelectionRevision = 0;
+let garagePaintRevision = 0;
 const CAR_TUNING = {
   drift: { maxSpeed: 1, acceleration: 1 },
   f1: { maxSpeed: 1, acceleration: 1 },
@@ -5437,8 +5455,11 @@ function syncGarageLivePreview(enabled = true) {
 
 document.querySelectorAll('[data-car-select]').forEach((button) => {
   button.addEventListener('click', () => {
-    selectedCarType = button.dataset.carSelect;
-    selectedCarColor = garageCarColors[selectedCarType];
+    const carType = button.dataset.carSelect;
+    if (!Object.hasOwn(garageDefaultColors, carType)) return;
+    selectedCarType = carType;
+    selectedCarColor = garageCarColors[selectedCarType] || garageDefaultColors[selectedCarType];
+    garageSelectionRevision += 1;
     updateGarageSelection();
     syncGarageLivePreview();
     updateCarPerformance();
@@ -5449,8 +5470,12 @@ document.querySelectorAll('[data-car-select]').forEach((button) => {
 
 document.querySelectorAll('[data-car-color]').forEach((button) => {
   button.addEventListener('click', () => {
+    if (!validGaragePaint(button.dataset.carColor)) return;
     selectedCarColor = button.dataset.carColor;
     garageCarColors[selectedCarType] = selectedCarColor;
+    savedGaragePaints[selectedCarType] = selectedCarColor;
+    garagePaintRevision += 1;
+    garageSelectionRevision += 1;
     updateGarageSelection();
     syncGarageLivePreview();
     saveLocalGaragePreferences();
@@ -5461,6 +5486,7 @@ document.querySelectorAll('[data-car-color]').forEach((button) => {
 document.querySelectorAll('[data-drift-skin]').forEach((button) => {
   button.addEventListener('click', () => {
     selectedDriftSkin = button.dataset.driftSkin === 'widebody' ? 'widebody' : 'classic';
+    garageSelectionRevision += 1;
     updateGarageSelection();
     syncGarageLivePreview();
     saveLocalGaragePreferences();
@@ -5479,6 +5505,7 @@ function saveLocalGaragePreferences() {
     localStorage.setItem('zen-drift-garage-save', JSON.stringify({
       car: selectedCarType,
       paint: selectedCarColor,
+      paintByCar: savedGaragePaints,
       skin: selectedDriftSkin,
     }));
   } catch (_) {}
@@ -5491,6 +5518,7 @@ function getLocalCloudProgress() {
     driverName: playerName,
     car: selectedCarType,
     paint: selectedCarColor,
+    paintByCar: { ...savedGaragePaints },
     skin: selectedDriftSkin,
     bestTimeAttackMs: getTimeAttackBest(),
     timeAttackGhost: ghost && ghost.v === 1 && Array.isArray(ghost.samples) ? ghost : null,
@@ -5569,10 +5597,20 @@ function applyCloudProgress(progress = {}) {
   }
   if (['drift', 'f1', 'rally', 'hyper'].includes(progress.car)) selectedCarType = progress.car;
   if (progress.skin === 'widebody' || progress.skin === 'classic') selectedDriftSkin = progress.skin;
-  if (typeof progress.paint === 'string' && /^#[0-9a-f]{6}$/i.test(progress.paint)) {
-    selectedCarColor = progress.paint;
-    garageCarColors[selectedCarType] = selectedCarColor;
+  if (progress.paintByCar && typeof progress.paintByCar === 'object') {
+    for (const carType of Object.keys(garageDefaultColors)) {
+      const paint = progress.paintByCar[carType];
+      if (!validGaragePaint(paint)) continue;
+      savedGaragePaints[carType] = paint;
+      garageCarColors[carType] = paint;
+    }
   }
+  // Support cloud saves made before per-car colors were introduced.
+  if (validGaragePaint(progress.paint) && !validGaragePaint(progress.paintByCar?.[selectedCarType])) {
+    savedGaragePaints[selectedCarType] = progress.paint;
+    garageCarColors[selectedCarType] = progress.paint;
+  }
+  selectedCarColor = garageCarColors[selectedCarType] || garageDefaultColors[selectedCarType];
 
   const localBest = getTimeAttackBest();
   const remoteBest = Number(progress.bestTimeAttackMs);
@@ -5598,11 +5636,29 @@ async function syncCloudProgress(user = cloudAccountUser) {
     return;
   }
   setCloudSyncStatus('syncing', 'Syncing cloud save…', 'warn');
+  const localAtStart = getLocalCloudProgress();
+  const selectionRevisionAtStart = garageSelectionRevision;
+  const paintRevisionAtStart = garagePaintRevision;
   const { data, error } = await cloudClient.from('game_saves').select('progress').maybeSingle();
   if (error) throw error;
   const local = getLocalCloudProgress();
   const remote = data?.progress && typeof data.progress === 'object' ? data.progress : null;
-  const merged = remote ? { ...local, ...remote } : { ...local };
+  const merged = remote ? { ...localAtStart, ...remote } : { ...localAtStart };
+  merged.paintByCar = { ...(localAtStart.paintByCar || {}), ...(remote?.paintByCar || {}) };
+  if (remote && !remote.paintByCar && validGaragePaint(remote.paint) && ['drift', 'f1', 'rally', 'hyper'].includes(remote.car)) {
+    merged.paintByCar[remote.car] = remote.paint;
+  }
+  // A cloud response must not roll back garage choices made while it was loading.
+  if (garageSelectionRevision !== selectionRevisionAtStart) {
+    merged.car = local.car;
+    merged.skin = local.skin;
+  }
+  if (garagePaintRevision !== paintRevisionAtStart) {
+    merged.paint = local.paint;
+    merged.paintByCar[local.car] = local.paint;
+  } else {
+    merged.paint = merged.paintByCar[merged.car] || merged.paint || localAtStart.paint;
+  }
   const localBest = Number(local.bestTimeAttackMs);
   const remoteBest = Number(remote?.bestTimeAttackMs);
   if (Number.isFinite(localBest) && localBest > 0 && (!Number.isFinite(remoteBest) || remoteBest <= 0 || localBest < remoteBest)) {
