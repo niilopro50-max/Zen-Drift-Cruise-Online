@@ -4529,7 +4529,7 @@ body {
           spellcheck="false"
           placeholder="Enter nickname (3–16 characters)"
         >
-        <span class="player-name-hint">YOUR NAME WILL APPEAR IN THE GAME</span>
+        <span class="player-name-hint">RANDOM CALLSIGN UNTIL YOU CHOOSE YOUR OWN</span>
       </div>
 
       <button class="ov-btn" id="garage-drive" type="button">▶ &nbsp; SELECT CAR</button>
@@ -5624,6 +5624,7 @@ document.querySelectorAll('[data-menu-back]').forEach((button) => {
 
 // Local player identity and account-backed cloud saves.
 const PLAYER_NAME_KEY = 'zen-drift-player-name';
+const PLAYER_NAME_CUSTOM_KEY = 'zen-drift-player-name-custom';
 const PLAYER_ID_KEY = 'zen-drift-player-id';
 
 function createLocalPlayerId() {
@@ -5648,11 +5649,36 @@ function cleanPlayerName(value) {
     .slice(0, 16);
 }
 
+function generateRandomPlayerName() {
+  const callsigns = ['Neon', 'Touge', 'Silent', 'Midnight', 'Turbo', 'Lucky', 'Velvet', 'Solar', 'Phantom', 'Crimson', 'Silver', 'Wild', 'Nova', 'Rapid', 'Drift', 'Golden', 'Pixel', 'Storm', 'Chill', 'Shadow'];
+  const animals = ['Fox', 'Wolf', 'Panda', 'Raven', 'Tiger', 'Otter', 'Hawk', 'Lynx', 'Comet', 'Bear', 'Gecko', 'Falcon', 'Cobra', 'Badger', 'Eagle', 'Koala', 'Mantis', 'Dolphin', 'Moose', 'Viper'];
+  const first = callsigns[Math.floor(Math.random() * callsigns.length)];
+  const second = animals[Math.floor(Math.random() * animals.length)];
+  const suffix = Math.floor(100 + Math.random() * 900);
+  return cleanPlayerName(`${first}${second}${suffix}`);
+}
+
+function isPlayerNameCustom() {
+  try { return localStorage.getItem(PLAYER_NAME_CUSTOM_KEY) === '1'; }
+  catch (_) { return false; }
+}
+
 const playerNameInput = document.getElementById('player-name-input');
 const hudPlayerName = document.getElementById('hud-player-name');
-let playerName = cleanPlayerName(localStorage.getItem(PLAYER_NAME_KEY) || 'Driver');
-
-if (playerName.length < 3) playerName = 'Driver';
+const savedPlayerName = (() => {
+  try { return cleanPlayerName(localStorage.getItem(PLAYER_NAME_KEY) || ''); }
+  catch (_) { return ''; }
+})();
+let playerName = savedPlayerName.length >= 3 && (isPlayerNameCustom() || savedPlayerName !== 'Driver')
+  ? savedPlayerName
+  : generateRandomPlayerName();
+let playerNameChangedThisSession = false;
+try {
+  localStorage.setItem(PLAYER_NAME_KEY, playerName);
+  if (savedPlayerName.length >= 3 && savedPlayerName !== 'Driver' && localStorage.getItem(PLAYER_NAME_CUSTOM_KEY) === null) {
+    localStorage.setItem(PLAYER_NAME_CUSTOM_KEY, '1');
+  }
+} catch (_) {}
 
 function updatePlayerNameDisplay() {
   hudPlayerName.textContent = playerName.toUpperCase();
@@ -5671,6 +5697,8 @@ playerNameInput.addEventListener('change', () => {
   if (cleaned.length >= 3) {
     playerName = cleaned;
     localStorage.setItem(PLAYER_NAME_KEY, playerName);
+    localStorage.setItem(PLAYER_NAME_CUSTOM_KEY, '1');
+    playerNameChangedThisSession = true;
     scheduleCloudProgressSave();
   }
   updatePlayerNameDisplay();
@@ -5875,6 +5903,7 @@ function getLocalCloudProgress() {
   try { ghost = JSON.parse(localStorage.getItem('zen-drift-time-attack-ghost') || 'null'); } catch (_) {}
   return {
     driverName: playerName,
+    driverNameIsCustom: isPlayerNameCustom(),
     car: selectedCarType,
     paint: selectedCarColor,
     paintByCar: { ...savedGaragePaints },
@@ -6064,11 +6093,15 @@ function renderCloudAccount(user) {
 }
 
 function applyCloudProgress(progress = {}) {
-  if (typeof progress.driverName === 'string') {
+  if (typeof progress.driverName === 'string' && !playerNameChangedThisSession) {
     const name = cleanPlayerName(progress.driverName);
-    if (name.length >= 3) {
+    const incomingIsCustom = typeof progress.driverNameIsCustom === 'boolean'
+      ? progress.driverNameIsCustom
+      : name !== 'Driver';
+    if (name.length >= 3 && !(name === 'Driver' && !incomingIsCustom) && !(isPlayerNameCustom() && !incomingIsCustom)) {
       playerName = name;
       localStorage.setItem(PLAYER_NAME_KEY, name);
+      localStorage.setItem(PLAYER_NAME_CUSTOM_KEY, incomingIsCustom ? '1' : '0');
       updatePlayerNameDisplay();
     }
   }
@@ -6121,6 +6154,14 @@ async function syncCloudProgress(user = cloudAccountUser) {
   const local = getLocalCloudProgress();
   const remote = data?.progress && typeof data.progress === 'object' ? data.progress : null;
   const merged = remote ? { ...localAtStart, ...remote } : { ...localAtStart };
+  if (playerNameChangedThisSession) {
+    merged.driverName = local.driverName;
+    merged.driverNameIsCustom = true;
+  } else if (remote?.driverName === 'Driver' && remote.driverNameIsCustom !== true) {
+    // Replace the old generic default with this device's persisted random callsign.
+    merged.driverName = localAtStart.driverName;
+    merged.driverNameIsCustom = localAtStart.driverNameIsCustom;
+  }
   merged.paintByCar = { ...(localAtStart.paintByCar || {}), ...(remote?.paintByCar || {}) };
   if (remote && !remote.paintByCar && validGaragePaint(remote.paint) && ['drift', 'f1', 'rally', 'hyper'].includes(remote.car)) {
     merged.paintByCar[remote.car] = remote.paint;
