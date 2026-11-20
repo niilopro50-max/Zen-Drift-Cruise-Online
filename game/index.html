@@ -4106,6 +4106,10 @@ body {
 }
 #menu-home .menu-account-button:hover { border-color: rgba(249,115,22,.58); background: rgba(249,115,22,.09); }
 #menu-home .menu-account-button small { color: rgba(235,238,245,.58); font-size: 10px; font-weight: 500; letter-spacing: .2px; }
+#menu-home .menu-account-button #account-button-sync-status { color:rgba(235,238,245,.55); font-size:9px; font-weight:750; letter-spacing:.65px; text-transform:uppercase; }
+#menu-home .menu-account-button #account-button-sync-status[data-tone="good"] { color:#8ce2ae; }
+#menu-home .menu-account-button #account-button-sync-status[data-tone="warn"] { color:#ffd08b; }
+#menu-home .menu-account-button #account-button-sync-status[data-tone="error"] { color:#ff9d8e; }
 #menu-account-page .account-field-label { display:block; margin: 13px 0 6px; color:#f8b77f; font-size:10px; font-weight:800; letter-spacing:1.4px; }
 #menu-account-page .account-field { width:100%; min-height:48px; padding:0 13px; border:1px solid rgba(255,173,112,.25); border-radius:9px; background:rgba(5,9,16,.72); color:#fff; font:inherit; font-size:15px; user-select:text; }
 #menu-account-page .account-field:focus { outline:2px solid rgba(249,115,22,.62); outline-offset:1px; }
@@ -4272,6 +4276,7 @@ body {
   <button id="menu-account" class="menu-account-button" type="button">
     <span id="account-button-title">SIGN IN TO SAVE PROGRESS</span>
     <small id="account-button-subtitle">Sync your garage and race bests across devices</small>
+    <small id="account-button-sync-status" aria-live="polite" data-tone="">Saved on this device</small>
   </button>
 </section>
 
@@ -5375,6 +5380,16 @@ const cloudClient = cloudConfig?.url && cloudConfig?.anonKey && window.supabase?
   : null;
 let cloudAccountUser = null;
 let cloudSaveTimer = 0;
+let cloudSaveRetryTimer = 0;
+let cloudSaveRetryDelay = 3000;
+let cloudSavePending = false;
+
+function setCloudSyncStatus(status, message, tone = '') {
+  const homeStatus = document.getElementById('account-button-sync-status');
+  homeStatus.textContent = message;
+  homeStatus.dataset.tone = tone;
+  cloudAccountStatus.dataset.sync = status;
+}
 
 function setCloudAccountMessage(message, tone = '') {
   cloudAccountStatus.textContent = message;
@@ -5393,10 +5408,18 @@ function renderCloudAccount(user) {
   subtitle.textContent = user ? (user.email || 'Cloud save is active') : 'Sync your garage and race bests across devices';
   if (!configured) {
     setCloudAccountMessage('Online accounts are not configured yet. Your progress still saves on this device.', '');
+    setCloudSyncStatus('local', 'Local save only');
   } else if (user) {
-    setCloudAccountMessage('Loading your cloud save…');
+    if (navigator.onLine) {
+      setCloudAccountMessage('Loading your cloud save…');
+      setCloudSyncStatus('syncing', 'Checking cloud save…', 'warn');
+    } else {
+      setCloudAccountMessage('You are offline. Your local save is safe and will sync when you reconnect.', 'error');
+      setCloudSyncStatus('offline', 'Offline • changes stay on this device', 'warn');
+    }
   } else {
     setCloudAccountMessage('Your save stays on this device until you sign in.');
+    setCloudSyncStatus('local', 'Saved on this device');
   }
 }
 
@@ -5434,6 +5457,12 @@ function applyCloudProgress(progress = {}) {
 
 async function syncCloudProgress(user = cloudAccountUser) {
   if (!cloudClient || !user) return;
+  if (!navigator.onLine) {
+    setCloudSyncStatus('offline', 'Offline • changes stay on this device', 'warn');
+    setCloudAccountMessage('You are offline. Your local save is safe and will sync when you reconnect.', 'error');
+    return;
+  }
+  setCloudSyncStatus('syncing', 'Syncing cloud save…', 'warn');
   const { data, error } = await cloudClient.from('game_saves').select('progress').maybeSingle();
   if (error) throw error;
   const local = getLocalCloudProgress();
@@ -5455,12 +5484,24 @@ async function syncCloudProgress(user = cloudAccountUser) {
     updated_at: new Date().toISOString(),
   }, { onConflict: 'user_id' });
   if (saveError) throw saveError;
+  cloudSavePending = false;
+  cloudSaveRetryDelay = 3000;
+  clearTimeout(cloudSaveRetryTimer);
+  setCloudSyncStatus('synced', 'Synced to cloud', 'good');
   setCloudAccountMessage('Cloud save synced. Your garage and race record are linked to this account.', 'good');
 }
 
 function scheduleCloudProgressSave() {
   if (!cloudAccountUser || !cloudClient) return;
+  cloudSavePending = true;
   clearTimeout(cloudSaveTimer);
+  clearTimeout(cloudSaveRetryTimer);
+  if (!navigator.onLine) {
+    setCloudSyncStatus('offline', 'Offline • changes queued', 'warn');
+    setCloudAccountMessage('You are offline. Your local save is safe and will sync when you reconnect.', 'error');
+    return;
+  }
+  setCloudSyncStatus('saving', 'Saving to cloud…', 'warn');
   cloudSaveTimer = setTimeout(async () => {
     try {
       const { error } = await cloudClient.from('game_saves').upsert({
@@ -5469,13 +5510,40 @@ function scheduleCloudProgressSave() {
         updated_at: new Date().toISOString(),
       }, { onConflict: 'user_id' });
       if (error) throw error;
+      cloudSavePending = false;
+      cloudSaveRetryDelay = 3000;
+      setCloudSyncStatus('synced', 'Synced to cloud', 'good');
       setCloudAccountMessage('Cloud save synced.', 'good');
     } catch (error) {
       console.error('Cloud save failed:', error);
+      setCloudSyncStatus(navigator.onLine ? 'error' : 'offline', navigator.onLine ? 'Not synced • local save is safe' : 'Offline • changes queued', navigator.onLine ? 'error' : 'warn');
       setCloudAccountMessage('Could not sync right now. Your local save is safe; try again later.', 'error');
+      if (navigator.onLine) {
+        cloudSaveRetryTimer = setTimeout(() => {
+          cloudSaveRetryDelay = Math.min(cloudSaveRetryDelay * 2, 30000);
+          scheduleCloudProgressSave();
+        }, cloudSaveRetryDelay);
+      }
     }
   }, 900);
 }
+
+window.addEventListener('offline', () => {
+  if (!cloudClient) return;
+  setCloudSyncStatus('offline', cloudAccountUser ? 'Offline • changes stay on this device' : 'Offline • local save active', 'warn');
+  if (cloudAccountUser) setCloudAccountMessage('You are offline. Your local save is safe and will sync when you reconnect.', 'error');
+});
+window.addEventListener('online', () => {
+  if (!cloudClient) return;
+  if (cloudAccountUser && cloudSavePending) scheduleCloudProgressSave();
+  else if (cloudAccountUser) syncCloudProgress().catch((error) => {
+    console.error('Cloud save reconnect failed:', error);
+    cloudSavePending = true;
+    setCloudSyncStatus('error', 'Not synced • local save is safe', 'error');
+    setCloudAccountMessage('Back online, but the save could not sync yet.', 'error');
+  });
+  else setCloudSyncStatus('local', 'Connection restored • local save active');
+});
 
 async function runAccountAction(action, successMessage) {
   if (!cloudClient) {
@@ -5532,7 +5600,13 @@ document.getElementById('account-update-password').addEventListener('click', asy
 document.getElementById('account-sign-out').addEventListener('click', async () => {
   const { error } = await cloudClient.auth.signOut();
   if (error) setCloudAccountMessage(error.message, 'error');
-  else setCloudAccountMessage('Signed out. Your local save remains on this device.');
+  else {
+    cloudSavePending = false;
+    clearTimeout(cloudSaveTimer);
+    clearTimeout(cloudSaveRetryTimer);
+    setCloudSyncStatus('local', 'Saved on this device');
+    setCloudAccountMessage('Signed out. Your local save remains on this device.');
+  }
 });
 
 if (cloudClient) {
@@ -5550,7 +5624,15 @@ if (cloudClient) {
     renderCloudAccount(session?.user || null);
     if (session?.user) setTimeout(() => syncCloudProgress(session.user).catch((error) => {
       console.error('Cloud save sync failed:', error);
+      cloudSavePending = true;
+      setCloudSyncStatus('error', 'Not synced • local save is safe', 'error');
       setCloudAccountMessage('Signed in, but the save could not sync. Check the cloud setup.', 'error');
+      if (navigator.onLine) {
+        cloudSaveRetryTimer = setTimeout(() => {
+          cloudSaveRetryDelay = Math.min(cloudSaveRetryDelay * 2, 30000);
+          scheduleCloudProgressSave();
+        }, cloudSaveRetryDelay);
+      }
     }), 0);
   });
 } else {
