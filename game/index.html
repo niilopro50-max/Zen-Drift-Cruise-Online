@@ -2640,6 +2640,33 @@ html.access-high-contrast .leaderboard-message { color: #fff !important; }
 html.access-reduce-motion *,
 html.access-reduce-motion *::before,
 html.access-reduce-motion *::after { scroll-behavior: auto !important; animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
+
+/* Keep the Settings column and its cards centered inside the overlay. */
+#overlay:has(#menu-settings-page:not([hidden])) > .ov-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+#menu-settings-page {
+  width: min(100%, 760px) !important;
+  margin-inline: auto !important;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+#menu-settings-page > .menu-eyebrow,
+#menu-settings-page > .ov-page-title,
+#menu-settings-page > .ov-page-copy,
+#menu-settings-page > .steering-setting-card,
+#menu-settings-page > .menu-back {
+  width: min(100%, 620px);
+  margin-inline: auto;
+}
+#menu-settings-page > .ov-page-copy { text-align: center; }
+#menu-settings-page > .steering-setting-card { margin-top: 14px; }
+#menu-settings-page > .menu-back { margin-top: 18px; }
+
 @media (max-width:560px) {
   .game-setting-row,.game-setting-toggle { align-items: flex-start; }
   .game-setting-range { min-width: 112px; }
@@ -4298,6 +4325,36 @@ body {
 @media(max-width:480px){.new-player-tutorial-card{padding:23px 19px;border-radius:18px}.new-player-tutorial-copy{font-size:14px;min-height:82px}.new-player-tutorial-actions button{padding:0 11px;font-size:10px}}
 @media(max-height:520px) and (orientation:landscape){#new-player-tutorial{padding:8px}.new-player-tutorial-card{max-height:100%;overflow:auto;padding:17px 21px}.new-player-tutorial-meta{margin:12px 0}.new-player-tutorial-icon{width:42px;height:42px;margin:0 0 10px;font-size:22px}.new-player-tutorial-copy{min-height:0}.new-player-tutorial-actions{margin-top:14px}}
 
+/* Final alignment override for the full Settings screen. */
+#overlay:has(#menu-settings-page:not([hidden])) { justify-content: center !important; }
+#overlay:has(#menu-settings-page:not([hidden])) > .ov-box {
+  width: min(920px, 100%) !important;
+  margin-inline: auto !important;
+  transform: none !important;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+#menu-settings-page {
+  width: min(100%, 760px) !important;
+  margin-inline: auto !important;
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+#menu-settings-page > .menu-eyebrow,
+#menu-settings-page > .ov-page-title,
+#menu-settings-page > .ov-page-copy,
+#menu-settings-page > .steering-setting-card,
+#menu-settings-page > .menu-back {
+  width: min(100%, 620px) !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+#menu-settings-page > .ov-page-copy { text-align: center; }
+#menu-settings-page > .steering-setting-card { margin-top: 14px !important; }
+#menu-settings-page > .menu-back { margin-top: 18px !important; }
 
 </style>
 <link rel="manifest" href="/manifest.json">
