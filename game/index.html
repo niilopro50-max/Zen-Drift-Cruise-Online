@@ -5457,7 +5457,8 @@ function syncGarageLivePreview(enabled = true) {
 document.querySelectorAll('[data-car-select]').forEach((button) => {
   button.addEventListener('click', () => {
     const carType = button.dataset.carSelect;
-    if (!Object.hasOwn(garageDefaultColors, carType)) return;
+    // Keep this compatible with older Android WebViews and embedded browsers.
+    if (!Object.prototype.hasOwnProperty.call(garageDefaultColors, carType)) return;
     selectedCarType = carType;
     selectedCarColor = garageCarColors[selectedCarType] || garageDefaultColors[selectedCarType];
     garageSelectionRevision += 1;
