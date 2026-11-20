@@ -6,24 +6,26 @@ put a `service_role` key in the browser or in this repository.
 
 1. Create a Supabase project.
 2. In **SQL Editor**, run `game_saves.sql`.
-3. In **Project Settings → API**, copy the Project URL and publishable key
+3. To enable public Time Attack rankings, also run `leaderboard.sql`. Rankings show only each player's public driver name and best time. Players must opt in under **Settings → Online Leaderboard** before their score is shared; switching it off while signed in removes their entry.
+4. In **Project Settings → API**, copy the Project URL and publishable key
    (or legacy anon key).
-4. Add these environment variables to the Render web service and redeploy:
+5. Add these environment variables to the Render web service and redeploy:
    - `SUPABASE_URL`
    - `SUPABASE_ANON_KEY`
-5. In **Authentication → URL Configuration**, set the site URL to
+6. In **Authentication → URL Configuration**, set the site URL to
    `https://zen-drift-cruise-online.onrender.com` and add
    `https://zen-drift-cruise-online.onrender.com/play` to the redirect allowlist.
-6. In **Authentication → Sign In / Providers**, enable Email. For Google,
+7. In **Authentication → Sign In / Providers**, enable Email. For Google,
    create a Web OAuth client in Google Cloud, add the game site's origin to
    Google's authorized JavaScript origins, and register the callback URL shown
    on Supabase's Google provider page as an authorized redirect URI. Put that
    client ID and secret in Supabase's Google provider settings and enable it.
-7. Add the game's `/play` URL to Supabase's redirect allowlist so confirmation,
+8. Add the game's `/play` URL to Supabase's redirect allowlist so confirmation,
    Google sign-in and password-reset links return to the game.
 
 No Supabase `service_role` key is needed. Database row policies restrict each
-signed-in player to their own save. Until the two Render variables are set, the
-game keeps local saves and shows cloud accounts as unavailable. The project
-uses Supabase's hosted Auth and database APIs; it does not write user data to
-Render's local filesystem.
+signed-in player to their own save. The leaderboard intentionally exposes only
+the opted-in driver names and times; public reads cannot see account IDs. Until
+the two Render variables are set, the game keeps local saves and shows cloud
+accounts as unavailable. The project uses Supabase's hosted Auth and database
+APIs; it does not write user data to Render's local filesystem.

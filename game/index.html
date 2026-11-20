@@ -735,8 +735,13 @@
     flex-direction: column;
     align-items: stretch;
     gap: 6px;
-    width: max-content;
+    width: min(250px, calc(100vw - 24px));
     max-width: calc(100vw - 24px);
+    max-height: calc(100dvh - 190px);
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
     pointer-events: auto;
     z-index: 90;
   }
@@ -785,7 +790,7 @@
     left: 50%;
     bottom: calc(141px + env(safe-area-inset-bottom, 0px));
     transform: none;
-    max-height: none;
+    max-height: min(48vh, calc(100dvh - 190px));
     width: min(220px, calc(100vw - 180px));
     min-width: 0;
     gap: 4px;
@@ -967,6 +972,7 @@
   width: min(100%, 430px);
   margin-top: 12px;
   gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 #menu-home .menu-nav button {
@@ -2534,6 +2540,113 @@ html.garage-preview-mode #c { position: fixed; inset: 0; width: 100%; height: 10
   #menu-garage-page #garage-drive { transition: none; }
 }
 
+/* Quick mobile controls, accessibility and rankings */
+.game-settings-card { margin-top: 14px; }
+.game-setting-row,
+.game-setting-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 13px 0;
+  border-top: 1px solid rgba(188,218,243,.13);
+  color: #e7f3ff;
+  text-align: left;
+}
+.game-setting-row > span:first-child,
+.game-setting-toggle > span:first-child { display: grid; gap: 4px; }
+.game-setting-row b,
+.game-setting-toggle b { font-size: 12px; }
+.game-setting-row small,
+.game-setting-toggle small,
+.game-setting-help { color: #aac9e4; font-size: 10px; line-height: 1.45; }
+.game-setting-select,
+#touch-graphics-quality,
+#touch-steering-mode {
+  min-height: 38px;
+  padding: 0 10px;
+  border: 1px solid rgba(188,218,243,.3);
+  border-radius: 8px;
+  background: #0b1420;
+  color: #f3f8fc;
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 800;
+  color-scheme: dark;
+}
+.game-setting-range { display: flex; align-items: center; gap: 9px; min-width: 150px; }
+.game-setting-range input { flex: 1; accent-color: #fb923c; }
+.game-setting-range output { min-width: 38px; color: #fff; font-size: 11px; text-align: right; }
+.game-setting-toggle input { width: 22px; height: 22px; accent-color: #fb923c; flex: 0 0 auto; }
+.key-binding-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; margin: 13px 0; }
+.key-binding-button,
+.game-setting-reset {
+  min-height: 43px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 11px;
+  border: 1px solid rgba(188,218,243,.2);
+  border-radius: 8px;
+  background: rgba(5,13,22,.7);
+  color: #e7f3ff;
+  font-family: inherit;
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1.2;
+  cursor: pointer;
+}
+.key-binding-button[aria-pressed="true"] { border-color: #fb923c; box-shadow: 0 0 14px rgba(249,115,22,.2); }
+.key-binding-button kbd { padding: 5px 7px; border: 1px solid rgba(255,255,255,.22); border-radius: 5px; color: #fff; font: 900 10px/1 monospace; }
+.game-setting-reset { min-height: 36px; color: #ffc28f; }
+.game-setting-help { margin: 8px 0; }
+.touch-quick-setting { display: grid; gap: 6px; padding: 8px 2px; border-top: 1px solid rgba(255,255,255,.1); color: #dbeafe; font-size: 9px; font-weight: 900; letter-spacing: .8px; }
+.touch-quick-setting > span { display:flex; justify-content:space-between; align-items:center; }
+.touch-quick-setting input[type="range"] { width: 100%; accent-color: #fb923c; }
+.touch-quick-setting select { width: 100%; }
+.leaderboard-card { width: min(100%,680px); margin: 18px 0; padding: 14px; border: 1px solid rgba(255,255,255,.14); border-radius: 15px; background: rgba(8,12,18,.72); box-shadow: 0 18px 55px rgba(0,0,0,.32); }
+.leaderboard-heading,
+.leaderboard-row { display: grid; grid-template-columns: 54px minmax(0,1fr) 100px; gap: 12px; align-items: center; }
+.leaderboard-heading { padding: 5px 8px 10px; color: #fb923c; font-size: 9px; font-weight: 900; letter-spacing: 1px; }
+.leaderboard-row { min-height: 45px; padding: 8px; border-top: 1px solid rgba(255,255,255,.08); color: #f8fafc; }
+.leaderboard-row:nth-child(2) { color: #fde68a; }
+.leaderboard-row > :last-child { text-align: right; font-variant-numeric: tabular-nums; }
+.leaderboard-rank { color: #fb923c; font-weight: 950; }
+.leaderboard-driver { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 800; }
+.leaderboard-time { font-weight: 900; }
+.leaderboard-message,.leaderboard-status { padding: 14px 8px; color: #b6c4d4; font-size: 11px; line-height: 1.5; }
+.leaderboard-status { min-height: 18px; padding-bottom: 0; }
+.leaderboard-opt-in-card { width: 100%; }
+#menu-leaderboard-page .ov-page-copy { margin: 8px 0; color: #cbd5e1; }
+#menu-leaderboard-page .menu-back { margin: 5px 0; }
+html.access-high-contrast .touch-drive-btn,
+html.access-high-contrast .touch-utility-toggle,
+html.access-high-contrast .touch-utility-btn { border-width: 2px; text-shadow: 0 1px 3px #000; }
+html.access-high-contrast .stat-lbl,
+html.access-high-contrast .hud-tag,
+html.access-high-contrast .hud-ctrls { color: #fff; }
+html.access-high-contrast .hud-ctrls,
+html.access-high-contrast .menu-account-button,
+html.access-high-contrast .game-settings-card,
+html.access-high-contrast .leaderboard-card { border-color: rgba(255,255,255,.72); }
+html.access-high-contrast .menu-nav button,
+html.access-high-contrast .menu-back,
+html.access-high-contrast .steering-mode-option { border-width: 2px; color: #fff; }
+html.access-high-contrast .stat-val,
+html.access-high-contrast .ov-page-copy,
+html.access-high-contrast .game-setting-help,
+html.access-high-contrast .leaderboard-message { color: #fff !important; }
+html.access-reduce-motion *,
+html.access-reduce-motion *::before,
+html.access-reduce-motion *::after { scroll-behavior: auto !important; animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
+@media (max-width:560px) {
+  .game-setting-row,.game-setting-toggle { align-items: flex-start; }
+  .game-setting-range { min-width: 112px; }
+  .key-binding-grid { grid-template-columns: 1fr; }
+  .leaderboard-heading,.leaderboard-row { grid-template-columns: 38px minmax(0,1fr) 82px; gap: 8px; }
+}
+
 /* ZEN DRIFT PREMIUM HOME REFRESH */
 #overlay:has(#menu-home:not([hidden])) .ov-box {
   border: 1px solid rgba(251,146,60,.28);
@@ -3633,6 +3746,28 @@ body {
   text-shadow: 0 2px 8px #000;
 }
 
+#overlay:has(#menu-leaderboard-page:not([hidden])) {
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 24px;
+  background: radial-gradient(ellipse at 48% 38%, rgba(249,115,22,.18), transparent 42%),
+    repeating-linear-gradient(145deg, transparent 0 145px, rgba(255,143,62,.07) 146px 148px, transparent 149px 290px),
+    linear-gradient(135deg, #080b12 0%, #15131a 55%, #28140d 100%) !important;
+}
+#overlay:has(#menu-leaderboard-page:not([hidden])) .ov-box {
+  width: min(760px, 100%);
+  max-height: min(92dvh, 900px);
+  overflow-y: auto;
+  padding: 58px 26px 24px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+#menu-leaderboard-page { width: min(100%, 680px); color: #fff5e9; }
+#menu-leaderboard-page .ov-page-title { color: #fff; }
+#menu-leaderboard-page .menu-eyebrow { color: #ffb46f; letter-spacing: 4px; }
+
 #menu-settings-page .menu-mode-card {
   max-width: 620px;
   padding: 22px;
@@ -4296,6 +4431,7 @@ body {
   <div class="menu-nav">
     <button id="menu-garage" type="button">GARAGE</button>
     <button id="menu-modes" type="button">GAME MODES</button>
+    <button id="menu-leaderboard" type="button">LEADERBOARD</button>
     <button id="menu-settings" type="button">SETTINGS</button>
   </div>
   <button id="menu-account" class="menu-account-button" type="button">
@@ -4425,7 +4561,7 @@ body {
     <section id="menu-settings-page" class="ov-page" hidden>
       <div class="menu-eyebrow">PERSONALISE YOUR DRIVE</div>
       <div class="ov-page-title">SETTINGS</div>
-      <p class="ov-page-copy">Choose how you want to steer while playing on a phone or tablet.</p>
+      <p class="ov-page-copy">Adjust driving, performance and accessibility for your device.</p>
       <div id="mobile-steering-setting" class="steering-setting-card" hidden>
         <div class="steering-setting-title">MOBILE STEERING</div>
         <div class="steering-mode-options" role="group" aria-label="Mobile steering method">
@@ -4434,6 +4570,47 @@ body {
         </div>
         <p id="steering-mode-status" aria-live="polite">Tap the left and right buttons to steer.</p>
       </div>
+      <div class="steering-setting-card game-settings-card">
+        <div class="steering-setting-title">DISPLAY & ACCESSIBILITY</div>
+        <label class="game-setting-row" for="settings-graphics-quality"><span><b>Graphics & performance</b><small>Lower quality can improve speed on older devices.</small></span>
+          <select id="settings-graphics-quality" class="game-setting-select"><option value="high">High detail</option><option value="balanced">Balanced</option><option value="performance">Performance</option></select>
+        </label>
+        <label class="game-setting-row" for="settings-touch-size"><span><b>Touch button size</b><small>Make mobile controls easier to reach.</small></span>
+          <span class="game-setting-range"><input id="settings-touch-size" type="range" min="80" max="140" step="5" value="100"><output id="settings-touch-size-value" for="settings-touch-size">100%</output></span>
+        </label>
+        <label class="game-setting-toggle"><span><b>High contrast</b><small>Make controls and text clearer.</small></span><input id="settings-high-contrast" type="checkbox"></label>
+        <label class="game-setting-toggle"><span><b>Reduce motion</b><small>Reduce menu movement and transitions.</small></span><input id="settings-reduced-motion" type="checkbox"></label>
+      </div>
+      <div class="steering-setting-card game-settings-card">
+        <div class="steering-setting-title">KEYBOARD CONTROLS</div>
+        <p class="game-setting-help">Choose a control, then press the key you want to use.</p>
+        <div class="key-binding-grid">
+          <button class="key-binding-button" data-rebind="left" type="button"><span>STEER LEFT</span><kbd>←</kbd></button>
+          <button class="key-binding-button" data-rebind="right" type="button"><span>STEER RIGHT</span><kbd>→</kbd></button>
+          <button class="key-binding-button" data-rebind="up" type="button"><span>ACCELERATE</span><kbd>↑</kbd></button>
+          <button class="key-binding-button" data-rebind="down" type="button"><span>BRAKE</span><kbd>↓</kbd></button>
+          <button class="key-binding-button" data-rebind="handbrake" type="button"><span>HANDBRAKE</span><kbd>SPACE</kbd></button>
+        </div>
+        <button id="reset-key-bindings" class="game-setting-reset" type="button">RESTORE DEFAULT KEYS</button>
+      </div>
+      <div class="steering-setting-card game-settings-card leaderboard-consent-card">
+        <div class="steering-setting-title">ONLINE LEADERBOARD</div>
+        <label class="game-setting-toggle"><span><b>Share my Time Attack best</b><small>Your driver name and best time will be visible to everyone.</small></span><input id="leaderboard-opt-in" type="checkbox"></label>
+        <p id="leaderboard-opt-status" class="game-setting-help" aria-live="polite">Off by default. Sign in to submit a score.</p>
+      </div>
+      <button class="menu-back" data-menu-back type="button">← BACK TO MENU</button>
+    </section>
+
+    <section id="menu-leaderboard-page" class="ov-page" hidden>
+      <div class="menu-eyebrow">TIME ATTACK • WORLDWIDE</div>
+      <div class="ov-page-title">LEADERBOARD</div>
+      <p class="ov-page-copy">Fastest shared account records. Sign in and opt in from Settings to share your time.</p>
+      <div class="leaderboard-card">
+        <div class="leaderboard-heading"><span>RANK</span><span>DRIVER</span><span>BEST TIME</span></div>
+        <div id="leaderboard-rows" class="leaderboard-rows" aria-live="polite"><p class="leaderboard-message">Loading the leaderboard…</p></div>
+        <p id="leaderboard-status" class="leaderboard-status" aria-live="polite"></p>
+      </div>
+      <button id="leaderboard-refresh" class="menu-back" type="button">↻ REFRESH</button>
       <button class="menu-back" data-menu-back type="button">← BACK TO MENU</button>
     </section>
 
@@ -4497,6 +4674,7 @@ body {
         <div id="race-result-best" style="font-size:25px;font-weight:900;margin-top:8px;">--:--.--</div>
       </div>
       <button class="ov-btn" id="race-retry-btn" type="button">↻ &nbsp; RACE AGAIN</button>
+      <button class="menu-back" id="race-leaderboard-btn" type="button">VIEW LEADERBOARD</button>
       <button class="menu-back" id="race-home-btn" type="button">⌂ &nbsp; BACK TO HOME</button>
     </section>
 
@@ -4547,6 +4725,9 @@ body {
       <label for="touch-rain-intensity"><span>RAIN INTENSITY</span><output id="touch-rain-level" for="touch-rain-intensity">85%</output></label>
       <input id="touch-rain-intensity" type="range" min="0" max="100" step="5" value="85" aria-label="Rain intensity">
     </div>
+    <label class="touch-quick-setting" for="touch-graphics-quality"><span>GRAPHICS</span><select id="touch-graphics-quality" aria-label="Graphics and performance"><option value="high">HIGH DETAIL</option><option value="balanced">BALANCED</option><option value="performance">PERFORMANCE</option></select></label>
+    <label class="touch-quick-setting" for="touch-control-size"><span>CONTROL SIZE <output id="touch-control-size-value" for="touch-control-size">100%</output></span><input id="touch-control-size" type="range" min="80" max="140" step="5" value="100" aria-label="Touch button size"></label>
+    <label class="touch-quick-setting" for="touch-steering-mode"><span>STEERING</span><select id="touch-steering-mode" aria-label="Steering method"><option value="buttons">TOUCH BUTTONS</option><option value="tilt">TILT PHONE</option></select></label>
     <button id="touch-music" class="touch-utility-btn" type="button">🎵 MUSIC: LO-FI</button>
     <button id="touch-time" class="touch-utility-btn" type="button">🌅 SUNSET: ON</button>
     <button id="touch-auto-drive" class="touch-utility-btn touch-auto-drive" type="button" aria-pressed="false">🤖 AUTO DRIVE: OFF</button>
@@ -4554,14 +4735,105 @@ body {
 <script>
 const canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d');
-let w = canvas.width = window.innerWidth;
-let h = canvas.height = window.innerHeight;
-
-window.addEventListener('resize', () => {
-  w = canvas.width = window.innerWidth;
-  h = canvas.height = window.innerHeight;
+const GRAPHICS_QUALITY_KEY = 'zen-drift-graphics-quality';
+const TOUCH_CONTROL_SIZE_KEY = 'zen-drift-touch-control-size';
+const ACCESSIBILITY_KEY = 'zen-drift-accessibility';
+const KEY_BINDINGS_KEY = 'zen-drift-key-bindings';
+const DEFAULT_KEY_BINDINGS = { up: 'ArrowUp', down: 'ArrowDown', left: 'ArrowLeft', right: 'ArrowRight', handbrake: 'Space' };
+const DEFAULT_KEY_ALIASES = { up: ['KeyW'], down: ['KeyS'], left: ['KeyA'], right: ['KeyD'], handbrake: [] };
+const GRAPHICS_SCALE = { high: 1, balanced: 0.78, performance: 0.58 };
+let graphicsQuality = (() => {
+  try {
+    const stored = localStorage.getItem(GRAPHICS_QUALITY_KEY);
+    return Object.prototype.hasOwnProperty.call(GRAPHICS_SCALE, stored) ? stored : 'balanced';
+  } catch (_) { return 'balanced'; }
+})();
+let w = window.innerWidth;
+let h = window.innerHeight;
+const stars = [];
+function resizeGameCanvas() {
+  w = window.innerWidth;
+  h = window.innerHeight;
+  const ratio = GRAPHICS_SCALE[graphicsQuality] || GRAPHICS_SCALE.balanced;
+  canvas.width = Math.max(1, Math.round(w * ratio));
+  canvas.height = Math.max(1, Math.round(h * ratio));
+  ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
   initStars();
-});
+}
+resizeGameCanvas();
+window.addEventListener('resize', resizeGameCanvas);
+
+let keyBindings = (() => {
+  try {
+    const saved = JSON.parse(localStorage.getItem(KEY_BINDINGS_KEY) || '{}');
+    const bindings = { ...DEFAULT_KEY_BINDINGS };
+    Object.keys(DEFAULT_KEY_BINDINGS).forEach((action) => {
+      if (typeof saved[action] === 'string' && saved[action].length <= 32) bindings[action] = saved[action];
+    });
+    return bindings;
+  } catch (_) { return { ...DEFAULT_KEY_BINDINGS }; }
+})();
+let pendingKeyBindingAction = null;
+function formatKeyBinding(code) {
+  return ({ ArrowUp: '↑', ArrowDown: '↓', ArrowLeft: '←', ArrowRight: '→', Space: 'SPACE' })[code] || code.replace(/^Key/, '').replace(/^Digit/, '');
+}
+function isDrivingBinding(action, code) {
+  return keyBindings[action] === code || (
+    keyBindings[action] === DEFAULT_KEY_BINDINGS[action] && DEFAULT_KEY_ALIASES[action].includes(code)
+  );
+}
+function renderKeyBindings() {
+  document.querySelectorAll('[data-rebind]').forEach((button) => {
+    const key = button.querySelector('kbd');
+    if (key) key.textContent = pendingKeyBindingAction === button.dataset.rebind ? 'PRESS KEY' : formatKeyBinding(keyBindings[button.dataset.rebind]);
+    button.setAttribute('aria-pressed', String(pendingKeyBindingAction === button.dataset.rebind));
+  });
+}
+function captureKeyBinding(event) {
+  if (!pendingKeyBindingAction) return false;
+  event.preventDefault();
+  if (event.code === 'Escape') {
+    pendingKeyBindingAction = null;
+    renderKeyBindings();
+    return true;
+  }
+  if (['Tab', 'Enter', 'Backspace'].includes(event.code) || event.code.startsWith('F')) return true;
+  const action = pendingKeyBindingAction;
+  const otherAction = Object.keys(keyBindings).find((key) => key !== action && keyBindings[key] === event.code);
+  const previousCode = keyBindings[action];
+  keyBindings[action] = event.code;
+  if (otherAction) keyBindings[otherAction] = previousCode;
+  pendingKeyBindingAction = null;
+  try { localStorage.setItem(KEY_BINDINGS_KEY, JSON.stringify(keyBindings)); } catch (_) {}
+  renderKeyBindings();
+  return true;
+}
+
+const accessibilitySettings = (() => {
+  try { return JSON.parse(localStorage.getItem(ACCESSIBILITY_KEY) || '{}') || {}; }
+  catch (_) { return {}; }
+})();
+function applyAccessibilitySettings() {
+  document.documentElement.classList.toggle('access-high-contrast', accessibilitySettings.highContrast === true);
+  document.documentElement.classList.toggle('access-reduce-motion', accessibilitySettings.reducedMotion === true);
+  const contrast = document.getElementById('settings-high-contrast');
+  const motion = document.getElementById('settings-reduced-motion');
+  if (contrast) contrast.checked = accessibilitySettings.highContrast === true;
+  if (motion) motion.checked = accessibilitySettings.reducedMotion === true;
+}
+function saveAccessibilitySettings() {
+  try { localStorage.setItem(ACCESSIBILITY_KEY, JSON.stringify(accessibilitySettings)); } catch (_) {}
+  applyAccessibilitySettings();
+}
+function setGraphicsQuality(value) {
+  graphicsQuality = Object.prototype.hasOwnProperty.call(GRAPHICS_SCALE, value) ? value : 'balanced';
+  try { localStorage.setItem(GRAPHICS_QUALITY_KEY, graphicsQuality); } catch (_) {}
+  ['settings-graphics-quality', 'touch-graphics-quality'].forEach((id) => {
+    const select = document.getElementById(id);
+    if (select) select.value = graphicsQuality;
+  });
+  resizeGameCanvas();
+}
 
 // Controls
 let gameStarted = false;
@@ -4582,6 +4854,7 @@ let tiltNeutralValue = null;
 let tiltSensorListening = false;
 let tiltAxisAngle = null;
 window.addEventListener('keydown', (e) => {
+  if (captureKeyBinding(e)) return;
   if (e.code === 'Escape' && !e.repeat && gameStarted) {
     e.preventDefault();
     togglePause();
@@ -4589,18 +4862,15 @@ window.addEventListener('keydown', (e) => {
   }
   if (!gameStarted || gamePaused) return;
 
-  if (autoDriveEnabled && [
-    'ArrowUp', 'KeyW', 'ArrowDown', 'KeyS',
-    'ArrowLeft', 'KeyA', 'ArrowRight', 'KeyD', 'Space'
-  ].includes(e.code)) {
+  if (autoDriveEnabled && Object.keys(keyBindings).some((action) => isDrivingBinding(action, e.code))) {
     setAutoDrive(false);
   }
 
-  if (['ArrowUp', 'KeyW'].includes(e.code)) keys.up = true;
-  if (['ArrowDown', 'KeyS'].includes(e.code)) keys.down = true;
-  if (['ArrowLeft', 'KeyA'].includes(e.code)) keys.left = true;
-  if (['ArrowRight', 'KeyD'].includes(e.code)) keys.right = true;
-  if (e.code === 'Space') keys.handbrake = true;
+  if (isDrivingBinding('up', e.code)) keys.up = true;
+  if (isDrivingBinding('down', e.code)) keys.down = true;
+  if (isDrivingBinding('left', e.code)) keys.left = true;
+  if (isDrivingBinding('right', e.code)) keys.right = true;
+  if (isDrivingBinding('handbrake', e.code)) keys.handbrake = true;
   if ((e.code === 'KeyP' || e.key === 'p' || e.key === 'P') && !e.repeat) {
     toggleSunset(true);
   }
@@ -4616,11 +4886,11 @@ window.addEventListener('keydown', (e) => {
 
 });
 window.addEventListener('keyup', (e) => {
-  if (['ArrowUp', 'KeyW'].includes(e.code)) keys.up = false;
-  if (['ArrowDown', 'KeyS'].includes(e.code)) keys.down = false;
-  if (['ArrowLeft', 'KeyA'].includes(e.code)) keys.left = false;
-  if (['ArrowRight', 'KeyD'].includes(e.code)) keys.right = false;
-  if (e.code === 'Space') keys.handbrake = false;
+  if (isDrivingBinding('up', e.code)) keys.up = false;
+  if (isDrivingBinding('down', e.code)) keys.down = false;
+  if (isDrivingBinding('left', e.code)) keys.left = false;
+  if (isDrivingBinding('right', e.code)) keys.right = false;
+  if (isDrivingBinding('handbrake', e.code)) keys.handbrake = false;
 });
 
 
@@ -4676,6 +4946,8 @@ function updateMobileSteeringUI() {
   if (steeringTiltOption) steeringTiltOption.setAttribute('aria-pressed', String(mobileSteeringMode === 'tilt'));
   if (touchSteeringButtons) touchSteeringButtons.hidden = tiltActive;
   if (touchControls) touchControls.classList.toggle('tilt-steering', tiltActive);
+  const quickSteering = document.getElementById('touch-steering-mode');
+  if (quickSteering) quickSteering.value = mobileSteeringMode;
 }
 
 function saveMobileSteeringMode() {
@@ -4814,6 +5086,7 @@ async function chooseMobileSteeringMode(mode) {
 
 steeringButtonsOption?.addEventListener('click', () => chooseMobileSteeringMode('buttons'));
 steeringTiltOption?.addEventListener('click', () => chooseMobileSteeringMode('tilt'));
+document.getElementById('touch-steering-mode')?.addEventListener('change', (event) => chooseMobileSteeringMode(event.target.value));
 updateMobileSteeringUI();
 if (mobileSteeringMode === 'tilt') {
   if (typeof window.DeviceOrientationEvent?.requestPermission === 'function') {
@@ -4836,6 +5109,71 @@ window.addEventListener('orientationchange', () => {
   tiltSteeringInput = 0;
 });
 
+function getStoredTouchControlSize() {
+  try {
+    const value = Number(localStorage.getItem(TOUCH_CONTROL_SIZE_KEY));
+    return Number.isFinite(value) ? Math.min(140, Math.max(80, value)) : 100;
+  } catch (_) { return 100; }
+}
+let touchControlSize = getStoredTouchControlSize();
+function applyTouchControlSize(refreshBase = false) {
+  const buttons = ['touch-left', 'touch-right', 'touch-brake', 'touch-accelerate']
+    .map((id) => document.getElementById(id)).filter(Boolean);
+  for (const button of buttons) {
+    if (refreshBase || !button.dataset.baseControlWidth) {
+      button.style.removeProperty('width');
+      button.style.removeProperty('height');
+      const style = getComputedStyle(button);
+      button.dataset.baseControlWidth = parseFloat(style.width) || 72;
+      button.dataset.baseControlHeight = parseFloat(style.height) || 90;
+    }
+    button.style.width = `${Math.round(Number(button.dataset.baseControlWidth) * touchControlSize / 100)}px`;
+    button.style.height = `${Math.round(Number(button.dataset.baseControlHeight) * touchControlSize / 100)}px`;
+  }
+  ['settings-touch-size', 'touch-control-size'].forEach((id) => {
+    const input = document.getElementById(id);
+    if (input) input.value = String(touchControlSize);
+  });
+  ['settings-touch-size-value', 'touch-control-size-value'].forEach((id) => {
+    const output = document.getElementById(id);
+    if (output) output.textContent = `${touchControlSize}%`;
+  });
+}
+function setTouchControlSize(value) {
+  touchControlSize = Math.min(140, Math.max(80, Number(value) || 100));
+  try { localStorage.setItem(TOUCH_CONTROL_SIZE_KEY, String(touchControlSize)); } catch (_) {}
+  applyTouchControlSize();
+}
+['settings-touch-size', 'touch-control-size'].forEach((id) => {
+  document.getElementById(id)?.addEventListener('input', (event) => setTouchControlSize(event.target.value));
+});
+applyTouchControlSize();
+window.addEventListener('resize', () => applyTouchControlSize(true));
+
+document.querySelectorAll('[data-rebind]').forEach((button) => {
+  button.addEventListener('click', () => beginKeyRemap(button.dataset.rebind));
+});
+document.getElementById('reset-key-bindings')?.addEventListener('click', () => {
+  keyBindings = { ...DEFAULT_KEY_BINDINGS };
+  pendingKeyBindingAction = null;
+  try { localStorage.setItem(KEY_BINDINGS_KEY, JSON.stringify(keyBindings)); } catch (_) {}
+  renderKeyBindings();
+});
+document.getElementById('settings-high-contrast')?.addEventListener('change', (event) => {
+  accessibilitySettings.highContrast = event.target.checked;
+  saveAccessibilitySettings();
+});
+document.getElementById('settings-reduced-motion')?.addEventListener('change', (event) => {
+  accessibilitySettings.reducedMotion = event.target.checked;
+  saveAccessibilitySettings();
+});
+['settings-graphics-quality', 'touch-graphics-quality'].forEach((id) => {
+  document.getElementById(id)?.addEventListener('change', (event) => setGraphicsQuality(event.target.value));
+});
+applyAccessibilitySettings();
+setGraphicsQuality(graphicsQuality);
+renderKeyBindings();
+
 const overlay = document.getElementById('overlay');
 
 function showMenuPage(page) {
@@ -4845,6 +5183,7 @@ function showMenuPage(page) {
     'garage-page',
     'modes-page',
     'settings-page',
+    'leaderboard-page',
     'account-page',
     'pause-page',
     'time-attack-results-page'
@@ -5102,6 +5441,12 @@ function finishTimeAttack() {
 } catch (_) {}
   }
   scheduleCloudProgressSave();
+  if (cloudAccountUser && hasLeaderboardOptIn()) {
+    submitLeaderboardTime(cloudAccountUser, best, playerName).catch((error) => {
+      console.error('Leaderboard submission failed:', error);
+      document.getElementById('leaderboard-opt-status').textContent = 'Could not share yet. The online leaderboard may need setup.';
+    });
+  }
 
   document.getElementById('race-result-time').textContent =
     formatRaceTime(timeAttackFinishMs);
@@ -5170,11 +5515,20 @@ document.getElementById('start-btn').addEventListener('click', startGame);
 document.getElementById('mode-endless').addEventListener('click', startGame);
 document.getElementById('mode-time-attack').addEventListener('click', startTimeAttack);
 document.getElementById('race-retry-btn').addEventListener('click', startTimeAttack);
+document.getElementById('race-leaderboard-btn').addEventListener('click', () => {
+  showMenuPage('leaderboard-page');
+  loadLeaderboard();
+});
 document.getElementById('race-home-btn').addEventListener('click', returnToHome);
 
 document.getElementById('menu-garage').addEventListener('click', () => showMenuPage('garage-page'));
 document.getElementById('menu-modes').addEventListener('click', () => showMenuPage('modes-page'));
 document.getElementById('menu-settings').addEventListener('click', () => showMenuPage('settings-page'));
+document.getElementById('menu-leaderboard').addEventListener('click', () => {
+  showMenuPage('leaderboard-page');
+  loadLeaderboard();
+});
+document.getElementById('leaderboard-refresh').addEventListener('click', loadLeaderboard);
 document.getElementById('menu-account').addEventListener('click', () => showMenuPage('account-page'));
 
 const quickStartStorageKey = 'zen-drift-quick-start-complete-v1';
@@ -5546,11 +5900,128 @@ const cloudConfig = window.ZEN_SUPABASE_CONFIG;
 const cloudClient = cloudConfig?.url && cloudConfig?.anonKey && window.supabase?.createClient
   ? window.supabase.createClient(cloudConfig.url, cloudConfig.anonKey)
   : null;
+const LEADERBOARD_TABLE = 'time_attack_leaderboard';
+const LEADERBOARD_OPT_IN_KEY = 'zen-drift-leaderboard-opt-in';
 let cloudAccountUser = null;
 let cloudSaveTimer = 0;
 let cloudSaveRetryTimer = 0;
 let cloudSaveRetryDelay = 3000;
 let cloudSavePending = false;
+
+function hasLeaderboardOptIn() {
+  try { return localStorage.getItem(LEADERBOARD_OPT_IN_KEY) === '1'; }
+  catch (_) { return false; }
+}
+
+function updateLeaderboardOptStatus() {
+  const toggle = document.getElementById('leaderboard-opt-in');
+  const status = document.getElementById('leaderboard-opt-status');
+  if (toggle) toggle.checked = hasLeaderboardOptIn();
+  if (!status) return;
+  status.textContent = !hasLeaderboardOptIn()
+    ? 'Off. Your results stay private.'
+    : !cloudAccountUser
+      ? 'Enabled. Sign in to submit your best time.'
+      : 'Enabled. Your driver name and best time can appear publicly.';
+}
+
+async function loadLeaderboard() {
+  const rows = document.getElementById('leaderboard-rows');
+  const status = document.getElementById('leaderboard-status');
+  if (!rows || !status) return;
+  rows.replaceChildren();
+  const loading = document.createElement('p');
+  loading.className = 'leaderboard-message';
+  loading.textContent = 'Loading the leaderboard…';
+  rows.append(loading);
+  status.textContent = '';
+  if (!cloudClient) {
+    loading.textContent = 'Online accounts are not configured on this build yet.';
+    return;
+  }
+  try {
+    const { data, error } = await cloudClient.from(LEADERBOARD_TABLE)
+      .select('driver_name,best_time_ms')
+      .order('best_time_ms', { ascending: true })
+      .limit(10);
+    if (error) throw error;
+    rows.replaceChildren();
+    if (!data?.length) {
+      const empty = document.createElement('p');
+      empty.className = 'leaderboard-message';
+      empty.textContent = 'No shared times yet. Sign in, opt in, and set a Time Attack record.';
+      rows.append(empty);
+      return;
+    }
+    data.forEach((entry, index) => {
+      const row = document.createElement('div');
+      row.className = 'leaderboard-row';
+      const rank = document.createElement('span');
+      rank.className = 'leaderboard-rank';
+      rank.textContent = String(index + 1).padStart(2, '0');
+      const driver = document.createElement('span');
+      driver.className = 'leaderboard-driver';
+      driver.textContent = typeof entry.driver_name === 'string' ? entry.driver_name : 'DRIVER';
+      const time = document.createElement('span');
+      time.className = 'leaderboard-time';
+      time.textContent = formatRaceTime(Number(entry.best_time_ms));
+      row.append(rank, driver, time);
+      rows.append(row);
+    });
+  } catch (error) {
+    console.error('Leaderboard load failed:', error);
+    rows.replaceChildren();
+    const unavailable = document.createElement('p');
+    unavailable.className = 'leaderboard-message';
+    unavailable.textContent = 'The leaderboard database needs its one-time setup. See supabase/leaderboard.sql.';
+    rows.append(unavailable);
+    status.textContent = 'Your local and cloud game saves are unaffected.';
+  }
+}
+
+async function submitLeaderboardTime(user, timeMs, name = playerName) {
+  const status = document.getElementById('leaderboard-status');
+  if (!cloudClient || !user || !hasLeaderboardOptIn()) return;
+  const score = Math.round(Number(timeMs));
+  if (!Number.isFinite(score) || score < 1 || score > 3600000) return;
+  const cleanName = cleanPlayerName(String(name || 'Driver')) || 'Driver';
+  const { data: current, error: readError } = await cloudClient.from(LEADERBOARD_TABLE)
+    .select('best_time_ms').eq('user_id', user.id).maybeSingle();
+  if (readError) throw readError;
+  if (Number(current?.best_time_ms) > 0 && Number(current.best_time_ms) <= score) return;
+  const { error } = await cloudClient.from(LEADERBOARD_TABLE).upsert({
+    user_id: user.id,
+    driver_name: cleanName,
+    best_time_ms: score,
+    updated_at: new Date().toISOString(),
+  }, { onConflict: 'user_id' });
+  if (error) throw error;
+  if (status) status.textContent = 'Your best time has been shared on the leaderboard.';
+}
+
+document.getElementById('leaderboard-opt-in')?.addEventListener('change', async (event) => {
+  try { localStorage.setItem(LEADERBOARD_OPT_IN_KEY, event.target.checked ? '1' : '0'); } catch (_) {}
+  updateLeaderboardOptStatus();
+  if (!cloudAccountUser) return;
+  if (!event.target.checked) {
+    const { error } = await cloudClient.from(LEADERBOARD_TABLE).delete().eq('user_id', cloudAccountUser.id);
+    if (error) {
+      console.error('Leaderboard removal failed:', error);
+      document.getElementById('leaderboard-opt-status').textContent = 'Could not remove the shared entry right now.';
+    } else {
+      document.getElementById('leaderboard-opt-status').textContent = 'Your public leaderboard entry was removed.';
+    }
+    return;
+  }
+  const best = getTimeAttackBest();
+  if (best === null) return;
+  try { await submitLeaderboardTime(cloudAccountUser, best, playerName); }
+  catch (error) {
+    console.error('Leaderboard submission failed:', error);
+    document.getElementById('leaderboard-opt-status').textContent = 'Could not share yet. The online leaderboard may need setup.';
+  }
+});
+updateLeaderboardOptStatus();
 
 function setCloudSyncStatus(status, message, tone = '') {
   const homeStatus = document.getElementById('account-button-sync-status');
@@ -5566,6 +6037,7 @@ function setCloudAccountMessage(message, tone = '') {
 
 function renderCloudAccount(user) {
   cloudAccountUser = user || null;
+  updateLeaderboardOptStatus();
   const configured = Boolean(cloudClient);
   document.getElementById('account-signed-out').hidden = !configured || Boolean(user);
   document.getElementById('account-signed-in').hidden = !user;
@@ -5688,6 +6160,10 @@ async function syncCloudProgress(user = cloudAccountUser) {
     updated_at: new Date().toISOString(),
   }, { onConflict: 'user_id' });
   if (saveError) throw saveError;
+  if (hasLeaderboardOptIn() && Number(merged.bestTimeAttackMs) > 0) {
+    try { await submitLeaderboardTime(user, merged.bestTimeAttackMs, merged.driverName || playerName); }
+    catch (error) { console.error('Leaderboard sync failed:', error); }
+  }
   cloudSavePending = false;
   cloudSaveRetryDelay = 3000;
   clearTimeout(cloudSaveRetryTimer);
@@ -6002,7 +6478,6 @@ const ROAD_HALF_WIDTH = 150;
 let curveMultiplier = 1.7;
 
 // Clear sky stars
-const stars = [];
 function initStars() {
   stars.length = 0;
   for (let i = 0; i < 110; i++) {
@@ -6016,7 +6491,6 @@ function initStars() {
     });
   }
 }
-initStars();
 
 function generateTreesForNode(index, x, y, angle) {
   if (index < 4) return;
@@ -6824,6 +7298,7 @@ function positionTouchToolsPanel() {
   if (!mobileLandscape) {
     touchUtilityButtons.style.removeProperty('left');
     touchUtilityButtons.style.removeProperty('top');
+    touchUtilityButtons.style.removeProperty('max-height');
     return;
   }
 
@@ -6838,8 +7313,10 @@ function positionTouchToolsPanel() {
     window.innerWidth - panelWidth - 10
   ));
 
+  const top = Math.ceil(odometerBounds.bottom + 8);
   touchUtilityButtons.style.left = `${Math.round(left)}px`;
-  touchUtilityButtons.style.top = `${Math.ceil(odometerBounds.bottom + 8)}px`;
+  touchUtilityButtons.style.top = `${top}px`;
+  touchUtilityButtons.style.maxHeight = `${Math.max(70, window.innerHeight - top - 150)}px`;
 }
 
 touchToolsToggle?.addEventListener('click', () => {
