@@ -5835,6 +5835,16 @@ playerNameInput.addEventListener('change', () => {
     localStorage.setItem(PLAYER_NAME_CUSTOM_KEY, '1');
     playerNameChangedThisSession = true;
     scheduleCloudProgressSave();
+    if (cloudAccountUser && hasLeaderboardOptIn()) {
+      const bestTime = getTimeAttackBest();
+      if (bestTime !== null) submitLeaderboardTime(cloudAccountUser, bestTime, playerName).catch((error) => {
+        console.error('Leaderboard name update failed:', error);
+      });
+      const endlessPlayMs = totalEndlessPlayMs();
+      if (endlessPlayMs > 0) submitEndlessPlayTime(cloudAccountUser, endlessPlayMs, playerName).catch((error) => {
+        console.error('Endless leaderboard name update failed:', error);
+      });
+    }
   }
   updatePlayerNameDisplay();
 });
@@ -6205,13 +6215,17 @@ async function submitLeaderboardTime(user, timeMs, name = playerName) {
   if (!Number.isFinite(score) || score < 1 || score > 3600000) return;
   const cleanName = cleanPlayerName(String(name || 'Driver')) || 'Driver';
   const { data: current, error: readError } = await cloudClient.from(LEADERBOARD_TABLE)
-    .select('best_time_ms').eq('user_id', user.id).maybeSingle();
+    .select('best_time_ms,driver_name').eq('user_id', user.id).maybeSingle();
   if (readError) throw readError;
-  if (Number(current?.best_time_ms) > 0 && Number(current.best_time_ms) <= score) return;
+  const currentBest = Number(current?.best_time_ms);
+  const bestTime = Number.isFinite(currentBest) && currentBest > 0
+    ? Math.min(currentBest, score)
+    : score;
+  if (current?.driver_name === cleanName && currentBest === bestTime) return;
   const { error } = await cloudClient.from(LEADERBOARD_TABLE).upsert({
     user_id: user.id,
     driver_name: cleanName,
-    best_time_ms: score,
+    best_time_ms: bestTime,
     updated_at: new Date().toISOString(),
   }, { onConflict: 'user_id' });
   if (error) throw error;
@@ -6224,13 +6238,17 @@ async function submitEndlessPlayTime(user, playTimeMs, name = playerName) {
   if (!Number.isFinite(score) || score < 1) return;
   const cleanName = cleanPlayerName(String(name || 'Driver')) || 'Driver';
   const { data: current, error: readError } = await cloudClient.from(ENDLESS_LEADERBOARD_TABLE)
-    .select('play_time_ms').eq('user_id', user.id).maybeSingle();
+    .select('play_time_ms,driver_name').eq('user_id', user.id).maybeSingle();
   if (readError) throw readError;
-  if (Number(current?.play_time_ms) >= score) return;
+  const currentPlayTime = Number(current?.play_time_ms);
+  const bestPlayTime = Number.isFinite(currentPlayTime) && currentPlayTime > 0
+    ? Math.max(currentPlayTime, score)
+    : score;
+  if (current?.driver_name === cleanName && currentPlayTime === bestPlayTime) return;
   const { error } = await cloudClient.from(ENDLESS_LEADERBOARD_TABLE).upsert({
     user_id: user.id,
     driver_name: cleanName,
-    play_time_ms: score,
+    play_time_ms: bestPlayTime,
     updated_at: new Date().toISOString(),
   }, { onConflict: 'user_id' });
   if (error) throw error;
