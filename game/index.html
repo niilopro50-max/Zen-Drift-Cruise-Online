@@ -4139,6 +4139,30 @@ body {
 #menu-account-page .account-user-card strong { overflow-wrap:anywhere; font-size:14px; }
 #menu-account-page #account-sign-out { width:100%; }
 
+#new-player-tutorial[hidden] { display:none !important; }
+#new-player-tutorial { position:fixed; inset:0; z-index:500; display:grid; place-items:center; overflow-y:auto; padding:max(18px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(18px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left)); background:rgba(4,6,10,.8); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); }
+.new-player-tutorial-card { width:min(560px,100%); padding:clamp(24px,5vw,42px); border:1px solid rgba(255,158,87,.48); border-radius:22px; background:radial-gradient(ellipse at 92% 0,rgba(249,115,22,.18),transparent 40%),linear-gradient(145deg,#191b21,#0d1016); box-shadow:0 24px 80px rgba(0,0,0,.58),0 0 36px rgba(249,115,22,.12); color:#f8fafc; }
+.new-player-tutorial-kicker { margin:0 0 8px; color:#ff9e57; font-size:10px; font-weight:900; letter-spacing:2.4px; text-transform:uppercase; }
+.new-player-tutorial-title { margin:0; font-size:clamp(29px,7vw,44px); line-height:1.05; letter-spacing:-1.8px; }
+.new-player-tutorial-meta { display:flex; align-items:center; justify-content:space-between; gap:14px; margin:22px 0 16px; color:#aaaeb8; font-size:11px; font-weight:800; letter-spacing:1px; text-transform:uppercase; }
+.new-player-tutorial-progress { display:flex; gap:6px; }
+.new-player-tutorial-progress span { width:30px; height:4px; border-radius:99px; background:rgba(255,255,255,.15); }
+.new-player-tutorial-progress span.active { background:#ff873d; box-shadow:0 0 10px rgba(255,135,61,.55); }
+.new-player-tutorial-icon { width:58px; height:58px; margin:4px 0 17px; display:grid; place-items:center; border:1px solid rgba(255,155,86,.32); border-radius:17px; background:rgba(249,115,22,.1); font-size:28px; }
+.new-player-tutorial-step-title { margin:0 0 9px; font-size:22px; letter-spacing:-.4px; }
+.new-player-tutorial-copy { min-height:70px; margin:0; color:#c4c8d1; font-size:15px; line-height:1.65; }
+.new-player-tutorial-actions { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:25px; }
+.new-player-tutorial-actions button { min-height:46px; padding:0 16px; border-radius:10px; font:inherit; font-size:11px; font-weight:900; letter-spacing:.75px; cursor:pointer; }
+#tutorial-skip { border:1px solid rgba(255,255,255,.18); background:transparent; color:#d6d7dc; }
+#tutorial-skip:hover { border-color:rgba(255,255,255,.42); background:rgba(255,255,255,.06); }
+.new-player-tutorial-nav { display:flex; gap:8px; margin-left:auto; }
+#tutorial-back { border:1px solid rgba(255,255,255,.16); background:rgba(255,255,255,.05); color:#e5e7eb; }
+#tutorial-back[hidden] { display:none; }
+#tutorial-next { border:1px solid #ff9e57; background:linear-gradient(110deg,#fb923c,#ea580c); color:#190d08; box-shadow:0 5px 18px rgba(234,88,12,.22); }
+#tutorial-back:hover,#tutorial-next:hover,#tutorial-skip:focus-visible { filter:brightness(1.12); outline:2px solid rgba(255,158,87,.65); outline-offset:2px; }
+@media(max-width:480px){.new-player-tutorial-card{padding:23px 19px;border-radius:18px}.new-player-tutorial-copy{font-size:14px;min-height:82px}.new-player-tutorial-actions button{padding:0 11px;font-size:10px}}
+@media(max-height:520px) and (orientation:landscape){#new-player-tutorial{padding:8px}.new-player-tutorial-card{max-height:100%;overflow:auto;padding:17px 21px}.new-player-tutorial-meta{margin:12px 0}.new-player-tutorial-icon{width:42px;height:42px;margin:0 0 10px;font-size:22px}.new-player-tutorial-copy{min-height:0}.new-player-tutorial-actions{margin-top:14px}}
+
 
 </style>
 <link rel="manifest" href="/manifest.json">
@@ -4479,6 +4503,28 @@ body {
   </div>
 </div>
 
+<div id="new-player-tutorial" role="dialog" aria-modal="true" aria-labelledby="tutorial-title" aria-describedby="tutorial-copy" hidden>
+  <section class="new-player-tutorial-card">
+    <p class="new-player-tutorial-kicker">ZEN DRIFT • QUICK START</p>
+    <h1 class="new-player-tutorial-title" id="tutorial-title">Your first drive</h1>
+    <div class="new-player-tutorial-meta">
+      <span id="tutorial-step-count">STEP 1 OF 3</span>
+      <div class="new-player-tutorial-progress" aria-hidden="true">
+        <span class="active"></span><span></span><span></span>
+      </div>
+    </div>
+    <div class="new-player-tutorial-icon" id="tutorial-icon" aria-hidden="true">🏎️</div>
+    <h2 class="new-player-tutorial-step-title" id="tutorial-step-title">Choose your ride</h2>
+    <p class="new-player-tutorial-copy" id="tutorial-copy">Visit the Garage to pick a car and paint. Game Modes lets you cruise freely or race through checkpoints in Time Attack.</p>
+    <div class="new-player-tutorial-actions">
+      <button id="tutorial-skip" type="button">SKIP TUTORIAL</button>
+      <div class="new-player-tutorial-nav">
+        <button id="tutorial-back" type="button" hidden>BACK</button>
+        <button id="tutorial-next" type="button">NEXT →</button>
+      </div>
+    </div>
+  </section>
+</div>
 
 <div id="touch-controls">
 
@@ -5130,6 +5176,92 @@ document.getElementById('menu-garage').addEventListener('click', () => showMenuP
 document.getElementById('menu-modes').addEventListener('click', () => showMenuPage('modes-page'));
 document.getElementById('menu-settings').addEventListener('click', () => showMenuPage('settings-page'));
 document.getElementById('menu-account').addEventListener('click', () => showMenuPage('account-page'));
+
+const quickStartStorageKey = 'zen-drift-quick-start-complete-v1';
+const quickStartSteps = [
+  {
+    icon: '🏎️',
+    title: 'Choose your ride',
+    copy: 'Visit the Garage to pick a car and paint. Game Modes lets you cruise freely or race through checkpoints in Time Attack.'
+  },
+  {
+    icon: '🎮',
+    title: 'Drive and drift',
+    copy: 'On a computer, steer with W A S D or the arrow keys; press Space to brake. On a phone, use LEFT, RIGHT, GAS and BRAKE. Ease into a turn while steering to start a drift.'
+  },
+  {
+    icon: '🌦️',
+    title: 'Set the road conditions',
+    copy: 'Use the rain controls to set how much it rains; the rain sound follows the amount. Open TOOLS for more driving options. You can change your setup whenever you pause.'
+  }
+];
+let quickStartStep = 0;
+const quickStartDialog = document.getElementById('new-player-tutorial');
+const quickStartProgress = [...document.querySelectorAll('.new-player-tutorial-progress span')];
+
+function renderQuickStartStep() {
+  const step = quickStartSteps[quickStartStep];
+  document.getElementById('tutorial-step-count').textContent = `STEP ${quickStartStep + 1} OF ${quickStartSteps.length}`;
+  document.getElementById('tutorial-icon').textContent = step.icon;
+  document.getElementById('tutorial-step-title').textContent = step.title;
+  document.getElementById('tutorial-copy').textContent = step.copy;
+  quickStartProgress.forEach((bar, index) => bar.classList.toggle('active', index <= quickStartStep));
+  document.getElementById('tutorial-back').hidden = quickStartStep === 0;
+  document.getElementById('tutorial-next').textContent = quickStartStep === quickStartSteps.length - 1 ? 'DONE ✓' : 'NEXT →';
+}
+
+function finishQuickStart() {
+  try { localStorage.setItem(quickStartStorageKey, '1'); } catch (_) {}
+  quickStartDialog.hidden = true;
+  document.getElementById('menu-garage').focus();
+}
+
+document.getElementById('tutorial-skip').addEventListener('click', finishQuickStart);
+document.getElementById('tutorial-back').addEventListener('click', () => {
+  quickStartStep = Math.max(0, quickStartStep - 1);
+  renderQuickStartStep();
+});
+document.getElementById('tutorial-next').addEventListener('click', () => {
+  if (quickStartStep >= quickStartSteps.length - 1) {
+    finishQuickStart();
+    return;
+  }
+  quickStartStep += 1;
+  renderQuickStartStep();
+});
+window.addEventListener('keydown', (event) => {
+  if (quickStartDialog.hidden) return;
+  if (event.key === 'Escape') {
+    event.preventDefault();
+    finishQuickStart();
+    return;
+  }
+  if (event.key === 'Tab') {
+    const focusable = [...quickStartDialog.querySelectorAll('button:not([hidden])')];
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
+});
+
+try {
+  if (!garagePreviewMode && localStorage.getItem(quickStartStorageKey) !== '1') {
+    renderQuickStartStep();
+    quickStartDialog.hidden = false;
+    document.getElementById('tutorial-skip').focus();
+  }
+} catch (_) {
+  if (!garagePreviewMode) {
+    renderQuickStartStep();
+    quickStartDialog.hidden = false;
+  }
+}
 
 document.querySelectorAll('[data-menu-back]').forEach((button) => {
   button.addEventListener('click', () => showMenuPage('home'));
