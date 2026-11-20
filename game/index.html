@@ -4109,6 +4109,11 @@ body {
 #menu-account-page .account-field-label { display:block; margin: 13px 0 6px; color:#f8b77f; font-size:10px; font-weight:800; letter-spacing:1.4px; }
 #menu-account-page .account-field { width:100%; min-height:48px; padding:0 13px; border:1px solid rgba(255,173,112,.25); border-radius:9px; background:rgba(5,9,16,.72); color:#fff; font:inherit; font-size:15px; user-select:text; }
 #menu-account-page .account-field:focus { outline:2px solid rgba(249,115,22,.62); outline-offset:1px; }
+#menu-account-page .account-password-wrap { position:relative; display:flex; }
+#menu-account-page .account-password-wrap .account-field { padding-right:72px; }
+#menu-account-page .account-password-toggle { position:absolute; top:50%; right:8px; min-width:54px; min-height:34px; padding:0 8px; transform:translateY(-50%); border:1px solid rgba(255,173,112,.2); border-radius:7px; background:rgba(255,255,255,.055); color:#ffc18b; font:inherit; font-size:10px; font-weight:850; letter-spacing:.8px; cursor:pointer; }
+#menu-account-page .account-password-toggle:hover { border-color:rgba(249,115,22,.58); background:rgba(249,115,22,.12); }
+#menu-account-page .account-password-toggle:focus-visible { outline:2px solid rgba(249,115,22,.75); outline-offset:2px; }
 #menu-account-page .account-form-actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:16px; }
 #menu-account-page .account-form-actions button { min-height:48px; padding:8px; font-size:11px; }
 #menu-account-page .account-or { display:flex; align-items:center; gap:10px; margin:14px 0; color:rgba(235,238,245,.42); font-size:10px; }
@@ -4410,7 +4415,10 @@ body {
         <label class="account-field-label" for="account-email">EMAIL</label>
         <input id="account-email" class="account-field" type="email" maxlength="254" autocomplete="email" placeholder="you@example.com">
         <label class="account-field-label" for="account-password">PASSWORD</label>
-        <input id="account-password" class="account-field" type="password" minlength="8" autocomplete="current-password" placeholder="At least 8 characters">
+        <div class="account-password-wrap">
+          <input id="account-password" class="account-field" type="password" minlength="8" autocomplete="current-password" placeholder="At least 8 characters">
+          <button class="account-password-toggle" type="button" data-password-toggle aria-controls="account-password" aria-label="Show password" aria-pressed="false">SHOW</button>
+        </div>
         <div class="account-form-actions">
           <button id="account-sign-in" class="ov-btn" type="button">SIGN IN</button>
           <button id="account-create" class="menu-back" type="button">CREATE ACCOUNT</button>
@@ -4425,7 +4433,10 @@ body {
       </div>
       <div id="account-reset-panel" hidden>
         <label class="account-field-label" for="account-new-password">NEW PASSWORD</label>
-        <input id="account-new-password" class="account-field" type="password" minlength="8" autocomplete="new-password" placeholder="At least 8 characters">
+        <div class="account-password-wrap">
+          <input id="account-new-password" class="account-field" type="password" minlength="8" autocomplete="new-password" placeholder="At least 8 characters">
+          <button class="account-password-toggle" type="button" data-password-toggle aria-controls="account-new-password" aria-label="Show password" aria-pressed="false">SHOW</button>
+        </div>
         <button id="account-update-password" class="ov-btn" type="button" style="width:100%;margin-top:12px">SAVE NEW PASSWORD</button>
       </div>
       <p id="account-status" class="account-status" aria-live="polite">Your save stays on this device until you sign in.</p>
@@ -5347,6 +5358,17 @@ function getLocalCloudProgress() {
 }
 
 const cloudAccountStatus = document.getElementById('account-status');
+document.querySelectorAll('[data-password-toggle]').forEach((button) => {
+  const passwordField = document.getElementById(button.getAttribute('aria-controls'));
+  if (!passwordField) return;
+  button.addEventListener('click', () => {
+    const showPassword = passwordField.type === 'password';
+    passwordField.type = showPassword ? 'text' : 'password';
+    button.textContent = showPassword ? 'HIDE' : 'SHOW';
+    button.setAttribute('aria-label', `${showPassword ? 'Hide' : 'Show'} password`);
+    button.setAttribute('aria-pressed', String(showPassword));
+  });
+});
 const cloudConfig = window.ZEN_SUPABASE_CONFIG;
 const cloudClient = cloudConfig?.url && cloudConfig?.anonKey && window.supabase?.createClient
   ? window.supabase.createClient(cloudConfig.url, cloudConfig.anonKey)
