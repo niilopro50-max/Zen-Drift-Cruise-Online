@@ -13,7 +13,7 @@ create index if not exists time_attack_leaderboard_best_time_idx
 alter table public.time_attack_leaderboard enable row level security;
 revoke all on table public.time_attack_leaderboard from anon, authenticated;
 grant select (driver_name, best_time_ms) on table public.time_attack_leaderboard to anon;
-grant select (user_id, driver_name, best_time_ms) on table public.time_attack_leaderboard to authenticated;
+grant select on table public.time_attack_leaderboard to authenticated;
 grant insert, update, delete on table public.time_attack_leaderboard to authenticated;
 
 drop policy if exists "Anyone can read shared leaderboard times" on public.time_attack_leaderboard;
