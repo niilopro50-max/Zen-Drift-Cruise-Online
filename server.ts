@@ -10,6 +10,7 @@ const ACCENT = "#ea580c";
 const GAME_HTML = readFileSync(new URL("./game/index.html", import.meta.url), "utf8");
 const WEBSITE_HTML = readFileSync(new URL("./website/index.html", import.meta.url), "utf8");
 const DOWNLOAD_HTML = readFileSync(new URL("./website/download.html", import.meta.url), "utf8");
+const PRIVACY_HTML = readFileSync(new URL("./website/privacy.html", import.meta.url), "utf8");
 
 function getGameHtml() {
   const cloudConfig = process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY
@@ -157,6 +158,15 @@ export function startHttpServer(): Promise<{ server: http.Server; port: number }
     if (req.method === "GET" && (url.pathname === "/download" || url.pathname === "/download/")) {
       res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
       res.end(DOWNLOAD_HTML);
+      return;
+    }
+
+    if (req.method === "GET" && (url.pathname === "/privacy" || url.pathname === "/privacy/")) {
+      res.writeHead(200, {
+        "Content-Type": "text/html; charset=utf-8",
+        "Cache-Control": "public, max-age=3600",
+      });
+      res.end(PRIVACY_HTML);
       return;
     }
 
