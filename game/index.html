@@ -5104,9 +5104,9 @@ const garageCarColors = { drift: '#f8fafc', f1: '#f97316', rally: '#84cc16', hyp
 let selectedCarColor = garageCarColors.drift;
 const CAR_TUNING = {
   drift: { maxSpeed: 1, acceleration: 1 },
-  f1: { maxSpeed: 1.15, acceleration: 1.15 },
-  rally: { maxSpeed: .94, acceleration: 1.08 },
-  hyper: { maxSpeed: 1.08, acceleration: 1.1 }
+  f1: { maxSpeed: 1, acceleration: 1 },
+  rally: { maxSpeed: 1, acceleration: 1 },
+  hyper: { maxSpeed: 1, acceleration: 1 }
 };
 
 const garageColorNames = {
@@ -5309,7 +5309,7 @@ if (desktopMode) {
 }
 
 function updateCarPerformance() {
-  const standardMaxSpeed = 8;
+  const standardMaxSpeed = 7.2;
   car.maxSpeed = standardMaxSpeed * (CAR_TUNING[selectedCarType] || CAR_TUNING.drift).maxSpeed;
 }
 
