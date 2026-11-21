@@ -8,6 +8,7 @@ import { Readable, Transform } from "node:stream";
 import { pipeline } from "node:stream/promises";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const ONLINE_GAME_URL = "https://zen-drift-cruise-online.onrender.com/play?desktop=1";
 
 const GITHUB_RELEASES_API = "https" + String.fromCharCode(58,47,47) + "api.github.com/repos/niilopro50-max/Zen-Drift-Cruise-Online/releases/latest";
 let serverInstance = null;
@@ -203,9 +204,12 @@ async function createWindow() {
     if (mainWindow === window) mainWindow = null;
   });
 
-  await window.loadURL(
-    `http://127.0.0.1:${serverInstance.port}/play?desktop=1`
-  );
+  try {
+    await window.loadURL(ONLINE_GAME_URL);
+  } catch (error) {
+    console.warn("Online game unavailable; opening the bundled copy:", error);
+    await window.loadURL(`http://127.0.0.1:${serverInstance.port}/play?desktop=1`);
+  }
 }
 
 app.whenReady().then(async () => {

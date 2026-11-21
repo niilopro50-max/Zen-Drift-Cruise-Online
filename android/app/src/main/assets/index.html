@@ -735,8 +735,13 @@
     flex-direction: column;
     align-items: stretch;
     gap: 6px;
-    width: max-content;
+    width: min(250px, calc(100vw - 24px));
     max-width: calc(100vw - 24px);
+    max-height: calc(100dvh - 190px);
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
     pointer-events: auto;
     z-index: 90;
   }
@@ -785,7 +790,7 @@
     left: 50%;
     bottom: calc(141px + env(safe-area-inset-bottom, 0px));
     transform: none;
-    max-height: none;
+    max-height: min(48vh, calc(100dvh - 190px));
     width: min(220px, calc(100vw - 180px));
     min-width: 0;
     gap: 4px;
@@ -967,6 +972,7 @@
   width: min(100%, 430px);
   margin-top: 12px;
   gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 #menu-home .menu-nav button {
@@ -2534,6 +2540,144 @@ html.garage-preview-mode #c { position: fixed; inset: 0; width: 100%; height: 10
   #menu-garage-page #garage-drive { transition: none; }
 }
 
+/* Quick mobile controls, accessibility and rankings */
+.game-settings-card { margin-top: 14px; }
+.game-setting-row,
+.game-setting-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 13px 0;
+  border-top: 1px solid rgba(188,218,243,.13);
+  color: #e7f3ff;
+  text-align: left;
+}
+.game-setting-row > span:first-child,
+.game-setting-toggle > span:first-child { display: grid; gap: 4px; }
+.game-setting-row b,
+.game-setting-toggle b { font-size: 12px; }
+.game-setting-row small,
+.game-setting-toggle small,
+.game-setting-help { color: #aac9e4; font-size: 10px; line-height: 1.45; }
+.game-setting-select,
+#touch-graphics-quality,
+#touch-steering-mode {
+  min-height: 38px;
+  padding: 0 10px;
+  border: 1px solid rgba(188,218,243,.3);
+  border-radius: 8px;
+  background: #0b1420;
+  color: #f3f8fc;
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 800;
+  color-scheme: dark;
+}
+.game-setting-range { display: flex; align-items: center; gap: 9px; min-width: 150px; }
+.game-setting-range input { flex: 1; accent-color: #fb923c; }
+.game-setting-range output { min-width: 38px; color: #fff; font-size: 11px; text-align: right; }
+.game-setting-toggle input { width: 22px; height: 22px; accent-color: #fb923c; flex: 0 0 auto; }
+.key-binding-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; margin: 13px 0; }
+.key-binding-button,
+.game-setting-reset {
+  min-height: 43px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 11px;
+  border: 1px solid rgba(188,218,243,.2);
+  border-radius: 8px;
+  background: rgba(5,13,22,.7);
+  color: #e7f3ff;
+  font-family: inherit;
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1.2;
+  cursor: pointer;
+}
+.key-binding-button[aria-pressed="true"] { border-color: #fb923c; box-shadow: 0 0 14px rgba(249,115,22,.2); }
+.key-binding-button kbd { padding: 5px 7px; border: 1px solid rgba(255,255,255,.22); border-radius: 5px; color: #fff; font: 900 10px/1 monospace; }
+.game-setting-reset { min-height: 36px; color: #ffc28f; }
+.game-setting-help { margin: 8px 0; }
+.touch-quick-setting { display: grid; gap: 6px; padding: 8px 2px; border-top: 1px solid rgba(255,255,255,.1); color: #dbeafe; font-size: 9px; font-weight: 900; letter-spacing: .8px; }
+.touch-quick-setting > span { display:flex; justify-content:space-between; align-items:center; }
+.touch-quick-setting input[type="range"] { width: 100%; accent-color: #fb923c; }
+.touch-quick-setting select { width: 100%; }
+.leaderboard-card { width: min(100%,680px); margin: 18px 0; padding: 14px; border: 1px solid rgba(255,255,255,.14); border-radius: 15px; background: rgba(8,12,18,.72); box-shadow: 0 18px 55px rgba(0,0,0,.32); }
+.leaderboard-mode-tabs { display: flex; gap: 9px; margin-top: 14px; }
+.leaderboard-rows { max-height: 52vh; max-height: 52dvh; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+#menu-leaderboard-page .leaderboard-mode-tab { width: auto; flex: 1; min-height: 40px; margin: 0; padding: 8px 12px; }
+#menu-leaderboard-page .leaderboard-mode-tab.is-active { border-color: #fb923c; background: linear-gradient(120deg, rgba(249,115,22,.28), rgba(10,14,20,.86)); color: #fff; box-shadow: 0 0 18px rgba(249,115,22,.19); }
+.leaderboard-heading,
+.leaderboard-row { display: grid; grid-template-columns: 54px minmax(0,1fr) 100px; gap: 12px; align-items: center; }
+.leaderboard-heading { padding: 5px 8px 10px; color: #fb923c; font-size: 9px; font-weight: 900; letter-spacing: 1px; }
+.leaderboard-row { min-height: 45px; padding: 8px; border-top: 1px solid rgba(255,255,255,.08); color: #f8fafc; }
+.leaderboard-row:nth-child(2) { color: #fde68a; }
+.leaderboard-row > :last-child { text-align: right; font-variant-numeric: tabular-nums; }
+.leaderboard-rank { color: #fb923c; font-weight: 950; }
+.leaderboard-driver { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 800; }
+.leaderboard-time { font-weight: 900; }
+.leaderboard-message,.leaderboard-status { padding: 14px 8px; color: #b6c4d4; font-size: 11px; line-height: 1.5; }
+.leaderboard-status { min-height: 18px; padding-bottom: 0; }
+.leaderboard-opt-in-card { width: 100%; }
+#menu-leaderboard-page .ov-page-copy { margin: 8px 0; color: #cbd5e1; }
+#menu-leaderboard-page .menu-back { margin: 5px 0; }
+html.access-high-contrast .touch-drive-btn,
+html.access-high-contrast .touch-utility-toggle,
+html.access-high-contrast .touch-utility-btn { border-width: 2px; text-shadow: 0 1px 3px #000; }
+html.access-high-contrast .stat-lbl,
+html.access-high-contrast .hud-tag,
+html.access-high-contrast .hud-ctrls { color: #fff; }
+html.access-high-contrast .hud-ctrls,
+html.access-high-contrast .menu-account-button,
+html.access-high-contrast .game-settings-card,
+html.access-high-contrast .leaderboard-card { border-color: rgba(255,255,255,.72); }
+html.access-high-contrast .menu-nav button,
+html.access-high-contrast .menu-back,
+html.access-high-contrast .steering-mode-option { border-width: 2px; color: #fff; }
+html.access-high-contrast .stat-val,
+html.access-high-contrast .ov-page-copy,
+html.access-high-contrast .game-setting-help,
+html.access-high-contrast .leaderboard-message { color: #fff !important; }
+html.access-reduce-motion *,
+html.access-reduce-motion *::before,
+html.access-reduce-motion *::after { scroll-behavior: auto !important; animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
+
+/* Keep the Settings column and its cards centered inside the overlay. */
+#overlay:has(#menu-settings-page:not([hidden])) > .ov-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+#menu-settings-page {
+  width: min(100%, 760px) !important;
+  margin-inline: auto !important;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+#menu-settings-page > .menu-eyebrow,
+#menu-settings-page > .ov-page-title,
+#menu-settings-page > .ov-page-copy,
+#menu-settings-page > .steering-setting-card,
+#menu-settings-page > .menu-back {
+  width: min(100%, 620px);
+  margin-inline: auto;
+}
+#menu-settings-page > .ov-page-copy { text-align: center; }
+#menu-settings-page > .steering-setting-card { margin-top: 14px; }
+#menu-settings-page > .menu-back { margin-top: 18px; }
+
+@media (max-width:560px) {
+  .game-setting-row,.game-setting-toggle { align-items: flex-start; }
+  .game-setting-range { min-width: 112px; }
+  .key-binding-grid { grid-template-columns: 1fr; }
+  .leaderboard-heading,.leaderboard-row { grid-template-columns: 38px minmax(0,1fr) 82px; gap: 8px; }
+}
+
 /* ZEN DRIFT PREMIUM HOME REFRESH */
 #overlay:has(#menu-home:not([hidden])) .ov-box {
   border: 1px solid rgba(251,146,60,.28);
@@ -3633,6 +3777,28 @@ body {
   text-shadow: 0 2px 8px #000;
 }
 
+#overlay:has(#menu-leaderboard-page:not([hidden])) {
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 24px;
+  background: radial-gradient(ellipse at 48% 38%, rgba(249,115,22,.18), transparent 42%),
+    repeating-linear-gradient(145deg, transparent 0 145px, rgba(255,143,62,.07) 146px 148px, transparent 149px 290px),
+    linear-gradient(135deg, #080b12 0%, #15131a 55%, #28140d 100%) !important;
+}
+#overlay:has(#menu-leaderboard-page:not([hidden])) .ov-box {
+  width: min(760px, 100%);
+  max-height: min(92dvh, 900px);
+  overflow-y: auto;
+  padding: 58px 26px 24px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+#menu-leaderboard-page { width: min(100%, 680px); color: #fff5e9; }
+#menu-leaderboard-page .ov-page-title { color: #fff; }
+#menu-leaderboard-page .menu-eyebrow { color: #ffb46f; letter-spacing: 4px; }
+
 #menu-settings-page .menu-mode-card {
   max-width: 620px;
   padding: 22px;
@@ -3911,10 +4077,10 @@ body {
 
 @media (min-width: 701px) {
   #overlay:has(#menu-garage-page:not([hidden])) .ov-box,
-  #overlay:has(#menu-modes-page:not([hidden])) .ov-box,
-  #overlay:has(#menu-settings-page:not([hidden])) .ov-box {
+  #overlay:has(#menu-modes-page:not([hidden])) .ov-box {
     transform: translateX(1.5vw);
   }
+  #overlay:has(#menu-settings-page:not([hidden])) .ov-box { transform: none !important; }
 }
 
 #menu-garage-page,
@@ -4087,6 +4253,112 @@ body {
   }
 }
 
+#menu-home .menu-account-button {
+  width: min(100%, 520px);
+  min-height: 54px;
+  margin: 12px auto 0;
+  padding: 10px 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  border: 1px solid rgba(255,173,112,.25);
+  border-radius: 12px;
+  background: rgba(255,255,255,.035);
+  color: #ffe7d3;
+  cursor: pointer;
+  letter-spacing: 1.2px;
+  font-weight: 850;
+}
+#menu-home .menu-account-button:hover { border-color: rgba(249,115,22,.58); background: rgba(249,115,22,.09); }
+#menu-home .menu-account-button small { color: rgba(235,238,245,.58); font-size: 10px; font-weight: 500; letter-spacing: .2px; }
+#menu-home .menu-account-button #account-button-sync-status { color:rgba(235,238,245,.55); font-size:9px; font-weight:750; letter-spacing:.65px; text-transform:uppercase; }
+#menu-home .menu-account-button #account-button-sync-status[data-tone="good"] { color:#8ce2ae; }
+#menu-home .menu-account-button #account-button-sync-status[data-tone="warn"] { color:#ffd08b; }
+#menu-home .menu-account-button #account-button-sync-status[data-tone="error"] { color:#ff9d8e; }
+#menu-account-page .account-field-label { display:block; margin: 13px 0 6px; color:#f8b77f; font-size:10px; font-weight:800; letter-spacing:1.4px; }
+#menu-account-page .account-field { width:100%; min-height:48px; padding:0 13px; border:1px solid rgba(255,173,112,.25); border-radius:9px; background:rgba(5,9,16,.72); color:#fff; font:inherit; font-size:15px; user-select:text; }
+#menu-account-page .account-field:focus { outline:2px solid rgba(249,115,22,.62); outline-offset:1px; }
+#menu-account-page .account-password-wrap { position:relative; display:flex; }
+#menu-account-page .account-password-wrap .account-field { padding-right:72px; }
+#menu-account-page .account-password-toggle { position:absolute; top:50%; right:8px; min-width:54px; min-height:34px; padding:0 8px; transform:translateY(-50%); border:1px solid rgba(255,173,112,.2); border-radius:7px; background:rgba(255,255,255,.055); color:#ffc18b; font:inherit; font-size:10px; font-weight:850; letter-spacing:.8px; cursor:pointer; }
+#menu-account-page .account-password-toggle:hover { border-color:rgba(249,115,22,.58); background:rgba(249,115,22,.12); }
+#menu-account-page .account-password-toggle:focus-visible { outline:2px solid rgba(249,115,22,.75); outline-offset:2px; }
+#menu-account-page .account-form-actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:16px; }
+#menu-account-page .account-form-actions button { min-height:48px; padding:8px; font-size:11px; }
+#menu-account-page .account-or { display:flex; align-items:center; gap:10px; margin:14px 0; color:rgba(235,238,245,.42); font-size:10px; }
+#menu-account-page .account-or::before, #menu-account-page .account-or::after { content:""; height:1px; flex:1; background:rgba(255,255,255,.12); }
+#menu-account-page .account-google-button { width:100%; min-height:48px; display:flex; align-items:center; justify-content:center; gap:10px; border:1px solid rgba(255,255,255,.18); border-radius:9px; background:#f8fafc; color:#202124; font-weight:800; letter-spacing:.6px; cursor:pointer; }
+#menu-account-page .account-google-button b { color:#4285f4; font-size:19px; }
+#menu-account-page .account-text-button { margin:11px 0 0; border:0; background:transparent; color:#ffc18b; text-decoration:underline; cursor:pointer; }
+#menu-account-page .account-recovery-help { margin:7px 0 0; color:rgba(235,238,245,.52); font-size:11px; line-height:1.45; }
+#menu-account-page .account-status { min-height:22px; margin:14px 0 8px; color:rgba(235,238,245,.65); font-size:12px; line-height:1.5; }
+#menu-account-page .account-privacy-link { margin:4px 0 10px; text-align:center; font-size:11px; }
+#menu-account-page .account-privacy-link a { color:rgba(235,238,245,.68); text-underline-offset:3px; }
+#menu-account-page .account-privacy-link a:hover { color:#ff9a52; }
+#menu-account-page .account-status[data-tone="error"] { color:#ff9d8e; }
+#menu-account-page .account-status[data-tone="good"] { color:#8ce2ae; }
+#menu-account-page .account-user-card { display:flex; align-items:center; gap:12px; margin:18px 0; padding:15px; border:1px solid rgba(140,226,174,.24); border-radius:12px; background:rgba(17,45,35,.38); }
+#menu-account-page .account-online-dot { width:10px; height:10px; flex:none; border-radius:50%; background:#6ee7a3; box-shadow:0 0 14px #6ee7a3; }
+#menu-account-page .account-user-card div { min-width:0; display:grid; gap:4px; }
+#menu-account-page .account-user-card small { color:rgba(235,238,245,.6); font-size:9px; letter-spacing:1.2px; }
+#menu-account-page .account-user-card strong { overflow-wrap:anywhere; font-size:14px; }
+#menu-account-page #account-sign-out { width:100%; }
+
+#new-player-tutorial[hidden] { display:none !important; }
+#new-player-tutorial { position:fixed; inset:0; z-index:500; display:grid; place-items:center; overflow-y:auto; padding:max(18px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(18px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left)); background:rgba(4,6,10,.8); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); }
+.new-player-tutorial-card { width:min(560px,100%); padding:clamp(24px,5vw,42px); border:1px solid rgba(255,158,87,.48); border-radius:22px; background:radial-gradient(ellipse at 92% 0,rgba(249,115,22,.18),transparent 40%),linear-gradient(145deg,#191b21,#0d1016); box-shadow:0 24px 80px rgba(0,0,0,.58),0 0 36px rgba(249,115,22,.12); color:#f8fafc; }
+.new-player-tutorial-kicker { margin:0 0 8px; color:#ff9e57; font-size:10px; font-weight:900; letter-spacing:2.4px; text-transform:uppercase; }
+.new-player-tutorial-title { margin:0; font-size:clamp(29px,7vw,44px); line-height:1.05; letter-spacing:-1.8px; }
+.new-player-tutorial-meta { display:flex; align-items:center; justify-content:space-between; gap:14px; margin:22px 0 16px; color:#aaaeb8; font-size:11px; font-weight:800; letter-spacing:1px; text-transform:uppercase; }
+.new-player-tutorial-progress { display:flex; gap:6px; }
+.new-player-tutorial-progress span { width:30px; height:4px; border-radius:99px; background:rgba(255,255,255,.15); }
+.new-player-tutorial-progress span.active { background:#ff873d; box-shadow:0 0 10px rgba(255,135,61,.55); }
+.new-player-tutorial-icon { width:58px; height:58px; margin:4px 0 17px; display:grid; place-items:center; border:1px solid rgba(255,155,86,.32); border-radius:17px; background:rgba(249,115,22,.1); font-size:28px; }
+.new-player-tutorial-step-title { margin:0 0 9px; font-size:22px; letter-spacing:-.4px; }
+.new-player-tutorial-copy { min-height:70px; margin:0; color:#c4c8d1; font-size:15px; line-height:1.65; }
+.new-player-tutorial-actions { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:25px; }
+.new-player-tutorial-actions button { min-height:46px; padding:0 16px; border-radius:10px; font:inherit; font-size:11px; font-weight:900; letter-spacing:.75px; cursor:pointer; }
+#tutorial-skip { border:1px solid rgba(255,255,255,.18); background:transparent; color:#d6d7dc; }
+#tutorial-skip:hover { border-color:rgba(255,255,255,.42); background:rgba(255,255,255,.06); }
+.new-player-tutorial-nav { display:flex; gap:8px; margin-left:auto; }
+#tutorial-back { border:1px solid rgba(255,255,255,.16); background:rgba(255,255,255,.05); color:#e5e7eb; }
+#tutorial-back[hidden] { display:none; }
+#tutorial-next { border:1px solid #ff9e57; background:linear-gradient(110deg,#fb923c,#ea580c); color:#190d08; box-shadow:0 5px 18px rgba(234,88,12,.22); }
+#tutorial-back:hover,#tutorial-next:hover,#tutorial-skip:focus-visible { filter:brightness(1.12); outline:2px solid rgba(255,158,87,.65); outline-offset:2px; }
+@media(max-width:480px){.new-player-tutorial-card{padding:23px 19px;border-radius:18px}.new-player-tutorial-copy{font-size:14px;min-height:82px}.new-player-tutorial-actions button{padding:0 11px;font-size:10px}}
+@media(max-height:520px) and (orientation:landscape){#new-player-tutorial{padding:8px}.new-player-tutorial-card{max-height:100%;overflow:auto;padding:17px 21px}.new-player-tutorial-meta{margin:12px 0}.new-player-tutorial-icon{width:42px;height:42px;margin:0 0 10px;font-size:22px}.new-player-tutorial-copy{min-height:0}.new-player-tutorial-actions{margin-top:14px}}
+
+/* Final alignment override for the full Settings screen. */
+#overlay:has(#menu-settings-page:not([hidden])) { justify-content: center !important; }
+#overlay:has(#menu-settings-page:not([hidden])) > .ov-box {
+  width: min(920px, 100%) !important;
+  margin-inline: auto !important;
+  transform: none !important;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+#menu-settings-page {
+  width: min(100%, 760px) !important;
+  margin-inline: auto !important;
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+#menu-settings-page > .menu-eyebrow,
+#menu-settings-page > .ov-page-title,
+#menu-settings-page > .ov-page-copy,
+#menu-settings-page > .steering-setting-card,
+#menu-settings-page > .menu-back {
+  width: min(100%, 620px) !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+#menu-settings-page > .ov-page-copy { text-align: center; }
+#menu-settings-page > .steering-setting-card { margin-top: 14px !important; }
+#menu-settings-page > .menu-back { margin-top: 18px !important; }
 
 </style>
 <link rel="manifest" href="/manifest.json">
@@ -4095,6 +4367,7 @@ body {
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Zen Cruise">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<!-- ZEN_SUPABASE_CONFIG -->
 </head>
 <body>
 <canvas id="c"></canvas>
@@ -4219,8 +4492,14 @@ body {
   <div class="menu-nav">
     <button id="menu-garage" type="button">GARAGE</button>
     <button id="menu-modes" type="button">GAME MODES</button>
+    <button id="menu-leaderboard" type="button">LEADERBOARD</button>
     <button id="menu-settings" type="button">SETTINGS</button>
   </div>
+  <button id="menu-account" class="menu-account-button" type="button">
+    <span id="account-button-title">SIGN IN TO SAVE PROGRESS</span>
+    <small id="account-button-subtitle">Sync your garage and race bests across devices</small>
+    <small id="account-button-sync-status" aria-live="polite" data-tone="">Saved on this device</small>
+  </button>
 </section>
 
 
@@ -4311,7 +4590,7 @@ body {
           spellcheck="false"
           placeholder="Enter nickname (3–16 characters)"
         >
-        <span class="player-name-hint">YOUR NAME WILL APPEAR IN THE GAME</span>
+        <span class="player-name-hint">RANDOM CALLSIGN UNTIL YOU CHOOSE YOUR OWN</span>
       </div>
 
       <button class="ov-btn" id="garage-drive" type="button">▶ &nbsp; SELECT CAR</button>
@@ -4343,7 +4622,7 @@ body {
     <section id="menu-settings-page" class="ov-page" hidden>
       <div class="menu-eyebrow">PERSONALISE YOUR DRIVE</div>
       <div class="ov-page-title">SETTINGS</div>
-      <p class="ov-page-copy">Choose how you want to steer while playing on a phone or tablet.</p>
+      <p class="ov-page-copy">Adjust driving, performance and accessibility for your device.</p>
       <div id="mobile-steering-setting" class="steering-setting-card" hidden>
         <div class="steering-setting-title">MOBILE STEERING</div>
         <div class="steering-mode-options" role="group" aria-label="Mobile steering method">
@@ -4352,6 +4631,90 @@ body {
         </div>
         <p id="steering-mode-status" aria-live="polite">Tap the left and right buttons to steer.</p>
       </div>
+      <div class="steering-setting-card game-settings-card">
+        <div class="steering-setting-title">DISPLAY & ACCESSIBILITY</div>
+        <label class="game-setting-row" for="settings-graphics-quality"><span><b>Graphics & performance</b><small>Lower quality can improve speed on older devices.</small></span>
+          <select id="settings-graphics-quality" class="game-setting-select"><option value="high">High detail</option><option value="balanced">Balanced</option><option value="performance">Performance</option></select>
+        </label>
+        <label class="game-setting-row" for="settings-touch-size"><span><b>Touch button size</b><small>Make mobile controls easier to reach.</small></span>
+          <span class="game-setting-range"><input id="settings-touch-size" type="range" min="80" max="140" step="5" value="100"><output id="settings-touch-size-value" for="settings-touch-size">100%</output></span>
+        </label>
+        <label class="game-setting-toggle"><span><b>High contrast</b><small>Make controls and text clearer.</small></span><input id="settings-high-contrast" type="checkbox"></label>
+        <label class="game-setting-toggle"><span><b>Reduce motion</b><small>Reduce menu movement and transitions.</small></span><input id="settings-reduced-motion" type="checkbox"></label>
+      </div>
+      <div class="steering-setting-card game-settings-card">
+        <div class="steering-setting-title">KEYBOARD CONTROLS</div>
+        <p class="game-setting-help">Choose a control, then press the key you want to use.</p>
+        <div class="key-binding-grid">
+          <button class="key-binding-button" data-rebind="left" type="button"><span>STEER LEFT</span><kbd>←</kbd></button>
+          <button class="key-binding-button" data-rebind="right" type="button"><span>STEER RIGHT</span><kbd>→</kbd></button>
+          <button class="key-binding-button" data-rebind="up" type="button"><span>ACCELERATE</span><kbd>↑</kbd></button>
+          <button class="key-binding-button" data-rebind="down" type="button"><span>BRAKE</span><kbd>↓</kbd></button>
+          <button class="key-binding-button" data-rebind="handbrake" type="button"><span>HANDBRAKE</span><kbd>SPACE</kbd></button>
+        </div>
+        <button id="reset-key-bindings" class="game-setting-reset" type="button">RESTORE DEFAULT KEYS</button>
+      </div>
+      <div class="steering-setting-card game-settings-card leaderboard-consent-card">
+        <div class="steering-setting-title">ONLINE LEADERBOARD</div>
+        <label class="game-setting-toggle"><span><b>Share my leaderboard scores</b><small>On by default. Your driver name, fastest Time Attack time and Endless playtime are public. Turn it off to keep them private.</small></span><input id="leaderboard-opt-in" type="checkbox"></label>
+        <p id="leaderboard-opt-status" class="game-setting-help" aria-live="polite">On by default. Sign in to publish a score.</p>
+      </div>
+      <button class="menu-back" data-menu-back type="button">← BACK TO MENU</button>
+    </section>
+
+    <section id="menu-leaderboard-page" class="ov-page" hidden>
+      <div id="leaderboard-eyebrow" class="menu-eyebrow">TIME ATTACK • WORLDWIDE</div>
+      <div class="ov-page-title">LEADERBOARD</div>
+      <p id="leaderboard-copy" class="ov-page-copy">Fastest shared account records. Sign in and opt in from Settings to share your scores.</p>
+      <div class="leaderboard-mode-tabs" role="tablist" aria-label="Leaderboard mode">
+        <button class="menu-back leaderboard-mode-tab is-active" type="button" role="tab" aria-selected="true" data-leaderboard-mode="timeAttack">TIME ATTACK</button>
+        <button class="menu-back leaderboard-mode-tab" type="button" role="tab" aria-selected="false" data-leaderboard-mode="endless">ENDLESS</button>
+      </div>
+      <div class="leaderboard-card">
+        <div class="leaderboard-heading"><span>RANK</span><span>DRIVER</span><span id="leaderboard-score-heading">BEST TIME</span></div>
+        <div id="leaderboard-rows" class="leaderboard-rows" aria-live="polite"><p class="leaderboard-message">Loading the leaderboard…</p></div>
+        <p id="leaderboard-status" class="leaderboard-status" aria-live="polite"></p>
+      </div>
+      <button id="leaderboard-refresh" class="menu-back" type="button">↻ REFRESH</button>
+      <button class="menu-back" data-menu-back type="button">← BACK TO MENU</button>
+    </section>
+
+    <section id="menu-account-page" class="ov-page" hidden>
+      <div class="menu-eyebrow">YOUR CLOUD GARAGE</div>
+      <div class="ov-page-title">PLAYER ACCOUNT</div>
+      <p class="ov-page-copy">Sign in to keep your driver name, car setup and Time Attack record with your account.</p>
+      <div id="account-signed-out">
+        <label class="account-field-label" for="account-email">EMAIL</label>
+        <input id="account-email" class="account-field" type="email" maxlength="254" autocomplete="email" placeholder="you@example.com">
+        <label class="account-field-label" for="account-password">PASSWORD</label>
+        <div class="account-password-wrap">
+          <input id="account-password" class="account-field" type="password" minlength="8" autocomplete="current-password" placeholder="At least 8 characters">
+          <button class="account-password-toggle" type="button" data-password-toggle aria-controls="account-password" aria-label="Show password" aria-pressed="false">SHOW</button>
+        </div>
+        <div class="account-form-actions">
+          <button id="account-sign-in" class="ov-btn" type="button">SIGN IN</button>
+          <button id="account-create" class="menu-back" type="button">CREATE ACCOUNT</button>
+        </div>
+        <div class="account-or"><span>OR</span></div>
+        <button id="account-google" class="account-google-button" type="button"><b>G</b> CONTINUE WITH GOOGLE</button>
+        <button id="account-reset-password" class="account-text-button" type="button">EMAIL ME A RESET LINK</button>
+        <p class="account-recovery-help">Enter your email above. We’ll send a secure link to choose a new password.</p>
+      </div>
+      <div id="account-signed-in" hidden>
+        <div class="account-user-card"><span class="account-online-dot"></span><div><small>SIGNED IN AS</small><strong id="account-user-email"></strong></div></div>
+        <button id="account-sign-out" class="menu-back" type="button">SIGN OUT</button>
+      </div>
+      <div id="account-reset-panel" hidden>
+        <p class="ov-page-copy">Open the password reset link from your email, then choose a new password below.</p>
+        <label class="account-field-label" for="account-new-password">NEW PASSWORD</label>
+        <div class="account-password-wrap">
+          <input id="account-new-password" class="account-field" type="password" minlength="8" autocomplete="new-password" placeholder="At least 8 characters">
+          <button class="account-password-toggle" type="button" data-password-toggle aria-controls="account-new-password" aria-label="Show password" aria-pressed="false">SHOW</button>
+        </div>
+        <button id="account-update-password" class="ov-btn" type="button" style="width:100%;margin-top:12px">SAVE NEW PASSWORD</button>
+      </div>
+      <p id="account-status" class="account-status" aria-live="polite">Your save stays on this device until you sign in.</p>
+      <p class="account-privacy-link"><a href="/privacy" target="_blank" rel="noopener noreferrer">Privacy policy</a></p>
       <button class="menu-back" data-menu-back type="button">← BACK TO MENU</button>
     </section>
 
@@ -4375,13 +4738,37 @@ body {
         PERSONAL BEST
         <div id="race-result-best" style="font-size:25px;font-weight:900;margin-top:8px;">--:--.--</div>
       </div>
+      <p id="race-result-share-status" class="ov-page-copy" aria-live="polite"></p>
       <button class="ov-btn" id="race-retry-btn" type="button">↻ &nbsp; RACE AGAIN</button>
+      <button class="menu-back" id="race-leaderboard-btn" type="button">VIEW LEADERBOARD</button>
       <button class="menu-back" id="race-home-btn" type="button">⌂ &nbsp; BACK TO HOME</button>
     </section>
 
   </div>
 </div>
 
+<div id="new-player-tutorial" role="dialog" aria-modal="true" aria-labelledby="tutorial-title" aria-describedby="tutorial-copy" hidden>
+  <section class="new-player-tutorial-card">
+    <p class="new-player-tutorial-kicker">ZEN DRIFT • QUICK START</p>
+    <h1 class="new-player-tutorial-title" id="tutorial-title">Your first drive</h1>
+    <div class="new-player-tutorial-meta">
+      <span id="tutorial-step-count">STEP 1 OF 3</span>
+      <div class="new-player-tutorial-progress" aria-hidden="true">
+        <span class="active"></span><span></span><span></span>
+      </div>
+    </div>
+    <div class="new-player-tutorial-icon" id="tutorial-icon" aria-hidden="true">🏎️</div>
+    <h2 class="new-player-tutorial-step-title" id="tutorial-step-title">Choose your ride</h2>
+    <p class="new-player-tutorial-copy" id="tutorial-copy">Visit the Garage to pick a car and paint. Game Modes lets you cruise freely or race through checkpoints in Time Attack.</p>
+    <div class="new-player-tutorial-actions">
+      <button id="tutorial-skip" type="button">SKIP TUTORIAL</button>
+      <div class="new-player-tutorial-nav">
+        <button id="tutorial-back" type="button" hidden>BACK</button>
+        <button id="tutorial-next" type="button">NEXT →</button>
+      </div>
+    </div>
+  </section>
+</div>
 
 <div id="touch-controls">
 
@@ -4404,6 +4791,9 @@ body {
       <label for="touch-rain-intensity"><span>RAIN INTENSITY</span><output id="touch-rain-level" for="touch-rain-intensity">85%</output></label>
       <input id="touch-rain-intensity" type="range" min="0" max="100" step="5" value="85" aria-label="Rain intensity">
     </div>
+    <label class="touch-quick-setting" for="touch-graphics-quality"><span>GRAPHICS</span><select id="touch-graphics-quality" aria-label="Graphics and performance"><option value="high">HIGH DETAIL</option><option value="balanced">BALANCED</option><option value="performance">PERFORMANCE</option></select></label>
+    <label class="touch-quick-setting" for="touch-control-size"><span>CONTROL SIZE <output id="touch-control-size-value" for="touch-control-size">100%</output></span><input id="touch-control-size" type="range" min="80" max="140" step="5" value="100" aria-label="Touch button size"></label>
+    <label class="touch-quick-setting" for="touch-steering-mode"><span>STEERING</span><select id="touch-steering-mode" aria-label="Steering method"><option value="buttons">TOUCH BUTTONS</option><option value="tilt">TILT PHONE</option></select></label>
     <button id="touch-music" class="touch-utility-btn" type="button">🎵 MUSIC: LO-FI</button>
     <button id="touch-time" class="touch-utility-btn" type="button">🌅 SUNSET: ON</button>
     <button id="touch-auto-drive" class="touch-utility-btn touch-auto-drive" type="button" aria-pressed="false">🤖 AUTO DRIVE: OFF</button>
@@ -4411,14 +4801,105 @@ body {
 <script>
 const canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d');
-let w = canvas.width = window.innerWidth;
-let h = canvas.height = window.innerHeight;
-
-window.addEventListener('resize', () => {
-  w = canvas.width = window.innerWidth;
-  h = canvas.height = window.innerHeight;
+const GRAPHICS_QUALITY_KEY = 'zen-drift-graphics-quality';
+const TOUCH_CONTROL_SIZE_KEY = 'zen-drift-touch-control-size';
+const ACCESSIBILITY_KEY = 'zen-drift-accessibility';
+const KEY_BINDINGS_KEY = 'zen-drift-key-bindings';
+const DEFAULT_KEY_BINDINGS = { up: 'ArrowUp', down: 'ArrowDown', left: 'ArrowLeft', right: 'ArrowRight', handbrake: 'Space' };
+const DEFAULT_KEY_ALIASES = { up: ['KeyW'], down: ['KeyS'], left: ['KeyA'], right: ['KeyD'], handbrake: [] };
+const GRAPHICS_SCALE = { high: 1, balanced: 0.78, performance: 0.58 };
+let graphicsQuality = (() => {
+  try {
+    const stored = localStorage.getItem(GRAPHICS_QUALITY_KEY);
+    return Object.prototype.hasOwnProperty.call(GRAPHICS_SCALE, stored) ? stored : 'balanced';
+  } catch (_) { return 'balanced'; }
+})();
+let w = window.innerWidth;
+let h = window.innerHeight;
+const stars = [];
+function resizeGameCanvas() {
+  w = window.innerWidth;
+  h = window.innerHeight;
+  const ratio = GRAPHICS_SCALE[graphicsQuality] || GRAPHICS_SCALE.balanced;
+  canvas.width = Math.max(1, Math.round(w * ratio));
+  canvas.height = Math.max(1, Math.round(h * ratio));
+  ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
   initStars();
-});
+}
+resizeGameCanvas();
+window.addEventListener('resize', resizeGameCanvas);
+
+let keyBindings = (() => {
+  try {
+    const saved = JSON.parse(localStorage.getItem(KEY_BINDINGS_KEY) || '{}');
+    const bindings = { ...DEFAULT_KEY_BINDINGS };
+    Object.keys(DEFAULT_KEY_BINDINGS).forEach((action) => {
+      if (typeof saved[action] === 'string' && saved[action].length <= 32) bindings[action] = saved[action];
+    });
+    return bindings;
+  } catch (_) { return { ...DEFAULT_KEY_BINDINGS }; }
+})();
+let pendingKeyBindingAction = null;
+function formatKeyBinding(code) {
+  return ({ ArrowUp: '↑', ArrowDown: '↓', ArrowLeft: '←', ArrowRight: '→', Space: 'SPACE' })[code] || code.replace(/^Key/, '').replace(/^Digit/, '');
+}
+function isDrivingBinding(action, code) {
+  return keyBindings[action] === code || (
+    keyBindings[action] === DEFAULT_KEY_BINDINGS[action] && DEFAULT_KEY_ALIASES[action].includes(code)
+  );
+}
+function renderKeyBindings() {
+  document.querySelectorAll('[data-rebind]').forEach((button) => {
+    const key = button.querySelector('kbd');
+    if (key) key.textContent = pendingKeyBindingAction === button.dataset.rebind ? 'PRESS KEY' : formatKeyBinding(keyBindings[button.dataset.rebind]);
+    button.setAttribute('aria-pressed', String(pendingKeyBindingAction === button.dataset.rebind));
+  });
+}
+function captureKeyBinding(event) {
+  if (!pendingKeyBindingAction) return false;
+  event.preventDefault();
+  if (event.code === 'Escape') {
+    pendingKeyBindingAction = null;
+    renderKeyBindings();
+    return true;
+  }
+  if (['Tab', 'Enter', 'Backspace'].includes(event.code) || event.code.startsWith('F')) return true;
+  const action = pendingKeyBindingAction;
+  const otherAction = Object.keys(keyBindings).find((key) => key !== action && keyBindings[key] === event.code);
+  const previousCode = keyBindings[action];
+  keyBindings[action] = event.code;
+  if (otherAction) keyBindings[otherAction] = previousCode;
+  pendingKeyBindingAction = null;
+  try { localStorage.setItem(KEY_BINDINGS_KEY, JSON.stringify(keyBindings)); } catch (_) {}
+  renderKeyBindings();
+  return true;
+}
+
+const accessibilitySettings = (() => {
+  try { return JSON.parse(localStorage.getItem(ACCESSIBILITY_KEY) || '{}') || {}; }
+  catch (_) { return {}; }
+})();
+function applyAccessibilitySettings() {
+  document.documentElement.classList.toggle('access-high-contrast', accessibilitySettings.highContrast === true);
+  document.documentElement.classList.toggle('access-reduce-motion', accessibilitySettings.reducedMotion === true);
+  const contrast = document.getElementById('settings-high-contrast');
+  const motion = document.getElementById('settings-reduced-motion');
+  if (contrast) contrast.checked = accessibilitySettings.highContrast === true;
+  if (motion) motion.checked = accessibilitySettings.reducedMotion === true;
+}
+function saveAccessibilitySettings() {
+  try { localStorage.setItem(ACCESSIBILITY_KEY, JSON.stringify(accessibilitySettings)); } catch (_) {}
+  applyAccessibilitySettings();
+}
+function setGraphicsQuality(value) {
+  graphicsQuality = Object.prototype.hasOwnProperty.call(GRAPHICS_SCALE, value) ? value : 'balanced';
+  try { localStorage.setItem(GRAPHICS_QUALITY_KEY, graphicsQuality); } catch (_) {}
+  ['settings-graphics-quality', 'touch-graphics-quality'].forEach((id) => {
+    const select = document.getElementById(id);
+    if (select) select.value = graphicsQuality;
+  });
+  resizeGameCanvas();
+}
 
 // Controls
 let gameStarted = false;
@@ -4439,6 +4920,7 @@ let tiltNeutralValue = null;
 let tiltSensorListening = false;
 let tiltAxisAngle = null;
 window.addEventListener('keydown', (e) => {
+  if (captureKeyBinding(e)) return;
   if (e.code === 'Escape' && !e.repeat && gameStarted) {
     e.preventDefault();
     togglePause();
@@ -4446,18 +4928,15 @@ window.addEventListener('keydown', (e) => {
   }
   if (!gameStarted || gamePaused) return;
 
-  if (autoDriveEnabled && [
-    'ArrowUp', 'KeyW', 'ArrowDown', 'KeyS',
-    'ArrowLeft', 'KeyA', 'ArrowRight', 'KeyD', 'Space'
-  ].includes(e.code)) {
+  if (autoDriveEnabled && Object.keys(keyBindings).some((action) => isDrivingBinding(action, e.code))) {
     setAutoDrive(false);
   }
 
-  if (['ArrowUp', 'KeyW'].includes(e.code)) keys.up = true;
-  if (['ArrowDown', 'KeyS'].includes(e.code)) keys.down = true;
-  if (['ArrowLeft', 'KeyA'].includes(e.code)) keys.left = true;
-  if (['ArrowRight', 'KeyD'].includes(e.code)) keys.right = true;
-  if (e.code === 'Space') keys.handbrake = true;
+  if (isDrivingBinding('up', e.code)) keys.up = true;
+  if (isDrivingBinding('down', e.code)) keys.down = true;
+  if (isDrivingBinding('left', e.code)) keys.left = true;
+  if (isDrivingBinding('right', e.code)) keys.right = true;
+  if (isDrivingBinding('handbrake', e.code)) keys.handbrake = true;
   if ((e.code === 'KeyP' || e.key === 'p' || e.key === 'P') && !e.repeat) {
     toggleSunset(true);
   }
@@ -4473,11 +4952,11 @@ window.addEventListener('keydown', (e) => {
 
 });
 window.addEventListener('keyup', (e) => {
-  if (['ArrowUp', 'KeyW'].includes(e.code)) keys.up = false;
-  if (['ArrowDown', 'KeyS'].includes(e.code)) keys.down = false;
-  if (['ArrowLeft', 'KeyA'].includes(e.code)) keys.left = false;
-  if (['ArrowRight', 'KeyD'].includes(e.code)) keys.right = false;
-  if (e.code === 'Space') keys.handbrake = false;
+  if (isDrivingBinding('up', e.code)) keys.up = false;
+  if (isDrivingBinding('down', e.code)) keys.down = false;
+  if (isDrivingBinding('left', e.code)) keys.left = false;
+  if (isDrivingBinding('right', e.code)) keys.right = false;
+  if (isDrivingBinding('handbrake', e.code)) keys.handbrake = false;
 });
 
 
@@ -4533,6 +5012,8 @@ function updateMobileSteeringUI() {
   if (steeringTiltOption) steeringTiltOption.setAttribute('aria-pressed', String(mobileSteeringMode === 'tilt'));
   if (touchSteeringButtons) touchSteeringButtons.hidden = tiltActive;
   if (touchControls) touchControls.classList.toggle('tilt-steering', tiltActive);
+  const quickSteering = document.getElementById('touch-steering-mode');
+  if (quickSteering) quickSteering.value = mobileSteeringMode;
 }
 
 function saveMobileSteeringMode() {
@@ -4671,6 +5152,7 @@ async function chooseMobileSteeringMode(mode) {
 
 steeringButtonsOption?.addEventListener('click', () => chooseMobileSteeringMode('buttons'));
 steeringTiltOption?.addEventListener('click', () => chooseMobileSteeringMode('tilt'));
+document.getElementById('touch-steering-mode')?.addEventListener('change', (event) => chooseMobileSteeringMode(event.target.value));
 updateMobileSteeringUI();
 if (mobileSteeringMode === 'tilt') {
   if (typeof window.DeviceOrientationEvent?.requestPermission === 'function') {
@@ -4693,6 +5175,71 @@ window.addEventListener('orientationchange', () => {
   tiltSteeringInput = 0;
 });
 
+function getStoredTouchControlSize() {
+  try {
+    const value = Number(localStorage.getItem(TOUCH_CONTROL_SIZE_KEY));
+    return Number.isFinite(value) ? Math.min(140, Math.max(80, value)) : 100;
+  } catch (_) { return 100; }
+}
+let touchControlSize = getStoredTouchControlSize();
+function applyTouchControlSize(refreshBase = false) {
+  const buttons = ['touch-left', 'touch-right', 'touch-brake', 'touch-accelerate']
+    .map((id) => document.getElementById(id)).filter(Boolean);
+  for (const button of buttons) {
+    if (refreshBase || !button.dataset.baseControlWidth) {
+      button.style.removeProperty('width');
+      button.style.removeProperty('height');
+      const style = getComputedStyle(button);
+      button.dataset.baseControlWidth = parseFloat(style.width) || 72;
+      button.dataset.baseControlHeight = parseFloat(style.height) || 90;
+    }
+    button.style.width = `${Math.round(Number(button.dataset.baseControlWidth) * touchControlSize / 100)}px`;
+    button.style.height = `${Math.round(Number(button.dataset.baseControlHeight) * touchControlSize / 100)}px`;
+  }
+  ['settings-touch-size', 'touch-control-size'].forEach((id) => {
+    const input = document.getElementById(id);
+    if (input) input.value = String(touchControlSize);
+  });
+  ['settings-touch-size-value', 'touch-control-size-value'].forEach((id) => {
+    const output = document.getElementById(id);
+    if (output) output.textContent = `${touchControlSize}%`;
+  });
+}
+function setTouchControlSize(value) {
+  touchControlSize = Math.min(140, Math.max(80, Number(value) || 100));
+  try { localStorage.setItem(TOUCH_CONTROL_SIZE_KEY, String(touchControlSize)); } catch (_) {}
+  applyTouchControlSize();
+}
+['settings-touch-size', 'touch-control-size'].forEach((id) => {
+  document.getElementById(id)?.addEventListener('input', (event) => setTouchControlSize(event.target.value));
+});
+applyTouchControlSize();
+window.addEventListener('resize', () => applyTouchControlSize(true));
+
+document.querySelectorAll('[data-rebind]').forEach((button) => {
+  button.addEventListener('click', () => beginKeyRemap(button.dataset.rebind));
+});
+document.getElementById('reset-key-bindings')?.addEventListener('click', () => {
+  keyBindings = { ...DEFAULT_KEY_BINDINGS };
+  pendingKeyBindingAction = null;
+  try { localStorage.setItem(KEY_BINDINGS_KEY, JSON.stringify(keyBindings)); } catch (_) {}
+  renderKeyBindings();
+});
+document.getElementById('settings-high-contrast')?.addEventListener('change', (event) => {
+  accessibilitySettings.highContrast = event.target.checked;
+  saveAccessibilitySettings();
+});
+document.getElementById('settings-reduced-motion')?.addEventListener('change', (event) => {
+  accessibilitySettings.reducedMotion = event.target.checked;
+  saveAccessibilitySettings();
+});
+['settings-graphics-quality', 'touch-graphics-quality'].forEach((id) => {
+  document.getElementById(id)?.addEventListener('change', (event) => setGraphicsQuality(event.target.value));
+});
+applyAccessibilitySettings();
+setGraphicsQuality(graphicsQuality);
+renderKeyBindings();
+
 const overlay = document.getElementById('overlay');
 
 function showMenuPage(page) {
@@ -4702,6 +5249,8 @@ function showMenuPage(page) {
     'garage-page',
     'modes-page',
     'settings-page',
+    'leaderboard-page',
+    'account-page',
     'pause-page',
     'time-attack-results-page'
   ].forEach((name) => {
@@ -4944,6 +5493,7 @@ function finishTimeAttack() {
   const previousBest = getTimeAttackBest();
   const isNewBest = previousBest === null || timeAttackFinishMs < previousBest;
   const best = isNewBest ? timeAttackFinishMs : previousBest;
+  const shareStatus = document.getElementById('race-result-share-status');
 
   if (isNewBest) {
     try {
@@ -4956,6 +5506,23 @@ function finishTimeAttack() {
         }));
       }
 } catch (_) {}
+  }
+  scheduleCloudProgressSave();
+  if (cloudAccountUser && hasLeaderboardOptIn()) {
+    shareStatus.textContent = 'Sharing your best time…';
+    submitLeaderboardTime(cloudAccountUser, best, playerName).then(() => {
+      if (shareStatus.textContent === 'Sharing your best time…') {
+        shareStatus.textContent = 'Your best time is shared on the public leaderboard.';
+      }
+    }).catch((error) => {
+      console.error('Leaderboard submission failed:', error);
+      document.getElementById('leaderboard-opt-status').textContent = `Could not share yet: ${getLeaderboardErrorText(error)}`;
+      shareStatus.textContent = `Your time was saved here, but could not be shared: ${getLeaderboardErrorText(error)}`;
+    });
+  } else if (!cloudAccountUser) {
+    shareStatus.textContent = 'Your time is saved on this device. Sign in and enable leaderboard sharing to publish it.';
+  } else {
+    shareStatus.textContent = 'Your time is saved. Enable leaderboard sharing in Settings to publish it.';
   }
 
   document.getElementById('race-result-time').textContent =
@@ -5025,19 +5592,124 @@ document.getElementById('start-btn').addEventListener('click', startGame);
 document.getElementById('mode-endless').addEventListener('click', startGame);
 document.getElementById('mode-time-attack').addEventListener('click', startTimeAttack);
 document.getElementById('race-retry-btn').addEventListener('click', startTimeAttack);
+document.getElementById('race-leaderboard-btn').addEventListener('click', () => {
+  showMenuPage('leaderboard-page');
+  setLeaderboardMode('timeAttack');
+  loadLeaderboard();
+});
 document.getElementById('race-home-btn').addEventListener('click', returnToHome);
 
 document.getElementById('menu-garage').addEventListener('click', () => showMenuPage('garage-page'));
 document.getElementById('menu-modes').addEventListener('click', () => showMenuPage('modes-page'));
 document.getElementById('menu-settings').addEventListener('click', () => showMenuPage('settings-page'));
+document.getElementById('menu-leaderboard').addEventListener('click', () => {
+  showMenuPage('leaderboard-page');
+  setLeaderboardMode('timeAttack');
+  loadLeaderboard();
+});
+document.getElementById('leaderboard-refresh').addEventListener('click', loadLeaderboard);
+document.querySelectorAll('[data-leaderboard-mode]').forEach((button) => {
+  button.addEventListener('click', () => {
+    setLeaderboardMode(button.dataset.leaderboardMode);
+    loadLeaderboard();
+  });
+});
+document.getElementById('menu-account').addEventListener('click', () => showMenuPage('account-page'));
+
+const quickStartStorageKey = 'zen-drift-quick-start-complete-v1';
+const quickStartSteps = [
+  {
+    icon: '🏎️',
+    title: 'Choose your ride',
+    copy: 'Visit the Garage to pick a car and paint. Game Modes lets you cruise freely or race through checkpoints in Time Attack.'
+  },
+  {
+    icon: '🎮',
+    title: 'Drive and drift',
+    copy: 'On a computer, steer with W A S D or the arrow keys; press Space to brake. On a phone, use LEFT, RIGHT, GAS and BRAKE. Ease into a turn while steering to start a drift.'
+  },
+  {
+    icon: '🌦️',
+    title: 'Set the road conditions',
+    copy: 'Use the rain controls to set how much it rains; the rain sound follows the amount. Open TOOLS for more driving options. You can change your setup whenever you pause.'
+  }
+];
+let quickStartStep = 0;
+const quickStartDialog = document.getElementById('new-player-tutorial');
+const quickStartProgress = [...document.querySelectorAll('.new-player-tutorial-progress span')];
+
+function renderQuickStartStep() {
+  const step = quickStartSteps[quickStartStep];
+  document.getElementById('tutorial-step-count').textContent = `STEP ${quickStartStep + 1} OF ${quickStartSteps.length}`;
+  document.getElementById('tutorial-icon').textContent = step.icon;
+  document.getElementById('tutorial-step-title').textContent = step.title;
+  document.getElementById('tutorial-copy').textContent = step.copy;
+  quickStartProgress.forEach((bar, index) => bar.classList.toggle('active', index <= quickStartStep));
+  document.getElementById('tutorial-back').hidden = quickStartStep === 0;
+  document.getElementById('tutorial-next').textContent = quickStartStep === quickStartSteps.length - 1 ? 'DONE ✓' : 'NEXT →';
+}
+
+function finishQuickStart() {
+  try { localStorage.setItem(quickStartStorageKey, '1'); } catch (_) {}
+  quickStartDialog.hidden = true;
+  document.getElementById('menu-garage').focus();
+}
+
+document.getElementById('tutorial-skip').addEventListener('click', finishQuickStart);
+document.getElementById('tutorial-back').addEventListener('click', () => {
+  quickStartStep = Math.max(0, quickStartStep - 1);
+  renderQuickStartStep();
+});
+document.getElementById('tutorial-next').addEventListener('click', () => {
+  if (quickStartStep >= quickStartSteps.length - 1) {
+    finishQuickStart();
+    return;
+  }
+  quickStartStep += 1;
+  renderQuickStartStep();
+});
+window.addEventListener('keydown', (event) => {
+  if (quickStartDialog.hidden) return;
+  if (event.key === 'Escape') {
+    event.preventDefault();
+    finishQuickStart();
+    return;
+  }
+  if (event.key === 'Tab') {
+    const focusable = [...quickStartDialog.querySelectorAll('button:not([hidden])')];
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
+});
+
+try {
+  if (!garagePreviewMode && localStorage.getItem(quickStartStorageKey) !== '1') {
+    renderQuickStartStep();
+    quickStartDialog.hidden = false;
+    document.getElementById('tutorial-skip').focus();
+  }
+} catch (_) {
+  if (!garagePreviewMode) {
+    renderQuickStartStep();
+    quickStartDialog.hidden = false;
+  }
+}
 
 document.querySelectorAll('[data-menu-back]').forEach((button) => {
   button.addEventListener('click', () => showMenuPage('home'));
 });
 
 
-// Local player identity — foundation for future online multiplayer
+// Local player identity and account-backed cloud saves.
 const PLAYER_NAME_KEY = 'zen-drift-player-name';
+const PLAYER_NAME_CUSTOM_KEY = 'zen-drift-player-name-custom';
 const PLAYER_ID_KEY = 'zen-drift-player-id';
 
 function createLocalPlayerId() {
@@ -5054,6 +5726,57 @@ if (!localPlayerId) {
   localStorage.setItem(PLAYER_ID_KEY, localPlayerId);
 }
 
+const ENDLESS_PLAY_MAP_KEY = 'zen-drift-endless-play-by-device';
+let endlessPlayByDevice = {};
+try {
+  const savedPlayMap = JSON.parse(localStorage.getItem(ENDLESS_PLAY_MAP_KEY) || '{}');
+  if (savedPlayMap && typeof savedPlayMap === 'object' && !Array.isArray(savedPlayMap)) {
+    endlessPlayByDevice = Object.fromEntries(Object.entries(savedPlayMap)
+      .filter(([, value]) => Number.isFinite(Number(value)) && Number(value) >= 0)
+      .map(([key, value]) => [key, Math.floor(Number(value))]));
+  }
+} catch (_) {}
+if (!Object.keys(endlessPlayByDevice).length) {
+  try {
+    const legacyPlayMs = Math.max(0, Math.floor(Number(localStorage.getItem('zen-drift-endless-play-ms')) || 0));
+    if (legacyPlayMs) endlessPlayByDevice[localPlayerId] = legacyPlayMs;
+  } catch (_) {}
+}
+let endlessPlaySaveAt = 0;
+let endlessPlayCloudSaveAt = 0;
+
+function totalEndlessPlayMs(playMap = endlessPlayByDevice) {
+  return Object.values(playMap || {}).reduce((total, value) => total + Math.max(0, Number(value) || 0), 0);
+}
+
+function mergeEndlessPlayMaps(...maps) {
+  const merged = {};
+  maps.forEach((map) => {
+    if (!map || typeof map !== 'object' || Array.isArray(map)) return;
+    Object.entries(map).forEach(([deviceId, value]) => {
+      const score = Number(value);
+      if (Number.isFinite(score) && score >= 0) {
+        merged[deviceId] = Math.max(merged[deviceId] || 0, Math.floor(score));
+      }
+    });
+  });
+  return merged;
+}
+
+function persistEndlessPlayMap() {
+  try {
+    localStorage.setItem(ENDLESS_PLAY_MAP_KEY, JSON.stringify(endlessPlayByDevice));
+    localStorage.setItem('zen-drift-endless-play-ms', String(totalEndlessPlayMs()));
+  } catch (_) {}
+}
+
+function formatEndlessPlayTime(milliseconds) {
+  const totalMinutes = Math.floor(Math.max(0, Number(milliseconds) || 0) / 60000);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return hours > 0 ? `${hours}h ${String(minutes).padStart(2, '0')}m` : `${minutes}m`;
+}
+
 function cleanPlayerName(value) {
   return value
     .replace(/[^a-zA-Z0-9 _-]/g, '')
@@ -5062,11 +5785,36 @@ function cleanPlayerName(value) {
     .slice(0, 16);
 }
 
+function generateRandomPlayerName() {
+  const callsigns = ['Neon', 'Touge', 'Silent', 'Midnight', 'Turbo', 'Lucky', 'Velvet', 'Solar', 'Phantom', 'Crimson', 'Silver', 'Wild', 'Nova', 'Rapid', 'Drift', 'Golden', 'Pixel', 'Storm', 'Chill', 'Shadow'];
+  const animals = ['Fox', 'Wolf', 'Panda', 'Raven', 'Tiger', 'Otter', 'Hawk', 'Lynx', 'Comet', 'Bear', 'Gecko', 'Falcon', 'Cobra', 'Badger', 'Eagle', 'Koala', 'Mantis', 'Dolphin', 'Moose', 'Viper'];
+  const first = callsigns[Math.floor(Math.random() * callsigns.length)];
+  const second = animals[Math.floor(Math.random() * animals.length)];
+  const suffix = Math.floor(100 + Math.random() * 900);
+  return cleanPlayerName(`${first}${second}${suffix}`);
+}
+
+function isPlayerNameCustom() {
+  try { return localStorage.getItem(PLAYER_NAME_CUSTOM_KEY) === '1'; }
+  catch (_) { return false; }
+}
+
 const playerNameInput = document.getElementById('player-name-input');
 const hudPlayerName = document.getElementById('hud-player-name');
-let playerName = cleanPlayerName(localStorage.getItem(PLAYER_NAME_KEY) || 'Driver');
-
-if (playerName.length < 3) playerName = 'Driver';
+const savedPlayerName = (() => {
+  try { return cleanPlayerName(localStorage.getItem(PLAYER_NAME_KEY) || ''); }
+  catch (_) { return ''; }
+})();
+let playerName = savedPlayerName.length >= 3 && (isPlayerNameCustom() || savedPlayerName !== 'Driver')
+  ? savedPlayerName
+  : generateRandomPlayerName();
+let playerNameChangedThisSession = false;
+try {
+  localStorage.setItem(PLAYER_NAME_KEY, playerName);
+  if (savedPlayerName.length >= 3 && savedPlayerName !== 'Driver' && localStorage.getItem(PLAYER_NAME_CUSTOM_KEY) === null) {
+    localStorage.setItem(PLAYER_NAME_CUSTOM_KEY, '1');
+  }
+} catch (_) {}
 
 function updatePlayerNameDisplay() {
   hudPlayerName.textContent = playerName.toUpperCase();
@@ -5085,6 +5833,19 @@ playerNameInput.addEventListener('change', () => {
   if (cleaned.length >= 3) {
     playerName = cleaned;
     localStorage.setItem(PLAYER_NAME_KEY, playerName);
+    localStorage.setItem(PLAYER_NAME_CUSTOM_KEY, '1');
+    playerNameChangedThisSession = true;
+    scheduleCloudProgressSave();
+    if (cloudAccountUser && hasLeaderboardOptIn()) {
+      const bestTime = getTimeAttackBest();
+      if (bestTime !== null) submitLeaderboardTime(cloudAccountUser, bestTime, playerName).catch((error) => {
+        console.error('Leaderboard name update failed:', error);
+      });
+      const endlessPlayMs = totalEndlessPlayMs();
+      if (endlessPlayMs > 0) submitEndlessPlayTime(cloudAccountUser, endlessPlayMs, playerName).catch((error) => {
+        console.error('Endless leaderboard name update failed:', error);
+      });
+    }
   }
   updatePlayerNameDisplay();
 });
@@ -5098,10 +5859,32 @@ playerNameInput.addEventListener('keydown', (event) => {
 updatePlayerNameDisplay();
 
 // Garage vehicle selection and per-car paint presets.
-let selectedCarType = 'drift';
-let selectedDriftSkin = 'classic';
-const garageCarColors = { drift: '#f8fafc', f1: '#f97316', rally: '#84cc16', hyper: '#38bdf8' };
-let selectedCarColor = garageCarColors.drift;
+let savedGaragePreferences = {};
+try { savedGaragePreferences = JSON.parse(localStorage.getItem('zen-drift-garage-save') || '{}') || {}; } catch (_) {}
+let selectedCarType = ['drift', 'f1', 'rally', 'hyper'].includes(savedGaragePreferences.car) ? savedGaragePreferences.car : 'drift';
+let selectedDriftSkin = savedGaragePreferences.skin === 'widebody' ? 'widebody' : 'classic';
+const garageDefaultColors = { drift: '#f8fafc', f1: '#f97316', rally: '#16a34a', hyper: '#2563eb' };
+const garageCarColors = { ...garageDefaultColors };
+const savedGaragePaints = {};
+const validGaragePaint = (value) => typeof value === 'string' && /^#[0-9a-f]{6}$/i.test(value);
+if (savedGaragePreferences.paintByCar && typeof savedGaragePreferences.paintByCar === 'object') {
+  for (const carType of Object.keys(garageDefaultColors)) {
+    const paint = savedGaragePreferences.paintByCar[carType];
+    if (validGaragePaint(paint)) {
+      savedGaragePaints[carType] = paint;
+      garageCarColors[carType] = paint;
+    }
+  }
+}
+// Migrate the old single-paint save into the selected car's paint slot.
+if (validGaragePaint(savedGaragePreferences.paint) && !savedGaragePaints[selectedCarType]) {
+  savedGaragePaints[selectedCarType] = savedGaragePreferences.paint;
+  garageCarColors[selectedCarType] = savedGaragePreferences.paint;
+}
+let selectedCarColor = garageCarColors[selectedCarType];
+let garageSelectionRevision = 0;
+let garagePaintRevision = 0;
+let garageChangedThisSession = false;
 const CAR_TUNING = {
   drift: { maxSpeed: 1, acceleration: 1 },
   f1: { maxSpeed: 1, acceleration: 1 },
@@ -5201,28 +5984,46 @@ function syncGarageLivePreview(enabled = true) {
 
 document.querySelectorAll('[data-car-select]').forEach((button) => {
   button.addEventListener('click', () => {
-    selectedCarType = button.dataset.carSelect;
-    selectedCarColor = garageCarColors[selectedCarType];
+    const carType = button.dataset.carSelect;
+    // Keep this compatible with older Android WebViews and embedded browsers.
+    if (!Object.prototype.hasOwnProperty.call(garageDefaultColors, carType)) return;
+    selectedCarType = carType;
+    selectedCarColor = garageCarColors[selectedCarType] || garageDefaultColors[selectedCarType];
+    garageSelectionRevision += 1;
+    garageChangedThisSession = true;
     updateGarageSelection();
     syncGarageLivePreview();
     updateCarPerformance();
+    saveLocalGaragePreferences();
+    scheduleCloudProgressSave();
   });
 });
 
 document.querySelectorAll('[data-car-color]').forEach((button) => {
   button.addEventListener('click', () => {
+    if (!validGaragePaint(button.dataset.carColor)) return;
     selectedCarColor = button.dataset.carColor;
     garageCarColors[selectedCarType] = selectedCarColor;
+    savedGaragePaints[selectedCarType] = selectedCarColor;
+    garagePaintRevision += 1;
+    garageSelectionRevision += 1;
+    garageChangedThisSession = true;
     updateGarageSelection();
     syncGarageLivePreview();
+    saveLocalGaragePreferences();
+    scheduleCloudProgressSave();
   });
 });
 
 document.querySelectorAll('[data-drift-skin]').forEach((button) => {
   button.addEventListener('click', () => {
     selectedDriftSkin = button.dataset.driftSkin === 'widebody' ? 'widebody' : 'classic';
+    garageSelectionRevision += 1;
+    garageChangedThisSession = true;
     updateGarageSelection();
     syncGarageLivePreview();
+    saveLocalGaragePreferences();
+    scheduleCloudProgressSave();
   });
 });
 
@@ -5231,6 +6032,613 @@ document.getElementById('garage-drive').addEventListener('click', () => {
 });
 
 updateGarageSelection();
+
+function saveLocalGaragePreferences() {
+  try {
+    localStorage.setItem('zen-drift-garage-save', JSON.stringify({
+      car: selectedCarType,
+      paint: selectedCarColor,
+      paintByCar: savedGaragePaints,
+      skin: selectedDriftSkin,
+    }));
+  } catch (_) {}
+}
+
+function getLocalCloudProgress() {
+  let ghost = null;
+  try { ghost = JSON.parse(localStorage.getItem('zen-drift-time-attack-ghost') || 'null'); } catch (_) {}
+  return {
+    driverName: playerName,
+    driverNameIsCustom: isPlayerNameCustom(),
+    car: selectedCarType,
+    paint: selectedCarColor,
+    paintByCar: { ...savedGaragePaints },
+    skin: selectedDriftSkin,
+    bestTimeAttackMs: getTimeAttackBest(),
+    timeAttackGhost: ghost && ghost.v === 1 && Array.isArray(ghost.samples) ? ghost : null,
+    endlessPlayByDevice: { ...endlessPlayByDevice },
+  };
+}
+
+const cloudAccountStatus = document.getElementById('account-status');
+document.querySelectorAll('[data-password-toggle]').forEach((button) => {
+  const passwordField = document.getElementById(button.getAttribute('aria-controls'));
+  if (!passwordField) return;
+  button.addEventListener('click', () => {
+    const showPassword = passwordField.type === 'password';
+    passwordField.type = showPassword ? 'text' : 'password';
+    button.textContent = showPassword ? 'HIDE' : 'SHOW';
+    button.setAttribute('aria-label', `${showPassword ? 'Hide' : 'Show'} password`);
+    button.setAttribute('aria-pressed', String(showPassword));
+  });
+});
+const cloudConfig = window.ZEN_SUPABASE_CONFIG;
+const cloudClient = cloudConfig?.url && cloudConfig?.anonKey && window.supabase?.createClient
+  ? window.supabase.createClient(cloudConfig.url, cloudConfig.anonKey)
+  : null;
+const LEADERBOARD_TABLE = 'time_attack_leaderboard';
+const ENDLESS_LEADERBOARD_TABLE = 'endless_leaderboard';
+const LEADERBOARD_OPT_IN_KEY = 'zen-drift-leaderboard-opt-in';
+let currentLeaderboardMode = 'timeAttack';
+let cloudAccountUser = null;
+let cloudSaveTimer = 0;
+let cloudSaveRetryTimer = 0;
+let cloudSaveRetryDelay = 3000;
+let cloudSavePending = false;
+
+function hasLeaderboardOptIn() {
+  try {
+    let choice = localStorage.getItem(LEADERBOARD_OPT_IN_KEY);
+    if (choice === null) {
+      choice = '1';
+      localStorage.setItem(LEADERBOARD_OPT_IN_KEY, choice);
+    }
+    return choice === '1';
+  } catch (_) { return true; }
+}
+
+function getLeaderboardErrorText(error) {
+  return String(error?.message || error || 'Unknown leaderboard error')
+    .replace(/\s+/g, ' ')
+    .slice(0, 180);
+}
+
+function updateLeaderboardOptStatus() {
+  const toggle = document.getElementById('leaderboard-opt-in');
+  const status = document.getElementById('leaderboard-opt-status');
+  if (toggle) toggle.checked = hasLeaderboardOptIn();
+  if (!status) return;
+  status.textContent = !hasLeaderboardOptIn()
+    ? 'Off. Your results stay private.'
+    : !cloudAccountUser
+      ? 'On by default. Sign in to publish your scores.'
+      : 'On. Your driver name and both mode scores can appear publicly.';
+}
+
+function setLeaderboardMode(mode) {
+  currentLeaderboardMode = mode === 'endless' ? 'endless' : 'timeAttack';
+  const isEndless = currentLeaderboardMode === 'endless';
+  document.getElementById('leaderboard-eyebrow').textContent = isEndless ? 'ENDLESS • WORLDWIDE' : 'TIME ATTACK • WORLDWIDE';
+  document.getElementById('leaderboard-copy').textContent = isEndless
+    ? 'Longest total Endless playtime from shared account records.'
+    : 'Fastest shared Time Attack records.';
+  document.getElementById('leaderboard-score-heading').textContent = isEndless ? 'PLAYED' : 'BEST TIME';
+  document.querySelectorAll('[data-leaderboard-mode]').forEach((button) => {
+    const active = button.dataset.leaderboardMode === currentLeaderboardMode;
+    button.classList.toggle('is-active', active);
+    button.setAttribute('aria-selected', String(active));
+  });
+}
+
+async function loadLeaderboard() {
+  const rows = document.getElementById('leaderboard-rows');
+  const status = document.getElementById('leaderboard-status');
+  if (!rows || !status) return;
+  rows.replaceChildren();
+  const loading = document.createElement('p');
+  loading.className = 'leaderboard-message';
+  loading.textContent = 'Loading the leaderboard…';
+  rows.append(loading);
+  status.textContent = '';
+  if (!cloudClient) {
+    loading.textContent = 'Online accounts are not configured on this build yet.';
+    return;
+  }
+  try {
+    const isEndless = currentLeaderboardMode === 'endless';
+    // Recover an existing local/cloud best when the player opens the board.
+    // This still requires sign-in and the player's share setting.
+    if (!isEndless && cloudAccountUser && hasLeaderboardOptIn()) {
+      const best = getTimeAttackBest();
+      if (best !== null) {
+        try { await submitLeaderboardTime(cloudAccountUser, best, playerName); }
+        catch (submitError) {
+          console.error('Leaderboard recovery submission failed:', submitError);
+          status.textContent = `Could not submit your saved record: ${getLeaderboardErrorText(submitError)}`;
+        }
+      }
+    }
+    const table = isEndless ? ENDLESS_LEADERBOARD_TABLE : LEADERBOARD_TABLE;
+    const scoreColumn = isEndless ? 'play_time_ms' : 'best_time_ms';
+    const { data, error } = await cloudClient.from(table)
+      .select(`driver_name,${scoreColumn}`)
+      .order(scoreColumn, { ascending: !isEndless })
+      .limit(50);
+    if (error) throw error;
+    rows.replaceChildren();
+    if (!data?.length) {
+      const empty = document.createElement('p');
+      empty.className = 'leaderboard-message';
+      empty.textContent = isEndless
+        ? 'No shared Endless playtime yet. Sign in, enable sharing in Settings, and play Endless.'
+        : !cloudAccountUser
+          ? 'No shared times yet. Sign in, enable sharing in Settings, then finish a Time Attack race.'
+          : !hasLeaderboardOptIn()
+            ? 'Your records are private. Enable leaderboard sharing in Settings to publish them.'
+            : getTimeAttackBest() === null
+              ? 'No Time Attack record saved yet. Finish a race to add your first time.'
+              : 'No shared times yet. Refresh to submit your saved best time.';
+      rows.append(empty);
+      return;
+    }
+    data.forEach((entry, index) => {
+      const row = document.createElement('div');
+      row.className = 'leaderboard-row';
+      const rank = document.createElement('span');
+      rank.className = 'leaderboard-rank';
+      rank.textContent = String(index + 1).padStart(2, '0');
+      const driver = document.createElement('span');
+      driver.className = 'leaderboard-driver';
+      driver.textContent = typeof entry.driver_name === 'string' ? entry.driver_name : 'DRIVER';
+      const time = document.createElement('span');
+      time.className = 'leaderboard-time';
+      time.textContent = isEndless
+        ? formatEndlessPlayTime(Number(entry.play_time_ms))
+        : formatRaceTime(Number(entry.best_time_ms));
+      row.append(rank, driver, time);
+      rows.append(row);
+    });
+  } catch (error) {
+    console.error('Leaderboard load failed:', error);
+    rows.replaceChildren();
+    const unavailable = document.createElement('p');
+    unavailable.className = 'leaderboard-message';
+    unavailable.textContent = 'The leaderboard database needs its one-time setup. See supabase/leaderboard.sql.';
+    rows.append(unavailable);
+    status.textContent = 'Your local and cloud game saves are unaffected.';
+  }
+}
+
+async function submitLeaderboardTime(user, timeMs, name = playerName) {
+  const status = document.getElementById('leaderboard-status');
+  if (!cloudClient || !user || !hasLeaderboardOptIn()) return;
+  const score = Math.round(Number(timeMs));
+  if (!Number.isFinite(score) || score < 1 || score > 3600000) return;
+  const cleanName = cleanPlayerName(String(name || 'Driver')) || 'Driver';
+  const { data: current, error: readError } = await cloudClient.from(LEADERBOARD_TABLE)
+    .select('best_time_ms,driver_name').eq('user_id', user.id).maybeSingle();
+  if (readError) throw readError;
+  const currentBest = Number(current?.best_time_ms);
+  const bestTime = Number.isFinite(currentBest) && currentBest > 0
+    ? Math.min(currentBest, score)
+    : score;
+  if (current?.driver_name === cleanName && currentBest === bestTime) return;
+  const { error } = await cloudClient.from(LEADERBOARD_TABLE).upsert({
+    user_id: user.id,
+    driver_name: cleanName,
+    best_time_ms: bestTime,
+    updated_at: new Date().toISOString(),
+  }, { onConflict: 'user_id' });
+  if (error) throw error;
+  if (status) status.textContent = 'Your best time has been shared on the leaderboard.';
+}
+
+async function submitEndlessPlayTime(user, playTimeMs, name = playerName) {
+  if (!cloudClient || !user || !hasLeaderboardOptIn()) return;
+  const score = Math.floor(Number(playTimeMs));
+  if (!Number.isFinite(score) || score < 1) return;
+  const cleanName = cleanPlayerName(String(name || 'Driver')) || 'Driver';
+  const { data: current, error: readError } = await cloudClient.from(ENDLESS_LEADERBOARD_TABLE)
+    .select('play_time_ms,driver_name').eq('user_id', user.id).maybeSingle();
+  if (readError) throw readError;
+  const currentPlayTime = Number(current?.play_time_ms);
+  const bestPlayTime = Number.isFinite(currentPlayTime) && currentPlayTime > 0
+    ? Math.max(currentPlayTime, score)
+    : score;
+  if (current?.driver_name === cleanName && currentPlayTime === bestPlayTime) return;
+  const { error } = await cloudClient.from(ENDLESS_LEADERBOARD_TABLE).upsert({
+    user_id: user.id,
+    driver_name: cleanName,
+    play_time_ms: bestPlayTime,
+    updated_at: new Date().toISOString(),
+  }, { onConflict: 'user_id' });
+  if (error) throw error;
+}
+
+document.getElementById('leaderboard-opt-in')?.addEventListener('change', async (event) => {
+  try { localStorage.setItem(LEADERBOARD_OPT_IN_KEY, event.target.checked ? '1' : '0'); } catch (_) {}
+  updateLeaderboardOptStatus();
+  if (!cloudAccountUser) return;
+  if (!event.target.checked) {
+    const results = await Promise.all([
+      cloudClient.from(LEADERBOARD_TABLE).delete().eq('user_id', cloudAccountUser.id),
+      cloudClient.from(ENDLESS_LEADERBOARD_TABLE).delete().eq('user_id', cloudAccountUser.id),
+    ]);
+    const error = results.find((result) => result.error)?.error;
+    if (error) {
+      console.error('Leaderboard removal failed:', error);
+      document.getElementById('leaderboard-opt-status').textContent = 'Could not remove the shared entry right now.';
+    } else {
+      document.getElementById('leaderboard-opt-status').textContent = 'Your public leaderboard entry was removed.';
+    }
+    return;
+  }
+  const best = getTimeAttackBest();
+  try {
+    if (best !== null) await submitLeaderboardTime(cloudAccountUser, best, playerName);
+    await submitEndlessPlayTime(cloudAccountUser, totalEndlessPlayMs(), playerName);
+  }
+  catch (error) {
+    console.error('Leaderboard submission failed:', error);
+    document.getElementById('leaderboard-opt-status').textContent = `Could not share yet: ${getLeaderboardErrorText(error)}`;
+  }
+});
+updateLeaderboardOptStatus();
+
+function setCloudSyncStatus(status, message, tone = '') {
+  const homeStatus = document.getElementById('account-button-sync-status');
+  homeStatus.textContent = message;
+  homeStatus.dataset.tone = tone;
+  cloudAccountStatus.dataset.sync = status;
+}
+
+function setCloudAccountMessage(message, tone = '') {
+  cloudAccountStatus.textContent = message;
+  cloudAccountStatus.dataset.tone = tone;
+}
+
+function renderCloudAccount(user) {
+  cloudAccountUser = user || null;
+  updateLeaderboardOptStatus();
+  const configured = Boolean(cloudClient);
+  document.getElementById('account-signed-out').hidden = !configured || Boolean(user);
+  document.getElementById('account-signed-in').hidden = !user;
+  document.getElementById('account-user-email').textContent = user?.email || '';
+  const title = document.getElementById('account-button-title');
+  const subtitle = document.getElementById('account-button-subtitle');
+  title.textContent = user ? 'ACCOUNT • SIGNED IN' : 'SIGN IN TO SAVE PROGRESS';
+  subtitle.textContent = user ? (user.email || 'Cloud save is active') : 'Sync your garage and race bests across devices';
+  if (!configured) {
+    setCloudAccountMessage('Online accounts are not configured yet. Your progress still saves on this device.', '');
+    setCloudSyncStatus('local', 'Local save only');
+  } else if (user) {
+    if (navigator.onLine) {
+      setCloudAccountMessage('Loading your cloud save…');
+      setCloudSyncStatus('syncing', 'Checking cloud save…', 'warn');
+    } else {
+      setCloudAccountMessage('You are offline. Your local save is safe and will sync when you reconnect.', 'error');
+      setCloudSyncStatus('offline', 'Offline • changes stay on this device', 'warn');
+    }
+  } else {
+    setCloudAccountMessage('Your save stays on this device until you sign in.');
+    setCloudSyncStatus('local', 'Saved on this device');
+  }
+}
+
+function applyCloudProgress(progress = {}) {
+  endlessPlayByDevice = mergeEndlessPlayMaps(endlessPlayByDevice, progress.endlessPlayByDevice);
+  persistEndlessPlayMap();
+  if (typeof progress.driverName === 'string' && !playerNameChangedThisSession) {
+    const name = cleanPlayerName(progress.driverName);
+    const incomingIsCustom = typeof progress.driverNameIsCustom === 'boolean'
+      ? progress.driverNameIsCustom
+      : name !== 'Driver';
+    if (name.length >= 3 && !(name === 'Driver' && !incomingIsCustom) && !(isPlayerNameCustom() && !incomingIsCustom)) {
+      playerName = name;
+      localStorage.setItem(PLAYER_NAME_KEY, name);
+      localStorage.setItem(PLAYER_NAME_CUSTOM_KEY, incomingIsCustom ? '1' : '0');
+      updatePlayerNameDisplay();
+    }
+  }
+  if (['drift', 'f1', 'rally', 'hyper'].includes(progress.car)) selectedCarType = progress.car;
+  if (progress.skin === 'widebody' || progress.skin === 'classic') selectedDriftSkin = progress.skin;
+  if (progress.paintByCar && typeof progress.paintByCar === 'object') {
+    for (const carType of Object.keys(garageDefaultColors)) {
+      const paint = progress.paintByCar[carType];
+      if (!validGaragePaint(paint)) continue;
+      savedGaragePaints[carType] = paint;
+      garageCarColors[carType] = paint;
+    }
+  }
+  // Support cloud saves made before per-car colors were introduced.
+  if (validGaragePaint(progress.paint) && !validGaragePaint(progress.paintByCar?.[selectedCarType])) {
+    savedGaragePaints[selectedCarType] = progress.paint;
+    garageCarColors[selectedCarType] = progress.paint;
+  }
+  selectedCarColor = garageCarColors[selectedCarType] || garageDefaultColors[selectedCarType];
+
+  const localBest = getTimeAttackBest();
+  const remoteBest = Number(progress.bestTimeAttackMs);
+  if (Number.isFinite(remoteBest) && remoteBest > 0 && (localBest === null || remoteBest < localBest)) {
+    localStorage.setItem('zen-drift-time-attack-best', String(remoteBest));
+    if (progress.timeAttackGhost?.v === 1 && Array.isArray(progress.timeAttackGhost.samples)) {
+      localStorage.setItem('zen-drift-time-attack-ghost', JSON.stringify(progress.timeAttackGhost));
+    }
+  }
+
+  saveLocalGaragePreferences();
+  updateGarageSelection();
+  syncGarageLivePreview();
+  updateCarPerformance();
+  updateTimeAttackHUD(true);
+}
+
+async function syncCloudProgress(user = cloudAccountUser) {
+  if (!cloudClient || !user) return;
+  if (!navigator.onLine) {
+    setCloudSyncStatus('offline', 'Offline • changes stay on this device', 'warn');
+    setCloudAccountMessage('You are offline. Your local save is safe and will sync when you reconnect.', 'error');
+    return;
+  }
+  setCloudSyncStatus('syncing', 'Syncing cloud save…', 'warn');
+  const localAtStart = getLocalCloudProgress();
+  const selectionRevisionAtStart = garageSelectionRevision;
+  const paintRevisionAtStart = garagePaintRevision;
+  const { data, error } = await cloudClient.from('game_saves').select('progress').maybeSingle();
+  if (error) throw error;
+  const local = getLocalCloudProgress();
+  const remote = data?.progress && typeof data.progress === 'object' ? data.progress : null;
+  const merged = remote ? { ...localAtStart, ...remote } : { ...localAtStart };
+  merged.endlessPlayByDevice = mergeEndlessPlayMaps(
+    localAtStart.endlessPlayByDevice,
+    local.endlessPlayByDevice,
+    remote?.endlessPlayByDevice,
+  );
+  if (playerNameChangedThisSession) {
+    merged.driverName = local.driverName;
+    merged.driverNameIsCustom = true;
+  } else if (remote?.driverName === 'Driver' && remote.driverNameIsCustom !== true) {
+    // Replace the old generic default with this device's persisted random callsign.
+    merged.driverName = localAtStart.driverName;
+    merged.driverNameIsCustom = localAtStart.driverNameIsCustom;
+  }
+  merged.paintByCar = { ...(localAtStart.paintByCar || {}), ...(remote?.paintByCar || {}) };
+  if (remote && !remote.paintByCar && validGaragePaint(remote.paint) && ['drift', 'f1', 'rally', 'hyper'].includes(remote.car)) {
+    merged.paintByCar[remote.car] = remote.paint;
+  }
+  // A cloud response must not roll back garage choices made while it was loading.
+  if (garageSelectionRevision !== selectionRevisionAtStart) {
+    merged.car = local.car;
+    merged.skin = local.skin;
+  }
+  if (garagePaintRevision !== paintRevisionAtStart) {
+    merged.paint = local.paint;
+    merged.paintByCar[local.car] = local.paint;
+  } else {
+    merged.paint = merged.paintByCar[merged.car] || merged.paint || localAtStart.paint;
+  }
+  // Once the player changes the garage this session, local choices stay authoritative
+  // for the rest of the session, including against later or overlapping cloud reads.
+  if (garageChangedThisSession) {
+    merged.car = local.car;
+    merged.skin = local.skin;
+    merged.paint = local.paint;
+    merged.paintByCar = { ...(remote?.paintByCar || {}), ...(local.paintByCar || {}) };
+  }
+  const localBest = Number(local.bestTimeAttackMs);
+  const remoteBest = Number(remote?.bestTimeAttackMs);
+  if (Number.isFinite(localBest) && localBest > 0 && (!Number.isFinite(remoteBest) || remoteBest <= 0 || localBest < remoteBest)) {
+    merged.bestTimeAttackMs = localBest;
+    merged.timeAttackGhost = local.timeAttackGhost;
+  } else if (Number.isFinite(remoteBest) && remoteBest > 0) {
+    merged.bestTimeAttackMs = remoteBest;
+    merged.timeAttackGhost = remote.timeAttackGhost || null;
+  }
+  if (remote) applyCloudProgress(merged);
+  const { error: saveError } = await cloudClient.from('game_saves').upsert({
+    user_id: user.id,
+    progress: merged,
+    updated_at: new Date().toISOString(),
+  }, { onConflict: 'user_id' });
+  if (saveError) throw saveError;
+  if (hasLeaderboardOptIn() && Number(merged.bestTimeAttackMs) > 0) {
+    try { await submitLeaderboardTime(user, merged.bestTimeAttackMs, merged.driverName || playerName); }
+    catch (error) { console.error('Leaderboard sync failed:', error); }
+  }
+  if (hasLeaderboardOptIn() && totalEndlessPlayMs(merged.endlessPlayByDevice) > 0) {
+    try { await submitEndlessPlayTime(user, totalEndlessPlayMs(merged.endlessPlayByDevice), merged.driverName || playerName); }
+    catch (error) { console.error('Endless leaderboard sync failed:', error); }
+  }
+  cloudSavePending = false;
+  cloudSaveRetryDelay = 3000;
+  clearTimeout(cloudSaveRetryTimer);
+  setCloudSyncStatus('synced', 'Synced to cloud', 'good');
+  setCloudAccountMessage('Cloud save synced. Your garage and race record are linked to this account.', 'good');
+}
+
+function scheduleCloudProgressSave() {
+  if (!cloudAccountUser || !cloudClient) return;
+  cloudSavePending = true;
+  clearTimeout(cloudSaveTimer);
+  clearTimeout(cloudSaveRetryTimer);
+  if (!navigator.onLine) {
+    setCloudSyncStatus('offline', 'Offline • changes queued', 'warn');
+    setCloudAccountMessage('You are offline. Your local save is safe and will sync when you reconnect.', 'error');
+    return;
+  }
+  setCloudSyncStatus('saving', 'Saving to cloud…', 'warn');
+  cloudSaveTimer = setTimeout(async () => {
+    try {
+      const user = cloudAccountUser;
+      if (!user) return;
+      const localProgress = getLocalCloudProgress();
+      const { data: remoteSave, error: readError } = await cloudClient.from('game_saves')
+        .select('progress').eq('user_id', user.id).maybeSingle();
+      if (readError) throw readError;
+      const remoteProgress = remoteSave?.progress && typeof remoteSave.progress === 'object' ? remoteSave.progress : {};
+      endlessPlayByDevice = mergeEndlessPlayMaps(localProgress.endlessPlayByDevice, remoteProgress.endlessPlayByDevice);
+      persistEndlessPlayMap();
+      const progress = { ...localProgress, endlessPlayByDevice: { ...endlessPlayByDevice } };
+      const { error } = await cloudClient.from('game_saves').upsert({
+        user_id: user.id,
+        progress: { ...remoteProgress, ...progress },
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'user_id' });
+      if (error) throw error;
+      if (hasLeaderboardOptIn()) {
+        await submitEndlessPlayTime(user, totalEndlessPlayMs(endlessPlayByDevice), progress.driverName || playerName);
+      }
+      cloudSavePending = false;
+      cloudSaveRetryDelay = 3000;
+      setCloudSyncStatus('synced', 'Synced to cloud', 'good');
+      setCloudAccountMessage('Cloud save synced.', 'good');
+    } catch (error) {
+      console.error('Cloud save failed:', error);
+      setCloudSyncStatus(navigator.onLine ? 'error' : 'offline', navigator.onLine ? 'Not synced • local save is safe' : 'Offline • changes queued', navigator.onLine ? 'error' : 'warn');
+      setCloudAccountMessage('Could not sync right now. Your local save is safe; try again later.', 'error');
+      if (navigator.onLine) {
+        cloudSaveRetryTimer = setTimeout(() => {
+          cloudSaveRetryDelay = Math.min(cloudSaveRetryDelay * 2, 30000);
+          scheduleCloudProgressSave();
+        }, cloudSaveRetryDelay);
+      }
+    }
+  }, 900);
+}
+
+window.addEventListener('offline', () => {
+  if (!cloudClient) return;
+  setCloudSyncStatus('offline', cloudAccountUser ? 'Offline • changes stay on this device' : 'Offline • local save active', 'warn');
+  if (cloudAccountUser) setCloudAccountMessage('You are offline. Your local save is safe and will sync when you reconnect.', 'error');
+});
+window.addEventListener('online', () => {
+  if (!cloudClient) return;
+  if (cloudAccountUser && cloudSavePending) scheduleCloudProgressSave();
+  else if (cloudAccountUser) syncCloudProgress().catch((error) => {
+    console.error('Cloud save reconnect failed:', error);
+    cloudSavePending = true;
+    setCloudSyncStatus('error', 'Not synced • local save is safe', 'error');
+    setCloudAccountMessage('Back online, but the save could not sync yet.', 'error');
+  });
+  else setCloudSyncStatus('local', 'Connection restored • local save active');
+});
+
+async function runAccountAction(action, successMessage) {
+  if (!cloudClient) {
+    setCloudAccountMessage('Online accounts are not configured yet. Your local progress is safe.', 'error');
+    return;
+  }
+  const email = document.getElementById('account-email').value.trim();
+  const password = document.getElementById('account-password').value;
+  if (!email) return setCloudAccountMessage('Enter your email address first.', 'error');
+  setCloudAccountMessage('Connecting securely…');
+  try {
+    const result = await action(email, password);
+    if (result.error) setCloudAccountMessage(result.error.message || 'Could not complete this request.', 'error');
+    else setCloudAccountMessage(successMessage, 'good');
+  } catch (error) {
+    console.error('Account request failed:', error);
+    setCloudAccountMessage('Could not connect. Check your connection and try again.', 'error');
+  }
+}
+
+document.getElementById('account-sign-in').addEventListener('click', () => runAccountAction(
+  (email, password) => cloudClient.auth.signInWithPassword({ email, password }),
+  'Signed in. Loading your save…',
+));
+document.getElementById('account-create').addEventListener('click', () => runAccountAction(
+  (email, password) => password.length >= 8
+    ? cloudClient.auth.signUp({ email, password, options: { emailRedirectTo: `${location.origin}/play` } })
+    : Promise.resolve({ error: { message: 'Choose a password with at least 8 characters.' } }),
+  'Account created. Check your email to confirm it, then sign in.',
+));
+document.getElementById('account-google').addEventListener('click', async () => {
+  if (!cloudClient) return setCloudAccountMessage('Online accounts are not configured yet.', 'error');
+  const { error } = await cloudClient.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: `${location.origin}/play` } });
+  if (error) setCloudAccountMessage(error.message, 'error');
+});
+const accountResetButton = document.getElementById('account-reset-password');
+accountResetButton.addEventListener('click', async () => {
+  if (!cloudClient) return setCloudAccountMessage('Online accounts are not configured yet.', 'error');
+  const email = document.getElementById('account-email').value.trim();
+  if (!email) return setCloudAccountMessage('Enter your email address first.', 'error');
+  accountResetButton.disabled = true;
+  accountResetButton.textContent = 'SENDING RESET LINK…';
+  setCloudAccountMessage('Sending a secure password reset email…');
+  try {
+    const { error } = await cloudClient.auth.resetPasswordForEmail(email, { redirectTo: `${location.origin}/play` });
+    if (error) throw error;
+    setCloudAccountMessage('If an account exists for that email, a reset link has been sent. Check your inbox and spam folder.', 'good');
+  } catch (error) {
+    console.error('Password reset email failed:', error);
+    setCloudAccountMessage('Could not send the reset email. Check your connection and try again.', 'error');
+  } finally {
+    accountResetButton.disabled = false;
+    accountResetButton.textContent = 'EMAIL ME A RESET LINK';
+  }
+});
+document.getElementById('account-update-password').addEventListener('click', async () => {
+  const password = document.getElementById('account-new-password').value;
+  if (password.length < 8) return setCloudAccountMessage('Choose a password with at least 8 characters.', 'error');
+  const updateButton = document.getElementById('account-update-password');
+  updateButton.disabled = true;
+  updateButton.textContent = 'UPDATING PASSWORD…';
+  setCloudAccountMessage('Updating your password…');
+  try {
+    const { error } = await cloudClient.auth.updateUser({ password });
+    if (error) throw error;
+    document.getElementById('account-reset-panel').hidden = true;
+    renderCloudAccount(cloudAccountUser);
+    setCloudAccountMessage('Password updated. You can now sign in with your new password.', 'good');
+  } catch (error) {
+    console.error('Password update failed:', error);
+    setCloudAccountMessage('Could not update the password. Reopen the reset link and try again.', 'error');
+  } finally {
+    updateButton.disabled = false;
+    updateButton.textContent = 'SAVE NEW PASSWORD';
+  }
+});
+document.getElementById('account-sign-out').addEventListener('click', async () => {
+  const { error } = await cloudClient.auth.signOut();
+  if (error) setCloudAccountMessage(error.message, 'error');
+  else {
+    cloudSavePending = false;
+    clearTimeout(cloudSaveTimer);
+    clearTimeout(cloudSaveRetryTimer);
+    setCloudSyncStatus('local', 'Saved on this device');
+    setCloudAccountMessage('Signed out. Your local save remains on this device.');
+  }
+});
+
+if (cloudClient) {
+  cloudClient.auth.onAuthStateChange((event, session) => {
+    if (event === 'PASSWORD_RECOVERY' && session?.user) {
+      cloudAccountUser = session.user;
+      document.getElementById('account-signed-out').hidden = true;
+      document.getElementById('account-signed-in').hidden = true;
+      document.getElementById('account-reset-panel').hidden = false;
+      setCloudAccountMessage('Choose a new password for your account.');
+      showMenuPage('account-page');
+      return;
+    }
+    document.getElementById('account-reset-panel').hidden = true;
+    renderCloudAccount(session?.user || null);
+    if (session?.user) setTimeout(() => syncCloudProgress(session.user).catch((error) => {
+      console.error('Cloud save sync failed:', error);
+      cloudSavePending = true;
+      setCloudSyncStatus('error', 'Not synced • local save is safe', 'error');
+      setCloudAccountMessage('Signed in, but the save could not sync. Check the cloud setup.', 'error');
+      if (navigator.onLine) {
+        cloudSaveRetryTimer = setTimeout(() => {
+          cloudSaveRetryDelay = Math.min(cloudSaveRetryDelay * 2, 30000);
+          scheduleCloudProgressSave();
+        }, cloudSaveRetryDelay);
+      }
+    }), 0);
+  });
+} else {
+  renderCloudAccount(null);
+}
 
 // The garage preview runs the same game canvas in a quiet, UI-free auto-drive mode.
 if (garagePreviewMode) {
@@ -5368,7 +6776,6 @@ const ROAD_HALF_WIDTH = 150;
 let curveMultiplier = 1.7;
 
 // Clear sky stars
-const stars = [];
 function initStars() {
   stars.length = 0;
   for (let i = 0; i < 110; i++) {
@@ -5382,7 +6789,6 @@ function initStars() {
     });
   }
 }
-initStars();
 
 function generateTreesForNode(index, x, y, angle) {
   if (index < 4) return;
@@ -6190,6 +7596,7 @@ function positionTouchToolsPanel() {
   if (!mobileLandscape) {
     touchUtilityButtons.style.removeProperty('left');
     touchUtilityButtons.style.removeProperty('top');
+    touchUtilityButtons.style.removeProperty('max-height');
     return;
   }
 
@@ -6204,8 +7611,10 @@ function positionTouchToolsPanel() {
     window.innerWidth - panelWidth - 10
   ));
 
+  const top = Math.ceil(odometerBounds.bottom + 8);
   touchUtilityButtons.style.left = `${Math.round(left)}px`;
-  touchUtilityButtons.style.top = `${Math.ceil(odometerBounds.bottom + 8)}px`;
+  touchUtilityButtons.style.top = `${top}px`;
+  touchUtilityButtons.style.maxHeight = `${Math.max(70, window.innerHeight - top - 150)}px`;
 }
 
 touchToolsToggle?.addEventListener('click', () => {
@@ -6619,6 +8028,18 @@ function loop(frameTime) {
     requestAnimationFrame(loop);
   }
   if (gamePaused) return;
+
+  if (gameStarted && gameMode === 'endless') {
+    endlessPlayByDevice[localPlayerId] = (endlessPlayByDevice[localPlayerId] || 0) + elapsedFrameMs;
+    if (currentFrameTime - endlessPlaySaveAt >= 5000) {
+      endlessPlaySaveAt = currentFrameTime;
+      persistEndlessPlayMap();
+    }
+    if (cloudAccountUser && currentFrameTime - endlessPlayCloudSaveAt >= 15000) {
+      endlessPlayCloudSaveAt = currentFrameTime;
+      scheduleCloudProgressSave();
+    }
+  }
 
   updateThunder(Date.now());
 

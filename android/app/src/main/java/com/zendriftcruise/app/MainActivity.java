@@ -22,7 +22,10 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 public final class MainActivity extends Activity {
+    private static final String ONLINE_GAME_URL = "https://zen-drift-cruise-online.onrender.com/play?mobileapp=1";
     private WebView gameView;
+    private boolean onlineGameRequested;
+    private boolean openedOfflineCopy;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,9 +46,31 @@ public final class MainActivity extends Activity {
         settings.setAllowFileAccessFromFileURLs(true);
         settings.setMediaPlaybackRequiresUserGesture(false);
         gameView.setWebChromeClient(new WebChromeClient());
-        gameView.setWebViewClient(new WebViewClient());
+        gameView.setWebViewClient(new WebViewClient() {
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                if (url.startsWith("https://zen-drift-cruise-online.onrender.com/")) {
+                    onlineGameRequested = false;
+                }
+            }
+
+            @Override
+            public void onReceivedError(
+                WebView view,
+                android.webkit.WebResourceRequest request,
+                android.webkit.WebResourceError error
+            ) {
+                super.onReceivedError(view, request, error);
+                if (request.isForMainFrame() && onlineGameRequested && !openedOfflineCopy) {
+                    openedOfflineCopy = true;
+                    onlineGameRequested = false;
+                    gameView.loadUrl("file:///android_asset/index.html");
+                }
+            }
+        });
         setContentView(gameView);
-        gameView.loadUrl("file:///android_asset/index.html");
+        onlineGameRequested = true;
+        gameView.loadUrl(ONLINE_GAME_URL);
         checkForUpdates();
     }
 

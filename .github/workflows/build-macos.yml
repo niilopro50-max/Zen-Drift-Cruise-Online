@@ -50,9 +50,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view v1.3.0 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 || {
-            gh release create v1.3.0 --repo "$GITHUB_REPOSITORY" --title "Zen Drift Cruise 1.3.0" --notes "Sets one lower speed cap and balanced acceleration for all cars and devices." || \
-              gh release view v1.3.0 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1
+          gh release view v1.4.0 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 || {
+            gh release create v1.4.0 --repo "$GITHUB_REPOSITORY" --title "Zen Drift Cruise 1.4.0" --notes "Adds the online game experience and cloud progress features to the desktop apps." || \
+              gh release view v1.4.0 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1
           }
 
       - name: Publish installer to GitHub release
@@ -64,9 +64,9 @@ jobs:
             echo "macOS DMG was not created."
             exit 1
           fi
-          asset="release-build/Zen.Drift.Cruise-1.3.0-arm64.dmg"
+          asset="release-build/Zen.Drift.Cruise-1.4.0-arm64.dmg"
           mv "$dmg" "$asset"
-          gh release upload v1.3.0 "$asset" --repo "$GITHUB_REPOSITORY" --clobber
+          gh release upload v1.4.0 "$asset" --repo "$GITHUB_REPOSITORY" --clobber
 
       - name: Publish signed Android installer to GitHub release
         env:
@@ -77,4 +77,4 @@ jobs:
             echo "Signed Android APK was not found."
             exit 1
           fi
-          gh release upload v1.3.0 "$apk" --repo "$GITHUB_REPOSITORY" --clobber
+          gh release upload v1.4.0 "$apk" --repo "$GITHUB_REPOSITORY" --clobber
