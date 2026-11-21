@@ -60,7 +60,8 @@ h1 span::after{content:"";position:absolute;left:3%;right:-5%;bottom:-.08em;heig
 .button:active{transform:translateY(0) scale(.98)}
 .button-quiet{background:rgba(10,12,13,.36);color:var(--paper)}
 .button-quiet:hover{border-color:#fff;color:#fff;background:rgba(10,12,13,.62)}
-.hero-side{align-self:end;margin-bottom:55px;padding:23px 22px 25px;border:1px solid rgba(255,255,255,.26);border-top-color:rgba(255,118,43,.8);background:linear-gradient(145deg,rgba(13,15,16,.76),rgba(14,13,12,.46));backdrop-filter:blur(12px)}
+.hero-side{display:none}
+.intro-drive{max-width:520px;margin-top:30px;padding:21px 22px 19px;border:1px solid rgba(255,255,255,.16);border-top-color:rgba(255,118,43,.8);background:linear-gradient(145deg,rgba(255,255,255,.055),rgba(255,255,255,.018))}
 .side-label{font-size:11px;color:#ffb487;font-weight:900;letter-spacing:.2em;text-transform:uppercase}
 .side-title{margin:15px 0 9px;font-size:25px;line-height:1.1;font-weight:850;letter-spacing:-.04em}
 .side-copy{margin:0;color:#d0c8bd;font-size:15px;line-height:1.6}
@@ -105,7 +106,7 @@ footer{min-height:90px;padding:22px 7%;display:flex;align-items:center;justify-c
 .scroll-progress{position:fixed;z-index:30;inset:0 auto auto 0;width:100%;height:3px;pointer-events:none;background:linear-gradient(90deg,var(--orange),var(--sakura));transform:scaleX(0);transform-origin:left center;box-shadow:0 0 14px rgba(255,118,43,.75)}
 .reveal-ready [data-reveal]{opacity:0;transform:translateY(46px) scale(.975);transition:opacity .95s cubic-bezier(.2,.7,.2,1),transform .95s cubic-bezier(.2,.7,.2,1);transition-delay:var(--reveal-delay,0ms)}
 .reveal-ready [data-reveal].is-visible{opacity:1;transform:translateY(0) scale(1)}
-.hero-copy,.hero-side{animation:hero-arrive .85s cubic-bezier(.2,.7,.2,1) both}.hero-side{animation-delay:.18s}
+.hero-copy{animation:hero-arrive .85s cubic-bezier(.2,.7,.2,1) both}
 .hero-copy>.eyebrow,.hero-copy>h1,.hero-copy>.hero-lede,.hero-copy>.hero-actions{animation:hero-arrive .7s cubic-bezier(.2,.7,.2,1) both}
 .hero-copy>.eyebrow{animation-delay:.08s}.hero-copy>h1{animation-delay:.16s}.hero-copy>.hero-lede{animation-delay:.24s}.hero-copy>.hero-actions{animation-delay:.32s}
 @keyframes hero-arrive{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
@@ -113,7 +114,7 @@ footer{min-height:90px;padding:22px 7%;display:flex;align-items:center;justify-c
 @keyframes garage-pan{from{background-position:50% 55%}to{background-position:54% 52%}}
 @keyframes light-trails{from{opacity:.12;background-position:0 0,100% 50%}to{opacity:.34;background-position:28px 18px,76% 44%}}
 @keyframes soft-orbit{from{transform:translate3d(0,0,0)}to{transform:translate3d(-15px,-12px,0)}}
-@media(max-width:850px){.hero-inner{grid-template-columns:1fr;gap:0}.hero-copy{padding:65px 0 130px}.hero-side{display:none}.intro-section{grid-template-columns:1fr;gap:24px}.modes-heading{align-items:start;flex-direction:column;gap:16px}.mode-grid{grid-template-columns:1fr}.mode-card{min-height:215px}.play-panel{grid-template-columns:1fr;gap:26px}.play-panel-action{justify-self:start}}
+@media(max-width:850px){.hero-inner{grid-template-columns:1fr;gap:0}.hero-copy{padding:65px 0 130px}.intro-section{grid-template-columns:1fr;gap:24px}.modes-heading{align-items:start;flex-direction:column;gap:16px}.mode-grid{grid-template-columns:1fr}.mode-card{min-height:215px}.play-panel{grid-template-columns:1fr;gap:26px}.play-panel-action{justify-self:start}}
 @media(max-width:600px){.site-header{height:70px;padding:0 19px}.brand{font-size:11px;gap:8px;letter-spacing:1px}.brand img{width:32px;height:32px}.brand-word small{font-size:9px;letter-spacing:2.2px}.site-nav{gap:14px;font-size:11px}.site-nav>a:first-child{display:none}.nav-play{padding:11px 13px}.hero{min-height:790px;min-height:100svh;background-position:60% center}.hero::before{background:linear-gradient(90deg,rgba(7,8,10,.79),rgba(7,8,10,.25)),linear-gradient(0deg,rgba(7,8,10,.89),transparent 54%,rgba(7,8,10,.2))}.hero-inner{width:88%;margin:37px auto 0}.hero-copy{padding:45px 0 120px}.eyebrow{font-size:10px;letter-spacing:.2em}.hero h1{font-size:clamp(66px,17vw,98px);letter-spacing:-.085em;margin:25px 0 19px}.hero-lede{max-width:365px;font-size:16px;line-height:1.7}.hero-actions{gap:10px;margin-top:26px}.button{min-height:52px;padding:0 17px;font-size:11px}.hero-bottom{left:6%;right:6%;min-height:54px;font-size:9px;letter-spacing:.1em}.section-shell{width:88%}.intro-section{padding:78px 0 72px}.section-title{font-size:clamp(40px,12vw,59px)}.intro-copy{font-size:16px}.modes-section{padding:74px 0 80px}.modes-heading .section-title{font-size:clamp(38px,11vw,54px)}.mode-card{min-height:205px;padding:22px}.play-section{padding:72px 0}.play-panel{padding:29px 23px}.play-panel .section-title{font-size:clamp(40px,11vw,54px)}footer{align-items:flex-start;flex-direction:column;padding:23px 6%;font-size:10px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important}}
 </style>
@@ -144,13 +145,6 @@ footer{min-height:90px;padding:22px 7%;display:flex;align-items:center;justify-c
           <a class="button button-quiet" href="/download">Explore downloads</a>
         </div>
       </div>
-      <aside class="hero-side" aria-label="Tonight's drive">
-        <div class="side-label">Tonight's drive</div>
-        <h2 class="side-title">Golden hour.<br>Open road.</h2>
-        <p class="side-copy">Set your own pace and let the mountain road unwind.</p>
-        <div class="side-divider"></div>
-        <div class="side-meta"><span>Zen Drift Cruise</span><span>01 / 03</span></div>
-      </aside>
     </div>
     <div class="hero-bottom"><span>Free to play in your browser</span><span>Take a breath. Take the road.</span></div>
   </section>
@@ -163,6 +157,13 @@ footer{min-height:90px;padding:22px 7%;display:flex;align-items:center;justify-c
     <div>
       <p class="intro-copy">Zen Drift Cruise is a small escape built around the simple joy of driving. Follow the curves, watch the light change and find a rhythm that feels like yours.</p>
       <p class="intro-note">Start instantly in your browser. No account, no setup, just the road.</p>
+      <aside class="intro-drive" aria-label="Tonight's drive">
+        <div class="side-label">Tonight's drive</div>
+        <h3 class="side-title">Golden hour.<br>Open road.</h3>
+        <p class="side-copy">Set your own pace and let the mountain road unwind.</p>
+        <div class="side-divider"></div>
+        <div class="side-meta"><span>Zen Drift Cruise</span><span>01 / 03</span></div>
+      </aside>
     </div>
   </section>
 
