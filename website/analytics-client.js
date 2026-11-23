@@ -30,6 +30,7 @@
 
   const CONSENT_KEY = "zen-drift-analytics-choice";
   const ID_KEY = "zen-drift-analytics-session";
+  const analyticsConfigured = window.ZEN_ANALYTICS_CONFIGURED === true;
   const consent = document.createElement("aside");
   consent.id = "zd-analytics-consent";
   consent.setAttribute("aria-label", "Analytics preferences");
@@ -74,6 +75,7 @@
   }
 
   function sendEvent(event, extra = {}, keepalive = false) {
+    if (!analyticsConfigured) return;
     let consentChoice = null;
     try { consentChoice = localStorage.getItem(CONSENT_KEY); } catch {}
     if (consentChoice !== "yes") return;
@@ -93,12 +95,14 @@
   }
 
   function showConsent(force = false) {
+    if (!analyticsConfigured && !force) { consent.hidden = true; return; }
     let choice = null;
     try { choice = localStorage.getItem(CONSENT_KEY); } catch {}
     consent.hidden = !(force || (choice !== "yes" && choice !== "no"));
   }
 
   consent.addEventListener("click", (event) => {
+    if (!analyticsConfigured) return;
     const button = event.target.closest("[data-choice]");
     if (!button) return;
     try { localStorage.setItem(CONSENT_KEY, button.dataset.choice === "yes" ? "yes" : "no"); } catch {}
@@ -246,5 +250,8 @@
   }
 
   const resetPreferences = document.querySelector("[data-analytics-preferences]");
-  if (resetPreferences) resetPreferences.hidden = false;
+  if (resetPreferences && analyticsConfigured) resetPreferences.hidden = false;
+  if (!analyticsConfigured) {
+    loginIntro.textContent = "This dashboard is waiting for its password and database key to be added in the website host settings.";
+  }
 })();

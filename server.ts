@@ -15,8 +15,8 @@ const PRIVACY_HTML = readFileSync(new URL("./website/privacy.html", import.meta.
 const ANALYTICS_CLIENT_JS = readFileSync(new URL("./website/analytics-client.js", import.meta.url), "utf8");
 
 function withWebsiteAnalytics(html: string, page: string) {
-  if (!analyticsServiceReady() || !process.env.WEBSITE_ADMIN_PASSWORD) return html;
-  const pageConfig = `<script>window.ZEN_ANALYTICS_PAGE=${JSON.stringify(page)};</script><script src="/analytics.js" defer></script>`;
+  const configured = Boolean(analyticsServiceReady() && process.env.WEBSITE_ADMIN_PASSWORD);
+  const pageConfig = `<script>window.ZEN_ANALYTICS_PAGE=${JSON.stringify(page)};window.ZEN_ANALYTICS_CONFIGURED=${configured};</script><script src="/analytics.js" defer></script>`;
   return html.replace("</body>", `${pageConfig}</body>`);
 }
 
@@ -214,11 +214,6 @@ export function startHttpServer(): Promise<{ server: http.Server; port: number }
     const url = new URL(req.url || "/", "http://127.0.0.1:" + localPort);
 
     if (req.method === "GET" && url.pathname === "/analytics.js") {
-      if (!analyticsServiceReady() || !process.env.WEBSITE_ADMIN_PASSWORD) {
-        res.writeHead(404, { "Cache-Control": "no-store" });
-        res.end();
-        return;
-      }
       res.writeHead(200, { "Content-Type": "application/javascript; charset=utf-8", "Cache-Control": "no-cache" });
       res.end(ANALYTICS_CLIENT_JS);
       return;
