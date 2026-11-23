@@ -1,4 +1,5 @@
 import http from "node:http";
+import crypto from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { execFile } from "node:child_process";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -11,6 +12,89 @@ const GAME_HTML = readFileSync(new URL("./game/index.html", import.meta.url), "u
 const WEBSITE_HTML = readFileSync(new URL("./website/index.html", import.meta.url), "utf8");
 const DOWNLOAD_HTML = readFileSync(new URL("./website/download.html", import.meta.url), "utf8");
 const PRIVACY_HTML = readFileSync(new URL("./website/privacy.html", import.meta.url), "utf8");
+const ANALYTICS_CLIENT_JS = readFileSync(new URL("./website/analytics-client.js", import.meta.url), "utf8");
+
+function withWebsiteAnalytics(html: string, page: string) {
+  if (!analyticsServiceReady() || !process.env.WEBSITE_ADMIN_PASSWORD) return html;
+  const pageConfig = `<script>window.ZEN_ANALYTICS_PAGE=${JSON.stringify(page)};</script><script src="/analytics.js" defer></script>`;
+  return html.replace("</body>", `${pageConfig}</body>`);
+}
+
+const analyticsLoginAttempts = new Map<string, { count: number; resetAt: number }>();
+const ANALYTICS_SESSION_COOKIE = "zd_analytics_admin";
+
+function analyticsServiceReady() {
+  return Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY);
+}
+
+function safeEqualText(left: string, right: string) {
+  const a = Buffer.from(left);
+  const b = Buffer.from(right);
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
+
+function adminCookieValue(expiresAt: number, password: string) {
+  const payload = String(expiresAt);
+  const signature = crypto.createHmac("sha256", password).update(payload).digest("base64url");
+  return `${payload}.${signature}`;
+}
+
+function hasAnalyticsAdminCookie(req: http.IncomingMessage) {
+  const password = process.env.WEBSITE_ADMIN_PASSWORD;
+  if (!password) return false;
+  const cookieHeader = req.headers.cookie || "";
+  const cookie = cookieHeader.split(";").map((part) => part.trim()).find((part) => part.startsWith(`${ANALYTICS_SESSION_COOKIE}=`));
+  if (!cookie) return false;
+  let value = "";
+  try { value = decodeURIComponent(cookie.slice(ANALYTICS_SESSION_COOKIE.length + 1)); } catch { return false; }
+  const [expiresText, signature] = value.split(".");
+  const expiresAt = Number(expiresText);
+  if (!Number.isSafeInteger(expiresAt) || expiresAt < Date.now() || !signature) return false;
+  return safeEqualText(signature, adminCookieValue(expiresAt, password).split(".")[1]);
+}
+
+function analyticsCookie(req: http.IncomingMessage, value: string, maxAge: number) {
+  const secure = process.env.NODE_ENV === "production" || req.headers["x-forwarded-proto"] === "https";
+  return `${ANALYTICS_SESSION_COOKIE}=${encodeURIComponent(value)}; Path=/api/analytics; HttpOnly; SameSite=Strict; Max-Age=${maxAge}${secure ? "; Secure" : ""}`;
+}
+
+async function readJsonBody(req: http.IncomingMessage, maxBytes = 4096): Promise<Record<string, unknown> | null> {
+  let body = "";
+  for await (const chunk of req) {
+    body += chunk.toString();
+    if (Buffer.byteLength(body) > maxBytes) return null;
+  }
+  try {
+    const parsed = JSON.parse(body);
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+async function callAnalyticsRpc(name: "track_website_analytics" | "get_website_analytics", body?: Record<string, unknown>) {
+  const baseUrl = process.env.SUPABASE_URL?.replace(/\/$/, "");
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!baseUrl || !serviceKey) throw new Error("Website analytics storage is not configured.");
+  const response = await fetch(`${baseUrl}/rest/v1/rpc/${name}`, {
+    method: "POST",
+    headers: {
+      apikey: serviceKey,
+      Authorization: `Bearer ${serviceKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body || {}),
+    signal: AbortSignal.timeout(8000),
+  });
+  if (!response.ok) {
+    console.error(`Website analytics RPC ${name} failed with status ${response.status}.`);
+    throw new Error("Website analytics storage request failed.");
+  }
+  if (response.status === 204) return null;
+  const text = await response.text();
+  return text ? JSON.parse(text) : null;
+}
+
 
 function getGameHtml() {
   const cloudConfig = process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY
@@ -129,6 +213,159 @@ export function startHttpServer(): Promise<{ server: http.Server; port: number }
   const server = http.createServer((req, res) => {
     const url = new URL(req.url || "/", "http://127.0.0.1:" + localPort);
 
+    if (req.method === "GET" && url.pathname === "/analytics.js") {
+      if (!analyticsServiceReady() || !process.env.WEBSITE_ADMIN_PASSWORD) {
+        res.writeHead(404, { "Cache-Control": "no-store" });
+        res.end();
+        return;
+      }
+      res.writeHead(200, { "Content-Type": "application/javascript; charset=utf-8", "Cache-Control": "no-cache" });
+      res.end(ANALYTICS_CLIENT_JS);
+      return;
+    }
+
+    if (url.pathname.startsWith("/api/analytics/")) {
+      const origin = req.headers.origin;
+      if (origin) {
+        try {
+          if (new URL(origin).host !== req.headers.host) {
+            res.writeHead(403, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+            res.end(JSON.stringify({ error: "Request origin not allowed." }));
+            return;
+          }
+        } catch {
+          res.writeHead(403, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+          res.end(JSON.stringify({ error: "Request origin not allowed." }));
+          return;
+        }
+      }
+
+      if (req.method === "POST" && url.pathname === "/api/analytics/collect") {
+        void (async () => {
+          const data = await readJsonBody(req);
+          const sessionId = typeof data?.session_id === "string" ? data.session_id : "";
+          const event = data?.event;
+          const page = data?.page;
+          const item = data?.item;
+          const seconds = data?.seconds;
+          const referrer = data?.referrer;
+          const device = data?.device;
+          const validId = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(sessionId);
+          const validPage = typeof page === "string" && ["/", "/play", "/download"].includes(page);
+          const validEvent = event === "page_view" || event === "engagement" || event === "download_click";
+          const validItem = item === undefined
+            ? event !== "download_click"
+            : ["zip", "apk", "macos", "windows", "other"].includes(String(item));
+          if (!data || !validId || !validEvent || !validPage || !validItem) {
+            res.writeHead(400, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+            res.end(JSON.stringify({ error: "Invalid analytics event." }));
+            return;
+          }
+          if (!analyticsServiceReady()) {
+            res.writeHead(503, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+            res.end(JSON.stringify({ error: "Analytics storage is not configured." }));
+            return;
+          }
+          let safeReferrer: string | null = null;
+          if (event === "page_view" && typeof referrer === "string" && referrer.length <= 500) {
+            try {
+              const hostInput = /^[a-z][a-z0-9+.-]*:\/\//i.test(referrer) ? referrer : `https://${referrer}`;
+              safeReferrer = new URL(hostInput).hostname.slice(0, 120) || null;
+            } catch { safeReferrer = null; }
+          }
+          const secondsValue = event === "engagement" && typeof seconds === "number" && Number.isFinite(seconds)
+            ? Math.max(0, Math.min(60, Math.floor(seconds))) : 0;
+          const safeDevice = device === "mobile" || device === "tablet" ? device : "desktop";
+          try {
+            await callAnalyticsRpc("track_website_analytics", {
+              p_session_id: sessionId,
+              p_event: event,
+              p_page: page,
+              p_seconds: secondsValue,
+              p_item: validItem ? item || null : null,
+              p_referrer: safeReferrer,
+              p_device: safeDevice,
+            });
+            res.writeHead(204, { "Cache-Control": "no-store" });
+            res.end();
+          } catch {
+            res.writeHead(503, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+            res.end(JSON.stringify({ error: "Analytics could not be saved." }));
+          }
+        })();
+        return;
+      }
+
+      if (req.method === "POST" && url.pathname === "/api/analytics/login") {
+        void (async () => {
+          const password = process.env.WEBSITE_ADMIN_PASSWORD;
+          if (!password) {
+            res.writeHead(503, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+            res.end(JSON.stringify({ error: "Admin access needs to be configured on the website host." }));
+            return;
+          }
+          const ipKey = req.headers["x-forwarded-for"]?.toString().split(",")[0].trim() || req.socket.remoteAddress || "unknown";
+          const now = Date.now();
+          for (const [key, value] of analyticsLoginAttempts) if (value.resetAt <= now) analyticsLoginAttempts.delete(key);
+          const attempt = analyticsLoginAttempts.get(ipKey);
+          if (attempt && attempt.count >= 5 && attempt.resetAt > now) {
+            res.writeHead(429, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store", "Retry-After": String(Math.ceil((attempt.resetAt - now) / 1000)) });
+            res.end(JSON.stringify({ error: "Too many attempts. Try again later." }));
+            return;
+          }
+          const data = await readJsonBody(req);
+          if (!data || typeof data.password !== "string" || data.password.length > 256 || !safeEqualText(data.password, password)) {
+            const current = analyticsLoginAttempts.get(ipKey);
+            analyticsLoginAttempts.set(ipKey, { count: (current?.resetAt && current.resetAt > now ? current.count : 0) + 1, resetAt: current?.resetAt && current.resetAt > now ? current.resetAt : now + 15 * 60 * 1000 });
+            res.writeHead(401, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+            res.end(JSON.stringify({ error: "Password not recognized." }));
+            return;
+          }
+          analyticsLoginAttempts.delete(ipKey);
+          const expiresAt = now + 6 * 60 * 60 * 1000;
+          res.writeHead(200, {
+            "Content-Type": "application/json; charset=utf-8",
+            "Cache-Control": "no-store",
+            "Set-Cookie": analyticsCookie(req, adminCookieValue(expiresAt, password), 6 * 60 * 60),
+          });
+          res.end(JSON.stringify({ ok: true }));
+        })();
+        return;
+      }
+
+      if (req.method === "POST" && url.pathname === "/api/analytics/logout") {
+        res.writeHead(204, { "Cache-Control": "no-store", "Set-Cookie": analyticsCookie(req, "", 0) });
+        res.end();
+        return;
+      }
+
+      if (req.method === "GET" && url.pathname === "/api/analytics/stats") {
+        if (!hasAnalyticsAdminCookie(req)) {
+          res.writeHead(401, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+          res.end(JSON.stringify({ error: "Sign in to view website statistics." }));
+          return;
+        }
+        if (!analyticsServiceReady()) {
+          res.writeHead(503, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+          res.end(JSON.stringify({ error: "Analytics database is not configured yet." }));
+          return;
+        }
+        void callAnalyticsRpc("get_website_analytics").then((stats) => {
+          res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+          res.end(JSON.stringify(stats));
+        }).catch(() => {
+          res.writeHead(503, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+          res.end(JSON.stringify({ error: "Could not load website statistics." }));
+        });
+        return;
+      }
+
+      res.writeHead(404, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+      res.end(JSON.stringify({ error: "Not found." }));
+      return;
+    }
+
+
     const pwaAsset = req.method === "GET" ? PWA_ASSETS[url.pathname as keyof typeof PWA_ASSETS] : undefined;
     if (pwaAsset) {
       res.writeHead(200, {
@@ -142,7 +379,7 @@ export function startHttpServer(): Promise<{ server: http.Server; port: number }
 
     if (req.method === "GET" && url.pathname === "/") {
       res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
-      res.end(WEBSITE_HTML);
+      res.end(withWebsiteAnalytics(WEBSITE_HTML, "/"));
       return;
     }
 
@@ -151,13 +388,13 @@ export function startHttpServer(): Promise<{ server: http.Server; port: number }
         "Content-Type": "text/html; charset=utf-8",
         "Cache-Control": "no-cache",
       });
-      res.end(getGameHtml());
+      res.end(withWebsiteAnalytics(getGameHtml(), "/play"));
       return;
     }
 
     if (req.method === "GET" && (url.pathname === "/download" || url.pathname === "/download/")) {
       res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
-      res.end(DOWNLOAD_HTML);
+      res.end(withWebsiteAnalytics(DOWNLOAD_HTML, "/download"));
       return;
     }
 
@@ -166,7 +403,7 @@ export function startHttpServer(): Promise<{ server: http.Server; port: number }
         "Content-Type": "text/html; charset=utf-8",
         "Cache-Control": "public, max-age=3600",
       });
-      res.end(PRIVACY_HTML);
+      res.end(withWebsiteAnalytics(PRIVACY_HTML, "/privacy"));
       return;
     }
 
